@@ -77,9 +77,12 @@ struct PhoneComputerSheet: View {
     @State private var named: ReadOnlySession?
     @State private var choosingWay = false
     @FocusState private var focusedRow: String?
-    /// The rows' own height and the bar and edge around them, read apart so either change refits the sheet.
+    /// The rows' own height, and the bar and edge around them as the sheet first opens. The edges are read once: they
+    /// change as the sheet is pulled up, and refitting then would drop the sheet back to its fitted height.
     @State private var rows: CGFloat = 0
     @State private var edges: CGFloat = 0
+    /// The height the sheet stands at, kept while the rows refit so a sheet pulled up stays up.
+    @State private var detent = PresentationDetent.custom(PhoneFittedDetent.self)
 
     var body: some View {
         NavigationStack {
@@ -94,7 +97,7 @@ struct PhoneComputerSheet: View {
                 }.padding(PhoneTheme.space5).frame(maxWidth: .infinity, alignment: .leading)
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rows = $0 }
             }
-            .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top + $0.safeAreaInsets.bottom } action: { edges = $0 }
+            .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top + $0.safeAreaInsets.bottom } action: { if edges == 0 { edges = $0 } }
             .onAppear { model.lookAtOthers() }
             // Another computer showing closes a confirmation that named the one before.
             .onChange(of: session.mac.pin) { leaving = false; forgetting = false; named = nil }
@@ -123,7 +126,7 @@ struct PhoneComputerSheet: View {
             }
         }
         .font(PhoneFont.body).foregroundStyle(PhoneTheme.text).tint(PhoneTheme.accent)
-        .presentationDetents([.custom(PhoneFittedDetent.self), .large]).presentationDragIndicator(.visible)
+        .presentationDetents([.custom(PhoneFittedDetent.self), .large], selection: $detent).presentationDragIndicator(.visible)
         .environment(\.phoneSheetFit, rows > 0 ? rows + edges : 0).phoneSheetSurface()
     }
 
