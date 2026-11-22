@@ -1,0 +1,18 @@
+{
+  "entries": [
+    {
+      "id": "computer-sheet-one-list",
+      "kind": "improvement",
+      "area": "devices",
+      "title": "A tidier Your computer sheet on iPhone and iPad",
+      "body": "The Your computer sheet is now one list: the computer you are reading first, with its reach and address on one line and a small Leave beside its name, then your other computers, then Add another computer. The sheet opens just tall enough for its rows. Before, the computer's facts took four lines in four styles, and Leave had its own heading, a sentence and a large red button.",
+      "picture": {
+        "dark": "computer-sheet-one-list-dark.webp",
+        "light": "computer-sheet-one-list-light.webp",
+        "alt": "The iPhone's Your computer sheet as one list: the computer with Live and its address under its name and a small Leave at its right, another computer marked Answers now, and Add another computer last"
+      },
+      "provenance": { "origin": "change" }
+    }
+  ],
+  "exclusions": []
+}

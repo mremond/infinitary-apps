@@ -56,11 +56,12 @@ extension ReadOnlySession {
     }
 }
 
-/// INF-1062: the computer's own sheet, with its name, reach and address, then Leave or Forget under its own heading.
-/// INF-1517, the captain's pick: it opens at half height on the system's glass with Settings' headings and spacing.
+/// INF-1062: the computer's own sheet. INF-6131, the captain's pick: one list in the shared row look, the computer
+/// shown first with its role, reach and address and a small plain Leave, or Forget while out of reach, at its trailing
+/// edge (the Mac draws Leave on its own device row this way); the other kept computers next (INF-5265); and Add another
+/// computer last. Leave stays the sheet's first control, so it is in view as the sheet opens at every Text Size.
+/// The sheet opens just tall enough for its rows, never past half height, and can still be pulled up (INF-6131).
 /// This device's own facts live in `PhoneSettingsSheet`.
-/// INF-5265: under them, the other kept computers, each marked when it answers; Add another computer comes last, after
-/// Leave, so a phone that keeps one computer finds Leave where it always was, at every Text Size.
 struct PhoneComputerSheet: View {
     let session: ReadOnlySession
     let model: PhoneModel
@@ -76,30 +77,24 @@ struct PhoneComputerSheet: View {
     @State private var named: ReadOnlySession?
     @State private var choosingWay = false
     @FocusState private var focusedRow: String?
+    /// The rows' own height and the bar and edge around them, read apart so either change refits the sheet.
+    @State private var rows: CGFloat = 0
+    @State private var edges: CGFloat = 0
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: PhoneTheme.space5) {
-                    VStack(alignment: .leading, spacing: PhoneTheme.space2) {
-                        Text(session.mac.name).font(PhoneFont.headline).accessibilityIdentifier("home-name")
-                        Text(PhoneMessages.phoneComputerFirstMateHere()).font(PhoneFont.callout).foregroundStyle(PhoneTheme.secondary)
-                        PhoneReach(session: session)
-                        if let address = session.reachedAddress {
-                            Text(address).font(PhoneFont.data).foregroundStyle(PhoneTheme.muted)
-                                .accessibilityIdentifier("reached-address")
-                        }
-                    }
+                    computers
                     // INF-4207 piece 9: while the home is out of reach, a computer that keeps a copy can take over. It
                     // stays through a reopen's Reaching, as Face ID makes, so a takeover under way keeps its row.
                     if session.homeLost, let standbys = session.mac.standbys, !standbys.isEmpty {
                         PhoneTakeOverSection(session: session, standbys: standbys)
                     }
-                    otherComputers
-                    exitControls
-                    addComputer
                 }.padding(PhoneTheme.space5).frame(maxWidth: .infinity, alignment: .leading)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rows = $0 }
             }
+            .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top + $0.safeAreaInsets.bottom } action: { edges = $0 }
             .onAppear { model.lookAtOthers() }
             // Another computer showing closes a confirmation that named the one before.
             .onChange(of: session.mac.pin) { leaving = false; forgetting = false; named = nil }
@@ -128,7 +123,8 @@ struct PhoneComputerSheet: View {
             }
         }
         .font(PhoneFont.body).foregroundStyle(PhoneTheme.text).tint(PhoneTheme.accent)
-        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible).phoneSheetSurface()
+        .presentationDetents([.custom(PhoneFittedDetent.self), .large]).presentationDragIndicator(.visible)
+        .environment(\.phoneSheetFit, rows > 0 ? rows + edges : 0).phoneSheetSurface()
     }
 
     private func pick(_ way: PhoneAddWay) {
@@ -136,44 +132,33 @@ struct PhoneComputerSheet: View {
         dismiss()
     }
 
-    /// The other kept computers. A tap shows a computer: the phone never switches by itself (the captain's pick,
-    /// Stay), so a mark only says which one answers now. On an iPad keyboard the arrows move among the rows, on to Add
-    /// another computer, and Return or Space presses one; a press with Command held is left to the app's own commands.
-    @ViewBuilder private var otherComputers: some View {
-        if !model.kept.others.isEmpty {
-            let rows = model.kept.others.map(\.pin) + [Self.addRow]
-            VStack(alignment: .leading, spacing: PhoneTheme.space2) {
-                Text(PhoneMessages.phoneComputerOthersHeading()).font(PhoneFont.headline).foregroundStyle(PhoneTheme.text)
-                PhoneList {
-                    ForEach(model.kept.others, id: \.pin) { mac in
-                        Button { dismiss(); model.show(mac.pin) } label: {
-                            PhoneRow(symbol: .computer, title: mac.name, line: answerWords(mac.pin), chevron: true)
-                                .overlay(alignment: .leading) {
-                                    if model.answering[mac.pin] == true {
-                                        Circle().fill(PhoneTheme.accent).frame(width: 6, height: 6)
-                                            .offset(x: PhoneTheme.space2).accessibilityHidden(true)
-                                    }
-                                }
+    /// The sheet's one list: the computer shown, the other kept computers, and Add another computer last. A tap on
+    /// another computer shows it: the phone never switches by itself (the captain's pick, Stay), so a mark only says
+    /// which one answers now. On an iPad keyboard the arrows move among those rows, on to Add another computer, and
+    /// Return or Space presses one; a press with Command held is left to the app's own commands.
+    private var computers: some View {
+        let order = model.kept.others.map(\.pin) + [Self.addRow]
+        return PhoneList {
+            shownComputer
+            ForEach(model.kept.others, id: \.pin) { mac in
+                Button { dismiss(); model.show(mac.pin) } label: {
+                    PhoneRow(symbol: .computer, title: mac.name, line: answerWords(mac.pin), chevron: true)
+                        .overlay(alignment: .leading) {
+                            if model.answering[mac.pin] == true {
+                                Circle().fill(PhoneTheme.accent).frame(width: 6, height: 6)
+                                    .offset(x: PhoneTheme.space2).accessibilityHidden(true)
+                            }
                         }
-                        .accessibilityLabel(mac.name).accessibilityValue(answerWords(mac.pin))
-                        .accessibilityHint(PhoneMessages.phoneComputerShowHint())
-                        .accessibilityIdentifier("kept-computer")
-                        .focusable().focused($focusedRow, equals: mac.pin)
-                        .onPlainKey(.return) { dismiss(); model.show(mac.pin) }
-                        .onPlainKey(.space) { dismiss(); model.show(mac.pin) }
-                        .onPlainKey(.downArrow) { focusedRow = step(rows, from: mac.pin, by: 1) }
-                        .onPlainKey(.upArrow) { focusedRow = step(rows, from: mac.pin, by: -1) }
-                    }
-                }.buttonStyle(PhoneRowStyle())
-            }.frame(maxWidth: .infinity, alignment: .leading)
-                // The sheet opens with the first row focused, so a keyboard's arrows and Return reach the list at once.
-                .onAppear { focusedRow = rows.first }
-        }
-    }
-
-    /// Add another computer, the last row of the sheet.
-    private var addComputer: some View {
-        PhoneList {
+                }
+                .accessibilityLabel(mac.name).accessibilityValue(answerWords(mac.pin))
+                .accessibilityHint(PhoneMessages.phoneComputerShowHint())
+                .accessibilityIdentifier("kept-computer")
+                .focusable().focused($focusedRow, equals: mac.pin)
+                .onPlainKey(.return) { dismiss(); model.show(mac.pin) }
+                .onPlainKey(.space) { dismiss(); model.show(mac.pin) }
+                .onPlainKey(.downArrow) { focusedRow = step(order, from: mac.pin, by: 1) }
+                .onPlainKey(.upArrow) { focusedRow = step(order, from: mac.pin, by: -1) }
+            }
             Button { choosingWay = true } label: {
                 PhoneRow(symbol: .plus, title: PhoneMessages.phoneComputerAddTitle(),
                          line: PhoneMessages.phoneComputerAddLine(), chevron: true)
@@ -186,6 +171,55 @@ struct PhoneComputerSheet: View {
                 if let last = model.kept.others.last { focusedRow = last.pin }
             }
         }.buttonStyle(PhoneRowStyle()).frame(maxWidth: .infinity, alignment: .leading)
+            // With other computers kept, the sheet opens with the first of them focused, so a keyboard's arrows and
+            // Return reach the list at once.
+            .onAppear { if !model.kept.others.isEmpty { focusedRow = order.first } }
+    }
+
+    /// The computer shown, the list's first row: its glyph at the name's height, the name, its role, and under them
+    /// one line of small type with the reach and then the address reached. Leave, or Forget while out of reach, sits
+    /// at the trailing edge beside the name, and drops under the row's lines when the name does not fit beside it.
+    private var shownComputer: some View {
+        HStack(alignment: .phoneNameLine, spacing: PhoneTheme.space3) {
+            PhoneSymbol.computer.image.foregroundStyle(PhoneTheme.accent).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: PhoneTheme.space2) {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: PhoneTheme.space3) {
+                        identity(oneLine: true)
+                        Spacer(minLength: 0)
+                        exitControl
+                    }
+                    VStack(alignment: .trailing, spacing: 0) {
+                        identity(oneLine: false).frame(maxWidth: .infinity, alignment: .leading)
+                        exitControl
+                    }
+                }
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: PhoneTheme.space3) { PhoneReach(session: session, oneLine: true); reachedAddress }
+                    VStack(alignment: .leading, spacing: 2) { PhoneReach(session: session, oneLine: true); reachedAddress }
+                    VStack(alignment: .leading, spacing: 2) { PhoneReach(session: session); reachedAddress }
+                }
+            }
+        }
+        .padding(.horizontal, PhoneTheme.space4).padding(.vertical, PhoneTheme.space3)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+    }
+
+    private func identity(oneLine: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(session.mac.name).font(PhoneFont.headline).foregroundStyle(PhoneTheme.text)
+                .fixedSize(horizontal: oneLine, vertical: false)
+                .alignmentGuide(.phoneNameLine) { $0[VerticalAlignment.center] }
+                .accessibilityIdentifier("home-name")
+            Text(PhoneMessages.phoneComputerFirstMateHere()).font(PhoneFont.caption).foregroundStyle(PhoneTheme.secondary)
+        }.multilineTextAlignment(.leading)
+    }
+
+    @ViewBuilder private var reachedAddress: some View {
+        if let address = session.reachedAddress {
+            Text(address).font(PhoneFont.micro).foregroundStyle(PhoneTheme.muted)
+                .accessibilityIdentifier("reached-address")
+        }
     }
 
     private static let addRow = "add-computer" // i18n-exempt: a focus name, not shown
@@ -205,28 +239,43 @@ struct PhoneComputerSheet: View {
     }
 
     // Close the sheet on confirmation so any failure remains visible in the root's problem notice.
-    // INF-1312: the sentence first, then one fitted button in the Mac's red outline at the trailing edge.
-    // INF-1517: a section of its own, headed Leave, or Forget while the computer is out of reach.
-    private var exitControls: some View {
-        VStack(alignment: .leading, spacing: PhoneTheme.space2) {
-            if session.contact == "in-reach" {
-                Text(PhoneMessages.phoneComputerLeaveHeading()).font(PhoneFont.headline).foregroundStyle(PhoneTheme.text)
-                Text(PhoneMessages.phoneComputerLeaveExplain())
-                PhoneChoiceRow {
-                    Button(PhoneMessages.phoneComputerLeaveButton(computer: session.mac.name)) { named = session; leaving = true }
-                        .buttonStyle(PhoneChoiceStyle(.danger)).accessibilityIdentifier("leave")
-                }
-            } else {
-                Text(PhoneMessages.phoneComputerForgetHeading()).font(PhoneFont.headline).foregroundStyle(PhoneTheme.text)
-                Text(PhoneMessages.phoneComputerForgetExplain(computer: session.mac.name))
-                PhoneChoiceRow {
-                    Button(PhoneMessages.phoneComputerForgetButton()) { named = session; forgetting = true }
-                        .buttonStyle(PhoneChoiceStyle(.danger)).accessibilityIdentifier("forget-mac")
-                }
-            }
-        }.frame(maxWidth: .infinity, alignment: .leading)
-            .font(PhoneFont.callout).foregroundStyle(PhoneTheme.secondary)
+    // INF-6131: a fitted button in the hairline outline, since the row already names the computer and the alert says
+    // what leaving costs in the danger color; it keeps the spoken name that names the computer.
+    @ViewBuilder private var exitControl: some View {
+        if session.contact == "in-reach" {
+            Button(PhoneMessages.phoneComputerLeaveShort()) { named = session; leaving = true }
+                .buttonStyle(PhoneChoiceStyle(.secondary)).fixedSize()
+                .accessibilityLabel(PhoneMessages.phoneComputerLeaveButton(computer: session.mac.name))
+                .accessibilityIdentifier("leave")
+        } else {
+            Button(PhoneMessages.phoneComputerForgetShort()) { named = session; forgetting = true }
+                .buttonStyle(PhoneChoiceStyle(.secondary)).fixedSize()
+                .accessibilityLabel(PhoneMessages.phoneComputerForgetButton())
+                .accessibilityIdentifier("forget-mac")
+        }
     }
+}
+
+/// INF-6131: the computer sheet opens just tall enough for its rows, and never past half height; before its rows are
+/// measured it opens at half height, as it did before.
+private struct PhoneFittedDetent: CustomPresentationDetent {
+    static func height(in context: Context) -> CGFloat? {
+        let half = context.maxDetentValue / 2
+        return context.phoneSheetFit > 0 ? min(context.phoneSheetFit, half) : half
+    }
+}
+
+extension EnvironmentValues {
+    /// The height the computer sheet's rows ask for, read by its fitted detent.
+    @Entry var phoneSheetFit: CGFloat = 0
+}
+
+private extension VerticalAlignment {
+    /// The computer row's name line: the glyph and Leave center on it.
+    enum PhoneNameLine: AlignmentID {
+        static func defaultValue(in context: ViewDimensions) -> CGFloat { context[VerticalAlignment.center] }
+    }
+    static let phoneNameLine = VerticalAlignment(PhoneNameLine.self)
 }
 
 /// INF-5265: the ways in Add another computer offers, the first screen's three.

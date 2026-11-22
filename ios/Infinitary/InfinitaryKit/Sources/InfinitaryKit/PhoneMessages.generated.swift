@@ -1737,19 +1737,16 @@ public enum PhoneMessages {
     public static func `phoneComputerForgetAsk`() -> String { PhoneWords.format("phoneComputerForgetAsk", []) }
     public static func `phoneComputerForgetButton`() -> String { PhoneWords.format("phoneComputerForgetButton", []) }
     public static func `phoneComputerForgetConfirm`() -> String { PhoneWords.format("phoneComputerForgetConfirm", []) }
-    public static func `phoneComputerForgetExplain`(`computer`: String) -> String { PhoneWords.format("phoneComputerForgetExplain", [`computer`]) }
-    public static func `phoneComputerForgetHeading`() -> String { PhoneWords.format("phoneComputerForgetHeading", []) }
+    public static func `phoneComputerForgetShort`() -> String { PhoneWords.format("phoneComputerForgetShort", []) }
     public static func `phoneComputerForgetWarning`() -> String { PhoneWords.format("phoneComputerForgetWarning", []) }
     public static func `phoneComputerKeep`() -> String { PhoneWords.format("phoneComputerKeep", []) }
     public static func `phoneComputerLeaveAsk`(`computer`: String) -> String { PhoneWords.format("phoneComputerLeaveAsk", [`computer`]) }
     public static func `phoneComputerLeaveButton`(`computer`: String) -> String { PhoneWords.format("phoneComputerLeaveButton", [`computer`]) }
     public static func `phoneComputerLeaveConfirm`() -> String { PhoneWords.format("phoneComputerLeaveConfirm", []) }
-    public static func `phoneComputerLeaveExplain`() -> String { PhoneWords.format("phoneComputerLeaveExplain", []) }
-    public static func `phoneComputerLeaveHeading`() -> String { PhoneWords.format("phoneComputerLeaveHeading", []) }
+    public static func `phoneComputerLeaveShort`() -> String { PhoneWords.format("phoneComputerLeaveShort", []) }
     public static func `phoneComputerLeaveWarning`() -> String { PhoneWords.format("phoneComputerLeaveWarning", []) }
     public static func `phoneComputerLooking`() -> String { PhoneWords.format("phoneComputerLooking", []) }
     public static func `phoneComputerNotAnswering`() -> String { PhoneWords.format("phoneComputerNotAnswering", []) }
-    public static func `phoneComputerOthersHeading`() -> String { PhoneWords.format("phoneComputerOthersHeading", []) }
     public static func `phoneComputerShowHint`() -> String { PhoneWords.format("phoneComputerShowHint", []) }
     public static func `phoneComputerTitle`() -> String { PhoneWords.format("phoneComputerTitle", []) }
     public static func `phoneCrewSummaryOpenTask`() -> String { PhoneWords.format("phoneCrewSummaryOpenTask", []) }
@@ -5937,19 +5934,16 @@ extension PhoneWords {
         "phoneComputerForgetAsk": [],
         "phoneComputerForgetButton": [],
         "phoneComputerForgetConfirm": [],
-        "phoneComputerForgetExplain": ["computer"],
-        "phoneComputerForgetHeading": [],
+        "phoneComputerForgetShort": [],
         "phoneComputerForgetWarning": [],
         "phoneComputerKeep": [],
         "phoneComputerLeaveAsk": ["computer"],
         "phoneComputerLeaveButton": ["computer"],
         "phoneComputerLeaveConfirm": [],
-        "phoneComputerLeaveExplain": [],
-        "phoneComputerLeaveHeading": [],
+        "phoneComputerLeaveShort": [],
         "phoneComputerLeaveWarning": [],
         "phoneComputerLooking": [],
         "phoneComputerNotAnswering": [],
-        "phoneComputerOthersHeading": [],
         "phoneComputerShowHint": [],
         "phoneComputerTitle": [],
         "phoneCrewSummaryOpenTask": [],

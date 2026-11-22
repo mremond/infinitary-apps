@@ -61,8 +61,8 @@ An invalid pin or invalid address discards only that computer and keeps the othe
 One phone keeps every computer it joined and shows one at a time (INF-5265, the captain's approved plan on INF-5264), for a person whose computers cannot see each other, such as one at home and one at work, each behind its own VPN.
 A computer is named by its pin, which a home keeps through a move, so joining one again replaces its record rather than adding a second.
 Joining while a computer is shown keeps that one among the others and shows the new one; the join itself is the same confirmed link.
-The computer sheet lists the other kept computers under Your other computers, then Leave or Forget, then **Add another computer** last, which offers the first screen's three ways in.
-Add another computer comes after Leave so a phone keeping one computer finds Leave where it always was, at every Text Size, which the join-read part checks at the largest standard size.
+The computer sheet is one list (INF-6131, the captain's approved plan): the computer shown first, the other kept computers next, and **Add another computer** last, which offers the first screen's three ways in.
+Leave, or Forget, sits on the computer shown's own row, so it is the sheet's first control and in view as the sheet opens at every Text Size, which the join-read part checks at the largest standard size.
 A tap on a computer shows it: the phone stops the shown computer's connection, saves the new order and connects to the one tapped.
 The phone never switches by itself (the captain's pick, "Stay on my choice"): on each open, each settled network change and each time the sheet opens, it sends each other kept computer the pinned, non-mutating `GET /connection` a join sends first, which opens no session, and marks the ones that answer 426 as Answers now and the rest as Not answering from here.
 The sheet opens with its first row focused, so on a keyboard the up and down arrows move among the rows, Return or Space presses one, and Command-I opens it.
@@ -455,8 +455,8 @@ The join part's Appearance steps drive it by keys on a simulator launched with `
 The launch screen, which iOS draws before the app runs, keeps the device's own appearance.
 While Appearance is open the control holds focus and the left and right arrow keys move the choice, with no command of its own; an unseen shortcut under the sheet never hears an unmodified arrow.
 `PhoneLookTests` holds the saved choice, and the join-read part chooses Dark on a light simulator, sees it drawn dark before and after a relaunch, and chooses Device again by keyboard.
-Both sit on the system's glass with the same headings and spacing: the computer's sheet opens at half height and can be pulled up, and Settings opens at full height, since its nine sections do not fit half a screen.
-Leave, or Forget while out of reach, has its own heading in the computer sheet, after the other kept computers and before Add another computer.
+Both sit on the system's glass: the computer's sheet opens just tall enough for its rows, never past half height, and can be pulled up (INF-6131), and Settings opens at full height, since its nine sections do not fit half a screen.
+Leave, or Forget while out of reach, is a small button in the hairline outline at the trailing edge of the computer's own row in the computer sheet; its alert says what leaving costs.
 While the computer's Secrets are set up and open, Settings → Devices also shows Secrets approvals: the Approves secret uses switch, the code to compare with the computer's card, or that this device can allow uses, and Set up approvals again in place of the switch for a damaged record.
 The phone reads its approvals again at each Secrets change the computer announces and each time it reaches the computer, from the connection itself rather than a view's restart, which SwiftUI skips when several changes arrive in one frame: each change starts a read of its own, and only the newest read's answer is shown.
 While the keyboard is open, Done takes Settings' place in the leading slot and the Hide keyboard command (Shift-Command-K) dismisses it without sending or clearing the draft.

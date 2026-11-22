@@ -50,9 +50,11 @@ In reach the bar says nothing more, and VoiceOver hears "Live".
 Coming back after the words said out of reach, the line under the bar says "Catching up on what was missed" or "Catching up, reading everything again" until what was missed is shown, then goes.
 Out of reach is said once, by one line under the bar on every tab with its dot, state and "since" the last-heard time, with its day when that was not today; no strip above the content or line on a card repeats it, and only the current in-memory view remains.
 The message capsule and a card's reply row dim, and one line under the message box says only “Changes are off until <computer> is back.”, as the Mac says it.
-The computer button opens a native sheet with the computer's name, its reach and its address.
-Under them, Your other computers lists each other kept computer as a row in the shared list shape, the computer glyph, its name and one line, Answers now with an accent dot before the glyph, Not answering from here, or Looking… while the phone checks; a tap shows it, and the phone never switches by itself.
-Leave, or Forget, follows them, and the last row, after it, is Add another computer with a plus glyph, which offers the first screen's three ways in, so a phone keeping one computer finds Leave where it always was at every Text Size.
+The computer button opens a native sheet whose body is one list in the shared list shape, with no heading above it, and which opens just tall enough for its rows, never past half height.
+Its first row is the computer shown, in the shape the Mac gives a device: the computer glyph at the name's height, the name in the headline face, "Your first mate lives here." in the caption size, and under them one micro mono line with the reach dot and words, then the address reached in the muted color, which wraps under the reach when both do not fit.
+A small Leave in the hairline outline, Forget while out of reach, sits at that row's trailing edge beside the name, and drops under the row's lines when the name does not fit beside it; the red is kept for its alert.
+Each other kept computer follows as a row, the computer glyph, its name and one line, Answers now with an accent dot before the glyph, Not answering from here, or Looking… while the phone checks; a tap shows it, and the phone never switches by itself.
+The last row is Add another computer with a plus glyph, which offers the first screen's three ways in.
 With other computers kept, the sheet opens with the first of them focused, and the arrows, Return and Space reach every row; a key pressed with Command held presses no row.
 The Settings button, the Lucide gear, opens a sheet at full height on a list of General, Appearance, Projects, Intelligence, Runbooks, Usage, Automation, Integrations and Devices, the desktop's names in the desktop's order.
 Each row has no icon: its section name, one current-state line and a trailing chevron, in the shared list shape.
@@ -106,9 +108,9 @@ Runbooks lists the built-in runbooks and the person's own under their labels, ea
 Theme is Apple's segmented control worded Device, Dark and Light, like the computer's Dark and Light pills, under one secondary line saying it is set on this iPhone only and the computer keeps its own; it starts on Device and never changes the computer's Theme.
 Command-1 to Command-4 switch tabs in the strip's order, Command-Comma opens Settings and Command-I the computer.
 The sheet shows a joining time only if the saved connection supplies one; it never invents one for an older record.
-Leave sits at the foot under a hairline: its sentence first, then Leave <computer> fitted at the trailing edge in the Mac's red outline, with an alert that keeps Keep it beside Leave and explains that a new link is needed to return.
+Leave on the computer's row asks in an alert that keeps Keep it beside a red Leave and explains that a new link is needed to return; VoiceOver hears the button as Leave <computer>.
 **Taking over** (INF-4207 piece 9).
-Out of reach, while the computer lists other computers that keep a copy, the sheet adds a section above Forget, headed "Take over" in the headline face, with one callout sentence in the secondary color: "Another computer that keeps a copy of your first mate's record can take over while MacBook Pro is out of reach."
+Out of reach, while the computer lists other computers that keep a copy, the sheet adds a section under its list, headed "Take over" in the headline face, with one callout sentence in the secondary color: "Another computer that keeps a copy of your first mate's record can take over while MacBook Pro is out of reach."
 Each computer that keeps a copy is one box on the surface fill inside a hairline, at the control radius: a 6-point dot, in the accent while it can take over and the warning color while not, then its name in the headline face.
 Under it, its own words in callout lines, read live from that computer, in the order its window says them: "Its copy is from 9:05 AM.", "It cannot reach MacBook Pro either."
 (or that MacBook Pro said it was going to sleep, or that Infinitary quit there), each other copy ("Mac Studio's copy is from 9:01 AM."), with a micro "may be newer" in the warning color under one that held more changes.
@@ -117,7 +119,7 @@ A secondary Take over ends the box, disabled while that computer cannot take ove
 If MacBook Pro comes back, it stops and keeps a copy instead.", a destructive Take over and Not now.
 Take over then asks Face ID or the passcode; while that computer starts the first mate the button reads "Taking over...", and its answer reads in place in the primary color.
 Once it started, the phone finds the first mate there and reads Live again, with nothing to join.
-Out of reach, Forget this computer replaces Leave in the same shape, under its own sentence, asking in the same kind of alert before clearing only the local saved computer and explaining that the computer may still list this device.
+Out of reach, Forget replaces Leave in the same place and shape, asking in the same kind of alert before clearing only the local saved computer and explaining that the computer may still list this device.
 Removed clears the computer's data from this device and takes the first screen's shape: the first mate above “Removed from your computer”, a line saying a new link is needed, and one Join again filled with the accent, fitted and centered under the words.
 A protected-data read failure explains why joining cannot proceed and offers another attempt after unlocking.
 A damaged saved connection clears only the saved computer, keeps this device's identity and explains that a fresh link can join again; it never asks the person to unlock for a decoding error.
