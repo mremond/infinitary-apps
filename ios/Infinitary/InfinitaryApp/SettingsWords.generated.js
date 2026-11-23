@@ -5505,11 +5505,11 @@ ${events}` : prompt;
       case "ar":
         return `قيد التحديث`;
       case "de":
-        return `wird aktualisiert`;
+        return `in Aktualisierung`;
       case "es":
         return `actualizándose`;
       case "fr":
-        return `mise à jour`;
+        return `en cours de mise à jour`;
       case "ja":
         return `更新中`;
       case "ko":

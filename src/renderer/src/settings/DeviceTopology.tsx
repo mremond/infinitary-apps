@@ -52,7 +52,9 @@ const height = 380;
 export function deviceContact(device: DeviceView) {
   if (device.controlling) return "live";
   const reach = reachFrom(device);
-  return reach === "in-reach" ? "live" : reach === "out-of-reach" ? "away" : "trying";
+  if (reach === "in-reach") return "live";
+  // A computer being updated is coming back, never away (`computer-updating`).
+  return reach === "out-of-reach" && !device.updating ? "away" : "trying";
 }
 
 function contactWord(contact: ReturnType<typeof deviceContact>) {
@@ -69,6 +71,7 @@ function deviceStatus(device: DeviceView, contact: ReturnType<typeof deviceConta
     if (device.controlling && !device.inReach) return m.settingsDevicesMapWorkNotReady();
   }
   if (contact === "trying") {
+    if (device.updating) return m.settingsDevicesMapUpdating();
     if (reachFrom(device) === "reconnecting" && device.seenAt !== undefined)
       return m.settingsDevicesMapReconnectingSsh();
     return m.settingsDevicesMapConnectingSsh();
@@ -78,7 +81,9 @@ function deviceStatus(device: DeviceView, contact: ReturnType<typeof deviceConta
 
 // An active retry exposes the missing work response, not a specific failure cause.
 function retryDetail(device: DeviceView): string | null {
-  return deviceContact(device) === "trying" && reachFrom(device) === "reconnecting"
+  return deviceContact(device) === "trying" &&
+    !device.updating &&
+    reachFrom(device) === "reconnecting"
     ? m.settingsDevicesMapWaitingForWork()
     : null;
 }
@@ -276,7 +281,9 @@ export function DeviceTopology({
         <span className="fm-topology-state" data-contact={contact}>
           {state}
           {waitingForWork && <span className="fm-topology-progress">{waitingForWork}</span>}
-          {progress && <span className="fm-topology-progress">{progress}</span>}
+          {progress && progress !== state && (
+            <span className="fm-topology-progress">{progress}</span>
+          )}
         </span>
       </button>
     );

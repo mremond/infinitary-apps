@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { chipWords, HERE, SYSTEM_WORDS } from "./deviceNames";
 import {
-  awayWord,
   type ComputerReach,
   computerReachSchema,
   type DeviceSystem,
   deviceChipSchema,
   deviceSystemSchema,
+  servedAwayWord,
 } from "./devices";
 import { computerResourceReadingSchema, RESOURCE_READ_TIMEOUT_MS } from "./resources";
 import { computerSignInsSchema } from "./signIns";
@@ -422,7 +422,7 @@ function rejectionWords(
       (reason) =>
         said[reason] ??
         (reason === "out-of-reach" && (away.updating || away.reach === "connecting")
-          ? awayWord(away.reach === "connecting", away.updating)
+          ? servedAwayWord(away.reach === "connecting", away.updating)
           : REJECTION_WORDS[reason]),
     )
     .join("; ");

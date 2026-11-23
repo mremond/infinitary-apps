@@ -786,7 +786,7 @@
 "devicesAppWhyOwnWindow" = "Sie aktualisiert sich nur aus ihrem eigenen Fenster dort – aktualisiere sie also dort.";
 "devicesAppWhyPackageManager" = "Ein Paketmanager hat sie dort installiert – aktualisiere sie also dort mit diesem Paketmanager.";
 "devicesAppWhyUnpublished" = "Infinitary %1$@ ist keine veröffentlichte Version – installiere sie also dort von Hand.";
-"devicesAwayUpdating" = "wird aktualisiert";
+"devicesAwayUpdating" = "in Aktualisierung";
 "devicesCarriedOn" = "Die Aufgaben eines Computers außer Reichweite laufen auf %1$@ weiter, und dieser Eintrag ist von deiner Liste verschwunden.";
 "devicesCarryNotRemoved" = "Die Aufgaben von %1$@ wurden verschoben, aber der Eintrag konnte nicht von deiner Liste entfernt werden: %2$@";
 "devicesCarryRunsOn" = "Läuft auf: %2$@, wo die Aufgaben von %1$@, außer Reichweite, jetzt weiterlaufen";

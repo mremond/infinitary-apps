@@ -22,7 +22,7 @@
   "devicesAppWhyOwnWindow": "Elle ne se met à jour que depuis sa propre fenêtre là-bas : mets-la donc à jour là-bas.",
   "devicesAppWhyPackageManager": "Un gestionnaire de paquets l’a installée là-bas : mets-la donc à jour là-bas avec ce gestionnaire de paquets.",
   "devicesAppWhyUnpublished": "Infinitary {version} n’est pas une version publiée : installe-la donc là-bas à la main.",
-  "devicesAwayUpdating": "mise à jour",
+  "devicesAwayUpdating": "en cours de mise à jour",
   "devicesCarriedOn": "Les tâches d'un ordinateur hors de portée continuent sur {to}, et cette entrée a quitté votre liste.",
   "devicesCarryNotRemoved": "Les tâches de {from} ont été déplacées, mais il n'a pas pu quitter votre liste : {why}",
   "devicesCarryRunsOn": "Tourne sur : {to}, où les tâches de {from}, hors de portée, continuent maintenant",

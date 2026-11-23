@@ -5,7 +5,6 @@ import { type BuildIdentity, compareBuilds, sourceCommitOf } from "@shared/build
 import { takesDownload, takesUpdate } from "@shared/contractFeatures";
 import { HERE, PLACE_SAID } from "@shared/deviceNames";
 import {
-  awayWord,
   buildsSourceThere,
   type ComputerReach,
   type DeviceAppVersion,
@@ -24,6 +23,7 @@ import {
   installedThere,
   installItThereWords,
   isPhone,
+  servedAwayWord,
 } from "@shared/devices";
 import type { FmEvent } from "@shared/events";
 import * as m from "@shared/i18n/messages.generated";
@@ -413,7 +413,7 @@ export class Computers {
       return this.viewOf(deviceId) ?? device;
     }
     if (when === "now") return this.removeNow(device);
-    const away = awayWord(
+    const away = servedAwayWord(
       this.options.reachOf?.(deviceId) === "connecting",
       this.updatingOf(deviceId),
     );
@@ -1671,11 +1671,14 @@ export class Computers {
   private heard(deviceId: string): void {
     const followed = this.followed.get(deviceId);
     if (!followed) return;
+    const was = this.updatingOf(deviceId);
     followed.cancel();
     followed.heard = this.options.now();
     followed.cancel = (this.options.schedule ?? schedule)(this.quietMs(), () =>
       this.updatingMoved(),
     );
+    // Heard again after its quiet wait ran out: every reader reads updating again.
+    if (!was) this.updatingMoved();
   }
 
   /** One step of an update for the feed: heard from that computer, for its quiet wait. */

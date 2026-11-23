@@ -706,6 +706,8 @@ export async function startHomeDevices(options: {
         const started = startingUp && Date.now() - startedAt >= STARTUP_CONNECTING_MS;
         if (started) startingUp = false;
         if (sshConnections.due() || started) devicesChanged();
+        // The list may not move then, so the sign-ins read their reach again.
+        if (started) deviceSignIns.reachChanged(list.list());
       });
       // Its work comes here first, or once it is back, as Remove's would.
       leaveWithWork = (device) => {

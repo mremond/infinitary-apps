@@ -1,7 +1,7 @@
 import { type DeviceSsh, type DeviceView, reachFrom } from "@shared/devices";
 import * as m from "@shared/i18n/messages.generated";
 import { PROTOCOL_VERSION } from "@shared/ipc";
-import type { ComputerSignIns } from "@shared/signIns";
+import type { ComputerSignIns, DeviceSignIns as DeviceSignInsView } from "@shared/signIns";
 import { describe, expect, it, vi } from "vitest";
 import type { WorkDeviceContact } from "../connection/connection";
 import { DeviceSignIns } from "./deviceSignIns";
@@ -35,6 +35,41 @@ function view(inReach: boolean, ssh: DeviceSsh | undefined) {
 }
 
 describe("a computer's sign-ins view", () => {
+  // The captain's choice B on the updating plan: the first minute after start
+  // reads connecting, and once it ends Runs on and the sign-ins say out of
+  // reach though the list itself did not move.
+  it("pushes again when the reach its view says moves, with the list unchanged", () => {
+    let reach: "connecting" | "out-of-reach" = "connecting";
+    const pushed: DeviceSignInsView[][] = [];
+    const signIns = new DeviceSignIns({
+      devices: () => [MINI],
+      work: {
+        ask: async () => {
+          throw new Error("not asked");
+        },
+        onWorkDevice: () => () => {},
+        inReach: () => false,
+        version: () => undefined,
+      },
+      emit: (channel, payload) => {
+        if (channel === "inf:devices:sign-ins") pushed.push(payload as DeviceSignInsView[]);
+      },
+      broadcastEvent: () => {},
+      reachOf: () => reach,
+    });
+    try {
+      signIns.reachChanged([MINI]);
+      expect(pushed.at(-1)?.[0]?.reach).toBe("connecting");
+      signIns.reachChanged([MINI]);
+      expect(pushed).toHaveLength(1);
+      reach = "out-of-reach";
+      signIns.reachChanged([MINI]);
+      expect(pushed.at(-1)?.[0]?.reach).toBe("out-of-reach");
+    } finally {
+      signIns.dispose();
+    }
+  });
+
   // Accepted token-command plan: an older work computer must not silently keep a fixed key instead.
   it("forwards a token command only to a computer advertising that capability", async () => {
     // A computer on the major before token commands were folded in has them only by name.

@@ -14,8 +14,11 @@ import {
   parsePairingLink,
   reachAfterStart,
   STARTUP_CONNECTING_MS,
+  servedAwayWord,
   splitDialAddress,
 } from "./devices";
+import { currentLanguage, setCurrentLanguage } from "./i18n/current.ts";
+import * as m from "./i18n/messages.generated.ts";
 
 const link: PairingLink = {
   kind: "view",
@@ -207,5 +210,20 @@ describe("a computer's reach in the first minute after the home starts", () => {
       expect(
         reachAfterStart(reach, { startedAt, now: startedAt, seenAt: undefined, pairedAt }),
       ).toBe(reach);
+  });
+});
+
+// AGENTS.md: text served to a model stays English. Automatic's wait words and
+// Remove's refusal are saved on the record, so updating reads in English there.
+describe("a computer's away word served to a model", () => {
+  it("stays English whatever the person's language, while the screen word follows it", () => {
+    const was = currentLanguage();
+    setCurrentLanguage("de");
+    try {
+      expect(servedAwayWord(false, true)).toBe("updating");
+      expect(m.devicesAwayUpdating()).not.toBe("updating");
+    } finally {
+      setCurrentLanguage(was);
+    }
   });
 });

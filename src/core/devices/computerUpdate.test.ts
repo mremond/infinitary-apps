@@ -885,7 +885,7 @@ describe("a computer that runs work on another version of Firstmate", () => {
     expect(at.view()?.updating).toBe(true);
     await expect.poll(() => at.view()?.updating).toBeUndefined();
     at.computers.heardFrom(at.deviceId);
-    expect(at.view()?.updating).toBe(true);
+    expect(at.pushed.at(-1)?.find((device) => device.id === at.deviceId)?.updating).toBe(true);
     held.resolve();
     await updating;
     expect(at.view()).not.toHaveProperty("updating");

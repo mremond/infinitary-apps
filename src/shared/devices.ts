@@ -3,6 +3,8 @@ import { appFollowReportSchema } from "./appFollow";
 import { shortCommit } from "./buildIdentity";
 import { commandNoticeSchema } from "./commandNotice";
 import { COMPUTER, HERE } from "./deviceNames";
+import { inLanguage } from "./i18n/current.ts";
+import { SOURCE_LANGUAGE } from "./i18n/languages.ts";
 import * as m from "./i18n/messages.generated.ts";
 import { deviceWorkSetupSchema } from "./workSetup";
 
@@ -587,6 +589,14 @@ export function deviceConnecting(device: {
 export function awayWord(connecting: boolean | undefined, updating?: boolean | undefined): string {
   if (updating) return m.devicesAwayUpdating();
   return connecting ? "connecting" : "out of reach";
+}
+
+/** `awayWord` in English, for words saved on the record or served to a model. */
+export function servedAwayWord(
+  connecting: boolean | undefined,
+  updating?: boolean | undefined,
+): string {
+  return inLanguage(SOURCE_LANGUAGE, () => awayWord(connecting, updating));
 }
 
 /**

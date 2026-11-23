@@ -1134,7 +1134,7 @@ While its update goes on, the computer reads updating, never out of reach (`upda
   From its crew's pause (`Computers.pauseFor`) until the update's route ends, whatever came of it.
   The fact lives only in this Mac's memory, so a restart of the app here forgets it.
 - **What says so.**
-  Devices reads "updating" with an idle dot, and its line keeps the update's own step even when Devices opened part way.
+  In Devices its row follows the update's own step, even when Devices opened part way, with an idle dot while it is out of reach, and the Map reads "Updating" on a dotted edge, never Out of reach.
   Each task there carries `place.updating`: its Tasks row reads "updating" in `--fg-3` with no warn mark, and its status says "Mac mini is updating" with the mark as it was (`docs/helper.md`, "Runs on").
   Runs on, the sign-ins note, the device forge rows, Remove's lines and Automatic's compared computers say "updating" too, and so do the phone's task rows.
 - **How long without a word.**

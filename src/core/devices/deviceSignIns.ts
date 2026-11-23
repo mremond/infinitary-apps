@@ -989,7 +989,8 @@ export class DeviceSignIns {
           device.name,
           device.user,
           device.onThisMac,
-          reachFrom(device),
+          // The reach its view says, the first minute after start included.
+          this.options.reachOf?.(device.id) ?? reachFrom(device),
           device.updating,
           device.controlling,
           device.workSetup,
