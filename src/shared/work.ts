@@ -363,6 +363,12 @@ export const placedEventSchema = z.union([
       turn: z.number().int().positive(),
       outcome: z.enum(["done", "failed", "interrupted"]),
       error: z.string().optional(),
+      /**
+       * A failed turn its model never took, since an update's save stopped
+       * it first (`StoppedBeforeStartError`, `work-update-saving.md`): its
+       * words go again.
+       */
+      unstarted: z.literal(true).optional(),
       undelivered: z.array(z.string()),
       state: placedStateSchema.optional(),
     }),
@@ -1200,6 +1206,11 @@ const sourceFileFields = {
   into: z.enum(["handover"]).optional(),
 };
 
+/** Saves the crew's work on a computer before its home updates it (`work-update-saving.md`). */
+export const WORK_SAVE_ORDER = "inf:session:save-for-update";
+/** Lets that save go, after an update that did not replace the copy or Update later. */
+export const WORK_RELEASE_ORDER = "inf:session:release-update";
+
 /**
  * The orders a home asks a computer that runs work. The computer answers
  * them; the home sends them only to a computer whose welcome says it takes
@@ -1272,6 +1283,29 @@ export const workOrders = {
       /** The home's personal set kept here (`inf:session:personal`); absent before one arrives. */
       personal: personalVersionSchema.optional(),
     }),
+  },
+  /**
+   * Its home is about to update it (docs/helper.md, "Saving its work before
+   * an update"; `work-update-saving.md`): no turn starts here, each one
+   * running stops where nothing is lost, and the answer comes once every
+   * stopped turn's end is written here and the home has it. `stopped` names
+   * each task whose turn it stopped. A second ask joins the first; once
+   * saved, nothing from the home for `UPDATE_RETURN_MS` lets it go here.
+   */
+  [WORK_SAVE_ORDER]: {
+    effect: "change",
+    request: z.tuple([]),
+    response: z.object({ stopped: z.array(placedTaskIdSchema) }),
+  },
+  /**
+   * The update did not replace this copy, or was let go (Update later): a
+   * turn still stopping goes on as if never asked, and turns start here
+   * again. `stopped` names each task whose turn the save stopped.
+   */
+  [WORK_RELEASE_ORDER]: {
+    effect: "change",
+    request: z.tuple([]),
+    response: z.object({ stopped: z.array(placedTaskIdSchema) }),
   },
   /**
    * The home's personal instructions and skills, whole, kept here in place

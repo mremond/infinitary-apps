@@ -310,6 +310,8 @@ export async function placed(
     tools?: readonly CrewmateTool[];
     /** The close order's sweep of what a task left running (docs/leftover-programs.md). */
     leftovers?: SessionHostOptions["leftovers"];
+    /** How long a saved update waits for the home before it lets the save go there. */
+    updateReturnMs?: number;
   } = {},
 ) {
   const home = standInHome();
@@ -394,6 +396,9 @@ export async function placed(
               : {}),
           ...(options.homeChanges ? { homeChanges: () => options.homeChanges ?? [] } : {}),
           ...(options.personal ? { personal: new PersonalCopy(join(dir, "personal")) } : {}),
+          ...(options.updateReturnMs !== undefined
+            ? { updateReturnMs: options.updateReturnMs }
+            : {}),
           log: () => {},
         });
         const held = host;

@@ -110,6 +110,13 @@
   "devicesSourceWentBack": "{device} は以前のコピーに戻りました。このコンピュータのコードからのビルドが時間内にこのコンピュータに届かなかったためです。",
   "devicesUpdateApp": "アプリをアップデート",
   "devicesUpdateAppNamed": "{device} のアプリをアップデート",
+  "devicesUpdateLater": "後でアップデート",
+  "devicesUpdateLaterFailed": "アップデートを見送れませんでした。",
+  "devicesUpdateLaterNamed": "{device} を後でアップデート",
+  "devicesUpdateLetGo": "「後でアップデート」を選んだため、{device} はアップデートされませんでした。作業はそのまま続きます。",
+  "devicesUpdateResuming": "{device} はアップデートで一時停止した作業を再開しています。",
+  "devicesUpdateSaving": "{device} で作業を保存しています。",
+  "devicesUpdateWaitingFor": "{tasks} が実行中の処理を終えるのを待っています。",
   "devicesWorkCopyGone": "{device} には作業の起動元だった Infinitary のコピーがもうないため、作業はそこにインストールされた Infinitary から起動するようになりました。",
   "devicesWorkSavedByNewer": "この作業は新しいバージョンの Infinitary が保存したため、このバージョンはそのままにします。続けるには、その新しい Infinitary をここにインストールしてください。"
 }

@@ -870,6 +870,13 @@
 "devicesSourceWentBack" = "%1$@ 已回到先前執行的副本，因為它用這台電腦的程式碼建置的版本沒有及時連上這台電腦。";
 "devicesUpdateApp" = "更新應用程式";
 "devicesUpdateAppNamed" = "更新 %1$@ 上的應用程式";
+"devicesUpdateLater" = "稍後更新";
+"devicesUpdateLaterFailed" = "無法延後此次更新。";
+"devicesUpdateLaterNamed" = "稍後更新 %1$@";
+"devicesUpdateLetGo" = "你選擇了稍後更新，因此 %1$@ 沒有更新。它的工作會繼續。";
+"devicesUpdateResuming" = "%1$@ 正在恢復更新暫停的工作。";
+"devicesUpdateSaving" = "正在 %1$@ 上儲存工作。";
+"devicesUpdateWaitingFor" = "正在等待 %1$@ 完成正在執行的內容。";
 "devicesWorkCopyGone" = "%1$@ 上已經沒有它的工作原先啟動的那份 Infinitary 副本，所以它的工作現在從那裡安裝的 Infinitary 啟動。";
 "devicesWorkSavedByNewer" = "這份工作由較新版本的 Infinitary 儲存，所以這個版本不會更動它。請在這裡安裝那個較新的 Infinitary 以繼續。";
 "dialogAdd" = "加入";

@@ -112,6 +112,13 @@
   "devicesSourceWentBack": "{device} est revenu à la copie qu’il utilisait avant, car sa compilation du code de cet ordinateur n’a pas joint cet ordinateur à temps.",
   "devicesUpdateApp": "Mettre à jour l’app",
   "devicesUpdateAppNamed": "Mettre à jour l’app sur {device}",
+  "devicesUpdateLater": "Mettre à jour plus tard",
+  "devicesUpdateLaterFailed": "Impossible de reporter la mise à jour.",
+  "devicesUpdateLaterNamed": "Mettre à jour {device} plus tard",
+  "devicesUpdateLetGo": "{device} n’a pas été mis à jour, car vous avez choisi Mettre à jour plus tard. Son travail continue.",
+  "devicesUpdateResuming": "{device} reprend le travail que la mise à jour a mis en pause.",
+  "devicesUpdateSaving": "Enregistrement du travail sur {device}.",
+  "devicesUpdateWaitingFor": "En attente que {tasks} termine ce qui est en cours.",
   "devicesWorkCopyGone": "{device} n’avait plus la copie d’Infinitary à partir de laquelle son travail démarrait, donc son travail démarre maintenant depuis l’Infinitary installé là-bas.",
   "devicesWorkSavedByNewer": "Une version plus récente d’Infinitary a enregistré ce travail, donc cette version le laisse tel quel. Installez ici cette version plus récente d’Infinitary pour continuer."
 }

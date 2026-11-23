@@ -7,6 +7,7 @@ import {
   AMBIENT_STYLE,
   DEVICE_ADDS_BY_ADDRESS,
   SETTINGS_CURRENT,
+  WORK_UPDATE_SAVING,
 } from "./cardCompatibility";
 import { listsChange } from "./contractChanges";
 
@@ -84,5 +85,7 @@ export function unreadLook(hello: ViewHello): string[] {
     ...(listsChange(hello.changes, AMBIENT_OWN_STYLES) ? [] : ["ambientOwnStyles"]),
     // Not the look, but read as strictly: where devices find a Windows home.
     ...(listsChange(hello.changes, DEVICE_ADDS_BY_ADDRESS) ? [] : ["addsByAddress"]),
+    // A computer's work saved before its update, which an older view's strict device list cannot read.
+    ...(listsChange(hello.changes, WORK_UPDATE_SAVING) ? [] : ["updateWork"]),
   ];
 }

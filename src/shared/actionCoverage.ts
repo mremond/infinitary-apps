@@ -144,6 +144,10 @@ export const ACTION_EXCEPTIONS: Partial<Record<CoreInvokeChannel, ActionExceptio
     "credential",
     `Updates Infinitary on a ${COMPUTER.one} added by its address on the captain's click; device-update only offers the card, and the feed says each step`,
   ],
+  "inf:devices:update-later": [
+    "consent",
+    `The captain's own Update later on a ${COMPUTER.one}'s row while its work is saved, which lets its update go; a model cannot choose it`,
+  ],
   "inf:view:answer": [
     "window",
     "A window's own answer to what the first mate asked of it; the asked change is that line's",

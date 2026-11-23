@@ -299,6 +299,16 @@ export const deviceChannels = {
     request: z.tuple([z.string().min(1).max(64)]),
     response: deviceViewSchema,
   },
+  // Update later (docs/devices.md, "Saving work before an update"): lets a
+  // computer's update go while its crew's work is being saved, so nothing
+  // there is replaced; false when none is being saved.
+  "inf:devices:update-later": {
+    effect: "change",
+    surface: "core",
+    reach: "views",
+    request: z.tuple([z.string().min(1).max(64)]),
+    response: z.boolean(),
+  },
   // Try again (docs/devices.md, "Through the home's SSH"): this Mac tries
   // its own SSH connection to a computer once now, or to every one it
   // stopped trying when none is named; answers how many it tried.

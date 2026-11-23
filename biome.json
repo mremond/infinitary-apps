@@ -424,6 +424,7 @@
         "!src/core/placed/placedPersonal.test.ts",
         "!src/core/placed/placedAccounts.test.ts",
         "!src/core/placed/placedCutOff.test.ts",
+        "!src/core/placed/placedUpdateSave.test.ts",
         "!src/core/helper/workingCopies.test.ts",
         "!src/core/folderMove/copy.test.ts",
         "!src/core/folderMove/move.test.ts",

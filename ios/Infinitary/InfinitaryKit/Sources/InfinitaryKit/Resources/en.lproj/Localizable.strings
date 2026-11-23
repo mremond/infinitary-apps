@@ -870,6 +870,13 @@
 "devicesSourceWentBack" = "%1$@ went back to the copy it ran before, because its build of this computer's code did not reach this computer in time.";
 "devicesUpdateApp" = "Update app";
 "devicesUpdateAppNamed" = "Update the app on %1$@";
+"devicesUpdateLater" = "Update later";
+"devicesUpdateLaterFailed" = "Could not let the update go.";
+"devicesUpdateLaterNamed" = "Update %1$@ later";
+"devicesUpdateLetGo" = "%1$@ was not updated, since you chose Update later. Its work carries on.";
+"devicesUpdateResuming" = "%1$@ is resuming work the update paused.";
+"devicesUpdateSaving" = "Saving work on %1$@.";
+"devicesUpdateWaitingFor" = "Waiting for %1$@ to finish what is running.";
 "devicesWorkCopyGone" = "%1$@ no longer had the copy of Infinitary its work started from, so its work now starts from the Infinitary installed there.";
 "devicesWorkSavedByNewer" = "A newer Infinitary saved this work, so this version leaves it as it is. Install that newer Infinitary here to carry on.";
 "dialogAdd" = "Add";

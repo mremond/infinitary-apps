@@ -115,6 +115,13 @@
   "devicesSourceWentBack": "عاد {device} إلى النسخة التي كان يشغّلها من قبل، لأن بناءه لشيفرة هذا الكمبيوتر لم يصل إلى هذا الكمبيوتر في الوقت المحدد.",
   "devicesUpdateApp": "تحديث التطبيق",
   "devicesUpdateAppNamed": "تحديث التطبيق على {device}",
+  "devicesUpdateLater": "التحديث لاحقًا",
+  "devicesUpdateLaterFailed": "تعذّر إلغاء التحديث.",
+  "devicesUpdateLaterNamed": "تحديث {device} لاحقًا",
+  "devicesUpdateLetGo": "لم يُحدَّث {device}، لأنك اخترت التحديث لاحقًا. يستمر عمله.",
+  "devicesUpdateResuming": "يستأنف {device} العمل الذي أوقفه التحديث مؤقتًا.",
+  "devicesUpdateSaving": "جارٍ حفظ العمل على {device}.",
+  "devicesUpdateWaitingFor": "في انتظار أن تُنهي {tasks} ما يعمل الآن.",
   "devicesWorkCopyGone": "لم تعد نسخة Infinitary التي كان عمل {device} يبدأ منها موجودة، لذا يبدأ عمله الآن من Infinitary المثبّت هناك.",
   "devicesWorkSavedByNewer": "حفظ إصدار أحدث من Infinitary هذا العمل، لذا يتركه هذا الإصدار كما هو. ثبّت هنا ذلك الإصدار الأحدث من Infinitary للمتابعة."
 }

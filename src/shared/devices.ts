@@ -4,6 +4,7 @@ import { shortCommit } from "./buildIdentity";
 import { commandNoticeSchema } from "./commandNotice";
 import { COMPUTER, HERE } from "./deviceNames";
 import * as m from "./i18n/messages.generated.ts";
+import { updateWorkSchema } from "./update";
 import { deviceWorkSetupSchema } from "./workSetup";
 
 /**
@@ -651,6 +652,13 @@ export const deviceViewSchema = z.strictObject({
   controlling: z.boolean().optional(),
   /** Another user on this Mac, out of reach since this Mac restarted: nobody has logged in as it since. */
   restartedSince: z.boolean().optional(),
+  /**
+   * What its crew's work is doing around its update (docs/devices.md,
+   * "Saving work before an update"): `saving` before anything there stops,
+   * naming the tasks it waits for, while Update later can let the update
+   * go; `resuming` after it, until each turn it stopped has started again.
+   */
+  updateWork: updateWorkSchema.optional(),
   /**
    * Out of reach, and this Mac's address changed since it was last in
    * reach: it still looks for this Mac where it found it then, until it

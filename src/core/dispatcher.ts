@@ -458,6 +458,7 @@ export function createCoreDispatcher(options: CoreDispatcherOptions): CoreDispat
     // Answered in `Computers.foldAsked`, which knows the window that asked.
     "inf:devices:fold": () => Promise.reject(new Error("Only a Mac's own window folds its entry.")),
     "inf:devices:keep": (deviceId) => services.computers.keep(deviceId),
+    "inf:devices:update-later": (deviceId) => services.computers.updateLater(deviceId),
     "inf:devices:carry-on": (from, to) => services.computers.carryOn(from, to),
     "inf:devices:push": phoneOnly("inf:devices:push"),
     // This Mac's own SSH connection to a computer it added by its address

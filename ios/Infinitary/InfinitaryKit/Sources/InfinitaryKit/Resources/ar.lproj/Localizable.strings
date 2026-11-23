@@ -870,6 +870,13 @@
 "devicesSourceWentBack" = "عاد %1$@ إلى النسخة التي كان يشغّلها من قبل، لأن بناءه لشيفرة هذا الكمبيوتر لم يصل إلى هذا الكمبيوتر في الوقت المحدد.";
 "devicesUpdateApp" = "تحديث التطبيق";
 "devicesUpdateAppNamed" = "تحديث التطبيق على %1$@";
+"devicesUpdateLater" = "التحديث لاحقًا";
+"devicesUpdateLaterFailed" = "تعذّر إلغاء التحديث.";
+"devicesUpdateLaterNamed" = "تحديث %1$@ لاحقًا";
+"devicesUpdateLetGo" = "لم يُحدَّث %1$@، لأنك اخترت التحديث لاحقًا. يستمر عمله.";
+"devicesUpdateResuming" = "يستأنف %1$@ العمل الذي أوقفه التحديث مؤقتًا.";
+"devicesUpdateSaving" = "جارٍ حفظ العمل على %1$@.";
+"devicesUpdateWaitingFor" = "في انتظار أن تُنهي %1$@ ما يعمل الآن.";
 "devicesWorkCopyGone" = "لم تعد نسخة Infinitary التي كان عمل %1$@ يبدأ منها موجودة، لذا يبدأ عمله الآن من Infinitary المثبّت هناك.";
 "devicesWorkSavedByNewer" = "حفظ إصدار أحدث من Infinitary هذا العمل، لذا يتركه هذا الإصدار كما هو. ثبّت هنا ذلك الإصدار الأحدث من Infinitary للمتابعة.";
 "dialogAdd" = "إضافة";

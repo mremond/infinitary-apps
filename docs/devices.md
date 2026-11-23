@@ -526,7 +526,7 @@ A file that cannot be read leaves every computer on the list and none reached ov
 A computer that runs work and connects on an older Infinitary than this Mac's is updated by itself, with no card to click (`DeviceUpdateNudge`, `src/core/devices/deviceUpdateNudge.ts`).
 It reads the same comparison as the row (`Computers.list`'s `otherVersion`, `than: "older"`), hung on `WorkDevices.onVersion`, and never asks the first mate to judge it.
 So once this Mac installs a new version, each computer it updates comes up on it as it connects.
-The update is the one Update in Devices asks (`Computers.update`, below, "Updating"), so its crew pauses and carries on after, and the feed says each step, from "Updating Infinitary on Mac mini.".
+The update is the one Update in Devices asks (`Computers.update`, below, "Updating"), so its crew's work is saved and carries on after (below, "Saving work before an update"), and the feed says each step, from "Updating Infinitary on Mac mini.".
 While Settings -> Devices is open, its row follows those steps as it follows a click's update, from the first step that says how far it is (a count, or that it is starting there) until a step says it is done or refused, with no Match meanwhile (`useSetups.follow`, `src/renderer/src/settings/devicesState.ts`); a step that says none, such as one that only asks a password, leaves the row as it was.
 It is tried once per gap while this Mac runs, never again for a reconnect on the same versions, and never while one is under way.
 Every computer this Mac can update with nothing asked of the captain is updated this way (`deviceUpdatesItself`, `src/shared/deviceUpdateNudge.ts`), whether over the connection or over Remote Login with the captain's own SSH key.
@@ -1113,25 +1113,39 @@ One that takes no work is still connected, so it reads "seen just now" and "no n
 - **Any other computer that takes the update order** (`takesUpdate`, a contract from `WORK_UPDATE_SINCE` on, whatever its major): over the connection, below.
 - **One too old to take it**: refused as `not-updatable`; Devices' Match makes the command for it instead, which run there once finds this Mac again and keeps this Mac's version (above, "Finding the home again").
 
-Its crew pauses for the update and carries on after, with no message from the captain and no failed turn (INF-721 friction 9; `pauseTasks` and `resumeTasks`, `CrewUpdates.pauseForUpdate` and `resumeAfterUpdate`):
-
-- **When it pauses.**
-  Once the update goes ahead there, past every refusal and the password question, and before anything there stops: over the connection after the checks that refuse it, over Remote Login once nothing refused it here (`RemoteLogin.update`'s `pause`).
-- **What pausing does.**
-  Each crewmate turn running there is asked to stop, and the update waits for those turns to end there, at most `QUIT_SETTLE_MS`.
-  Each paused task gets one `turn-resumed` row on its lane, which says its last turn stopped part way while Infinitary there was updated and asks it to check what already took effect before it repeats a step.
-  The task's Activity says it paused, and the feed says once that it paused while Infinitary there is updated and carries on once that computer is back.
-  No interrupt is recorded, so a kept merge approval stands.
-- **While it is updated.**
-  Its crew is held as for a computer out of reach (`outOfReach`): nothing is handed to it, a steer waits on its lane, a task set to start there waits, and the idle ladder reads it as moving.
-  A turn's end there is a pause: the words it was serving are acknowledged when it stopped clean, and go again, due at once with no attempt spent, when the update cut it off there instead; its last words are never its report, and a report it gave stands, withdrawing its `turn-resumed` row.
-- **When it is over.**
-  Whatever came of the update, each paused crewmate carries on once that computer is back and caught up, or at once when it never stopped, with its `turn-resumed` row as the turn's first words.
+Its crew's work is saved before the update and carries on after, with no message from the captain and no failed turn (below, "Saving work before an update").
 
 Device update and change-address requests always answer Remote Login refusals as typed data; Devices shows the two lines in one error line above the list.
 A refusal that says the computer did not answer (`unreachable`, `out-of-reach`, `refusalIsAboutReach`) goes once that computer's row says connected again (`reachRefusalAfter`, `src/renderer/src/settings/devicesState.ts`): the row's `connectedAt` is later than the refusal, after the row had said it was not.
 For Change address the row has to reconnect at the address that was tried.
 Any other refusal stays until the captain's next action.
+
+### Saving work before an update
+
+Every route of `Computers.update` - over Remote Login, over the connection and Match's source build - saves the computer's crew's work before anything there stops, and carries it on after (`Computers.saveWork`, `pauseTasks` and `resumeTasks`, `CrewUpdates.pauseForUpdate` and `resumeAfterUpdate`):
+
+- **When it saves.**
+  Once the update goes ahead there, past every refusal and the password question, and before anything there stops: over the connection after the checks that refuse it, over Remote Login once nothing refused it here (`RemoteLogin.update`'s `pause`), and for Match's source build before the source order.
+- **Who saves.**
+  A computer in reach whose hello lists `work-update-saving` saves its own crew's work, as this Mac's own update saves its work (`docs/alpha.md`, "Saving work before an update"; `saveThereFor`, `src/core/devices/saveThere.ts`; `docs/helper.md`, "Saving its work before an update").
+  That computer holds new turns, lets each running call finish, records each stopped turn, and decides when it is saved: it answers once every stopped turn's end is written there and here, so the update has no time limit of its own to cut a turn.
+  Meanwhile this Mac keeps answering the crew's tool calls from there, and holds only new work (below, "While it is updated").
+  A drop while it saves is waited out for `UPDATE_RETURN_MS`, then the same save is asked again, which joins the one that went on there; a computer that does not come back by then refuses the update as out of reach, and it is carried on as below.
+  A computer without the change has its running turns stopped from here, and the update waits for those turns to end there at most `QUIT_SETTLE_MS`.
+- **What saving does here.**
+  Each task with a turn running there gets one `turn-resumed` row on its lane, which says its last turn stopped part way while Infinitary there was updated and asks it to check what already took effect before it repeats a step.
+  The task's Activity says it paused, and the feed says once that it paused while Infinitary there is updated and carries on once that computer is back.
+  No interrupt is recorded, so a kept merge approval stands, and idle, paused or other computers' tasks are not touched.
+- **Settings -> Devices.**
+  While it saves, the row reads "Updating Infinitary on Mac mini…" and one strip, "Saving work on Mac mini. Waiting for Fix login to finish what is running.", beside a small secondary "Update later", reached with Tab (`updateWork`, `saving`).
+  Update later (`inf:devices:update-later`, `Computers.updateLater`) lets the update go before anything there is replaced: the feed says "Mac mini was not updated, since you chose Update later. Its work carries on.", the computer lets its save go, a turn it had not stopped yet goes on as if never asked, and a turn it stopped carries on as below.
+  After the update, until each turn it stopped has started again, the row adds "Mac mini is resuming work the update paused." (`updateWork`, `resuming`; `CrewUpdates.resumingOn`).
+- **While it is updated.**
+  Its crew is held as for a computer out of reach (`outOfReach`): nothing is handed to it, a steer waits on its lane, a task set to start there waits, and the idle ladder reads it as moving.
+  A turn's end there is a pause: the words it was serving are acknowledged when it stopped clean, and go again, due at once with no attempt spent, when the update cut it off there or stopped it before its model took it (`unstarted`); its last words are never its report, and a report it gave stands, withdrawing its `turn-resumed` row.
+- **When it is over.**
+  Whatever came of the update, a computer that saved its own work is asked to let its save go (`inf:session:release-update`); one updated has already let it go by restarting, and one out of reach lets it go by itself `UPDATE_RETURN_MS` after it saved.
+  Each paused crewmate then carries on once that computer is back and caught up, or at once when it never stopped, with its `turn-resumed` row as the turn's first words: one carry-on per task, however many times that computer restarts, the update is asked or the connection drops meanwhile.
 
 ### Downloading on a Mac reached by its address
 
@@ -1203,7 +1217,7 @@ The row says "Runs another build than this computer, which runs its code at comm
 
 Match on a source home (`Computers.matchSource`) sends a committed source archive that a Mac builds and runs; edits not committed stay on the home.
 It refuses before anything is asked there when that computer is out of reach, is not a Mac ("Only a Mac builds Infinitary from code, and Mac mini is not a Mac."), or speaks no `source-builds` change ("Install the newest Infinitary release there, then choose Match again."), each with "It keeps the version it runs."
-Otherwise its crew pauses as for an update, the home asks the source order, `inf:source:build` (`sourceOrders`, `src/shared/work.ts`), with the commit, and follows `fm:firstmate:update-progress` as it runs: "Mac mini is getting this computer's code.", "… is installing what this computer's code needs." and "… is building this computer's code."
+Otherwise its crew's work is saved as for an update (above, "Saving work before an update"), the home asks the source order, `inf:source:build` (`sourceOrders`, `src/shared/work.ts`), with the commit, and follows `fm:firstmate:update-progress` as it runs: "Mac mini is getting this computer's code.", "… is installing what this computer's code needs." and "… is building this computer's code."
 (`fetching`, `installing`, `building`).
 A step that fails answers which (`tools`, `fetch`, `install`, `build`, `keep` or `system`) and changes nothing there; the feed says it in two warning lines, the second "It keeps the version it runs."
 A build that does not reach the home in time goes back as a release update does (below, "A copy that does not start"), and the home keeps that commit on `failed-updates.json`, so Match does not build it there again until the home runs other code.

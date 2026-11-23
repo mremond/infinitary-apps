@@ -36,6 +36,7 @@ import {
   removeLines,
   sshStoppedLine,
   strandedLine,
+  updateWorkLine,
   wayBack,
   workSetupLine,
 } from "./devicesWords";
@@ -80,6 +81,7 @@ export function DeviceRow({
   onTryAgain,
   onFixWork,
   onUpdateApp,
+  onUpdateLater,
   onAskChangeAddress,
   onAskMoveHome,
   standby,
@@ -100,7 +102,9 @@ export function DeviceRow({
   const label = deviceLabel(device);
   const works = deviceRunsWork(device.kind);
   const own = signIns.find((entry) => entry.deviceId === device.id);
-  const updatingHere = works && updating.includes(device.id);
+  // Its crew's work being saved before its update is part of that update, whichever window asked it.
+  const saving = works && device.updateWork?.state === "saving";
+  const updatingHere = works && (updating.includes(device.id) || saving);
   const copy = updateCopy?.[device.id];
   // Brought back over Remote Login: reached, then told where this Mac is now.
   const finding = works ? adding.find((mac) => mac.deviceId === device.id) : undefined;
@@ -134,6 +138,26 @@ export function DeviceRow({
         onAskChangeAddress,
       })
     : [];
+  // Saving work before its update (docs/devices.md, "Saving work before an update"): what it
+  // waits for, beside Update later, which lets the update go and keeps the work running.
+  const workLine = updateWorkLine(device);
+  if (saving && workLine)
+    notices.unshift({
+      id: "update-saving",
+      text: here(workLine),
+      hook: { "data-device-update-saving": "" },
+      act: onUpdateLater ? (
+        <Button
+          variant="secondary"
+          size="sm"
+          aria-label={m.devicesUpdateLaterNamed({ device: label })}
+          data-device-update-later={device.id}
+          onClick={() => onUpdateLater(device.id)}
+        >
+          {m.devicesUpdateLater()}
+        </Button>
+      ) : undefined,
+    });
   const versions = deviceWords.copyVersions(device);
   const behind = device.appVersion !== undefined && appBehind(device, device.appVersion);
   // A copy behind this computer's is something to act on; any other difference is a plain fact.
@@ -272,6 +296,11 @@ export function DeviceRow({
         {summary && (
           <span className="fm-devices-summary" role={settling ? "status" : undefined}>
             {summary}
+          </span>
+        )}
+        {!saving && workLine && (
+          <span className="fm-devices-summary" role="status" data-device-update-resuming="">
+            {here(workLine)}
           </span>
         )}
         {versions && !behind && !updatingHere && (

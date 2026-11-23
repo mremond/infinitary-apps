@@ -381,6 +381,12 @@ export type DevicesTabViewProps = {
    * there"); absent where it cannot be asked.
    */
   onUpdateApp?: (deviceId: string) => void;
+  /**
+   * Update later: lets a computer's update go while its crew's work is
+   * being saved (docs/devices.md, "Saving work before an update"); absent
+   * where it cannot be asked.
+   */
+  onUpdateLater?: (deviceId: string) => void;
   /** Opens a computer's address question, or closes it with null. */
   onAskChangeAddress: (deviceId: string | null) => void;
   onChangeAddress: (deviceId: string, address: string) => void;

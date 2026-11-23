@@ -870,6 +870,13 @@
 "devicesSourceWentBack" = "%1$@ は以前のコピーに戻りました。このコンピュータのコードからのビルドが時間内にこのコンピュータに届かなかったためです。";
 "devicesUpdateApp" = "アプリをアップデート";
 "devicesUpdateAppNamed" = "%1$@ のアプリをアップデート";
+"devicesUpdateLater" = "後でアップデート";
+"devicesUpdateLaterFailed" = "アップデートを見送れませんでした。";
+"devicesUpdateLaterNamed" = "%1$@ を後でアップデート";
+"devicesUpdateLetGo" = "「後でアップデート」を選んだため、%1$@ はアップデートされませんでした。作業はそのまま続きます。";
+"devicesUpdateResuming" = "%1$@ はアップデートで一時停止した作業を再開しています。";
+"devicesUpdateSaving" = "%1$@ で作業を保存しています。";
+"devicesUpdateWaitingFor" = "%1$@ が実行中の処理を終えるのを待っています。";
 "devicesWorkCopyGone" = "%1$@ には作業の起動元だった Infinitary のコピーがもうないため、作業はそこにインストールされた Infinitary から起動するようになりました。";
 "devicesWorkSavedByNewer" = "この作業は新しいバージョンの Infinitary が保存したため、このバージョンはそのままにします。続けるには、その新しい Infinitary をここにインストールしてください。";
 "dialogAdd" = "追加";

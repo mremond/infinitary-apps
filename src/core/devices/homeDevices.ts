@@ -70,6 +70,7 @@ import { DevicePairing } from "./pairing";
 import { PhoneDoor } from "./phoneDoor";
 import { PublishedBuilds, standInTapFetch } from "./publishedBuilds";
 import { RemoteLogin } from "./remoteLogin";
+import { saveThereFor } from "./saveThere";
 import { systemSsh } from "./ssh";
 import { SshConnections } from "./sshConnections";
 import { runWindowsAnnouncement, windowsAnnounceArgs } from "./windowsAnnounce";
@@ -611,9 +612,18 @@ export async function startHomeDevices(options: {
         // move off a computer out of reach, leaving behind what only it holds.
         carryTask: (taskId, to) =>
           supervisor.moves.requestComputerMove(taskId, to, "captain", [], true),
-        // Its crew pauses for its update and carries on after (docs/helper.md, "Updated by its home").
-        pauseTasks: (deviceId) => supervisor.updates.pauseForUpdate(deviceId),
+        // Its crew pauses for its update and carries on after (docs/helper.md,
+        // "Updated by its home"); one that saves its own work stops each turn
+        // there where nothing is lost ("Saving its work before an update").
+        pauseTasks: (deviceId, pause) => {
+          const there = saveThereFor(workDevices, deviceId);
+          return supervisor.updates.pauseForUpdate(deviceId, {
+            ...pause,
+            ...(there ? { there } : {}),
+          });
+        },
         resumeTasks: (deviceId) => supervisor.updates.resumeAfterUpdate(deviceId),
+        resumingTasks: (deviceId) => supervisor.updates.resumingOn(deviceId),
         removeThere: (device) => remoteLogin.removeThere(device),
         // Update: a computer's version against this Mac's, over Remote Login or
         // the connection (docs/devices.md, "Updating"). A run from source on

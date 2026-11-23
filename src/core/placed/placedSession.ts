@@ -14,15 +14,16 @@ import { claudeModelName } from "../claude/claudeModels";
 import { DeviceOutOfReachError } from "../connection/connection";
 import { crewmateResume } from "../orchestrator/crewSession";
 import type { ServedInstructions, ServedState } from "../orchestrator/seat";
-import type {
-  ControlProfile,
-  ModelSession,
-  SessionBackend,
-  SessionEvent,
-  SessionImage,
-  SessionRenewal,
-  SessionResume,
-  ThinkingLevel,
+import {
+  type ControlProfile,
+  type ModelSession,
+  type SessionBackend,
+  type SessionEvent,
+  type SessionImage,
+  type SessionRenewal,
+  type SessionResume,
+  StoppedBeforeStartError,
+  type ThinkingLevel,
 } from "../session/session";
 import type { CrewmateToolDelegate } from "../session/tools";
 
@@ -476,7 +477,8 @@ export class PlacedSession implements ModelSession {
     if (asked) {
       this.prompts.delete(asked.orderId);
       if (event.outcome === "failed") {
-        asked.reject(new Error(error));
+        // An update's save there stopped it before its model took it: its words go again.
+        asked.reject(event.unstarted ? new StoppedBeforeStartError() : new Error(error));
         return;
       }
       // A turn cut off by a quit there is its task's failed turn, whose words go again.

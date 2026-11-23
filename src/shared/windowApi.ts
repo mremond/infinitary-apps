@@ -443,6 +443,12 @@ export type FirstmateApi = {
     /** Keep it: a computer waiting to be removed once it is back stays. */
     keep: (deviceId: string) => Promise<DeviceView>;
     /**
+     * Update later (docs/devices.md, "Saving work before an update"): lets
+     * the computer's update go while its crew's work is being saved; false
+     * when none is being saved.
+     */
+    updateLater: (deviceId: string) => Promise<boolean>;
+    /**
      * Carry its tasks on (docs/devices.md, "Joined again"): the started
      * tasks of a computer out of reach continue on `to`, and it is removed
      * once they have; the answer says each task that stayed, and why.

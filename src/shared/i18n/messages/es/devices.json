@@ -112,6 +112,13 @@
   "devicesSourceWentBack": "{device} volvió a la copia que usaba antes, porque su compilación del código de este ordenador no llegó a tiempo a este ordenador.",
   "devicesUpdateApp": "Actualizar app",
   "devicesUpdateAppNamed": "Actualizar la app en {device}",
+  "devicesUpdateLater": "Actualizar más tarde",
+  "devicesUpdateLaterFailed": "No se pudo dejar la actualización para más tarde.",
+  "devicesUpdateLaterNamed": "Actualizar {device} más tarde",
+  "devicesUpdateLetGo": "{device} no se actualizó porque elegiste Actualizar más tarde. Su trabajo continúa.",
+  "devicesUpdateResuming": "{device} está reanudando el trabajo que pausó la actualización.",
+  "devicesUpdateSaving": "Guardando el trabajo en {device}.",
+  "devicesUpdateWaitingFor": "Esperando a que {tasks} termine lo que está ejecutando.",
   "devicesWorkCopyGone": "{device} ya no tenía la copia de Infinitary desde la que empezaba su trabajo, así que ahora su trabajo empieza desde el Infinitary instalado allí.",
   "devicesWorkSavedByNewer": "Una versión más nueva de Infinitary guardó este trabajo, así que esta versión lo deja como está. Instala aquí esa versión más nueva de Infinitary para continuar."
 }

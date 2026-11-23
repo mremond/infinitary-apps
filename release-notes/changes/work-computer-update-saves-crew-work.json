@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "id": "work-computer-update-saves-crew-work",
+      "kind": "improvement",
+      "title": "Updating another computer saves its crew's work first",
+      "body": "Before this computer updates Infinitary on another computer that runs work, each crewmate there finishes the command or edit it is running and stops, and nothing new starts there. Its row in Settings → Devices names each task it waits for, and Update later lets the update go while the work carries on. After the update, the row says the computer is resuming work until each stopped task has carried on where it left off, once, even if the computer restarts again or the connection drops.",
+      "area": "devices",
+      "picture": {
+        "dark": "work-computer-update-saves-crew-work-dark.webp",
+        "light": "work-computer-update-saves-crew-work-light.webp",
+        "alt": "Settings, Devices with a Mac mini selected while Infinitary updates there: its row says the work there is being saved while two tasks finish what they are running, beside an Update later button"
+      },
+      "provenance": {
+        "origin": "change"
+      }
+    }
+  ]
+}

@@ -22,6 +22,7 @@ import {
   deviceUpdateActionId,
   deviceUpdateCardId,
 } from "@shared/deviceUpdateNudge";
+import * as m from "@shared/i18n/messages.generated";
 import { PROTOCOL_VERSION } from "@shared/ipc";
 import { remoteLoginWords } from "@shared/remoteLogin";
 import type { UpdateDownload } from "@shared/work";
@@ -147,6 +148,8 @@ async function world(
     nudge?: boolean;
     /** What getting this Mac's Firstmate for that computer's system answers before it is asked. */
     prepare?: NonNullable<ConstructorParameters<typeof Computers>[0]["prepare"]>;
+    /** How the computer's crew's work is saved before its update, in place of a save done at once. */
+    pauseTasks?: NonNullable<ConstructorParameters<typeof Computers>[0]["pauseTasks"]>;
   } = {},
 ) {
   const userData = scratchDir("infinitary-update-home-");
@@ -197,8 +200,9 @@ async function world(
     repos,
     stopTasks: async () => {},
     bringHome: async () => {},
-    pauseTasks: async (deviceId) => {
+    pauseTasks: async (deviceId, pause) => {
       crew.push(`paused ${deviceId}`);
+      return options.pauseTasks ? options.pauseTasks(deviceId, pause) : "saved";
     },
     resumeTasks: (deviceId) => {
       crew.push(`resumed ${deviceId}`);
@@ -452,6 +456,40 @@ describe("a computer that runs work on another version of Firstmate", () => {
     ]);
     // Nothing of the copy it got is left beside the one it kept.
     expect(readdirSync(at.dataDir).filter((entry) => entry.startsWith("update-"))).toEqual([]);
+  });
+
+  it("says on its row that its crew's work is being saved, naming what it waits for, and Update later lets the update go with nothing replaced there", async () => {
+    const at = await world({
+      kept: true,
+      pauseTasks: (_deviceId, { signal, waiting }) =>
+        new Promise((resolve) => {
+          waiting(["Fix the footer"]);
+          signal.addEventListener("abort", () => resolve("withdrawn"), { once: true });
+        }),
+    });
+    at.start({ appVersion: "0.1.20" });
+    await expect.poll(() => at.view()?.otherVersion?.updateBy).toBe("connection");
+
+    const updating = at.computers.update(at.deviceId);
+    await expect
+      .poll(() => at.view()?.updateWork)
+      .toEqual({ state: "saving", tasks: ["Fix the footer"] });
+    expect(at.computers.updateLater(at.deviceId)).toBe(true);
+
+    const answered = await updating;
+    if ("asks" in answered) throw new Error("Update asked for a password.");
+    // Nothing there was replaced: it keeps its own copy, its run goes on, and its crew carries on.
+    expect(at.kept()).toBe("the copy it kept");
+    expect(at.view()).toMatchObject({ inReach: true, otherVersion: { updateBy: "connection" } });
+    expect(at.view()?.updateWork).toBeUndefined();
+    expect(at.crew).toEqual([`paused ${at.deviceId}`, `resumed ${at.deviceId}`]);
+    const label = deviceLabel({ name: "Mac mini", user: "builder", onThisMac: true });
+    expect(at.said.map((event) => event.text)).toEqual([
+      remoteLoginWords.updating({ name: "Mac mini", user: "builder", onThisMac: true }),
+      m.devicesUpdateLetGo({ device: label }),
+    ]);
+    // Nothing is being saved any more, so a second Update later does nothing.
+    expect(at.computers.updateLater(at.deviceId)).toBe(false);
   });
 
   // INF-3307 audit: a stop during a work computer's update can leave its temporary folder behind.

@@ -919,6 +919,13 @@ public enum PhoneMessages {
     public static func `devicesSourceWentBack`(`device`: String) -> String { PhoneWords.format("devicesSourceWentBack", [`device`]) }
     public static func `devicesUpdateApp`() -> String { PhoneWords.format("devicesUpdateApp", []) }
     public static func `devicesUpdateAppNamed`(`device`: String) -> String { PhoneWords.format("devicesUpdateAppNamed", [`device`]) }
+    public static func `devicesUpdateLater`() -> String { PhoneWords.format("devicesUpdateLater", []) }
+    public static func `devicesUpdateLaterFailed`() -> String { PhoneWords.format("devicesUpdateLaterFailed", []) }
+    public static func `devicesUpdateLaterNamed`(`device`: String) -> String { PhoneWords.format("devicesUpdateLaterNamed", [`device`]) }
+    public static func `devicesUpdateLetGo`(`device`: String) -> String { PhoneWords.format("devicesUpdateLetGo", [`device`]) }
+    public static func `devicesUpdateResuming`(`device`: String) -> String { PhoneWords.format("devicesUpdateResuming", [`device`]) }
+    public static func `devicesUpdateSaving`(`device`: String) -> String { PhoneWords.format("devicesUpdateSaving", [`device`]) }
+    public static func `devicesUpdateWaitingFor`(`tasks`: String) -> String { PhoneWords.format("devicesUpdateWaitingFor", [`tasks`]) }
     public static func `devicesWorkCopyGone`(`device`: String) -> String { PhoneWords.format("devicesWorkCopyGone", [`device`]) }
     public static func `devicesWorkSavedByNewer`() -> String { PhoneWords.format("devicesWorkSavedByNewer", []) }
     public static func `dialogAdd`() -> String { PhoneWords.format("dialogAdd", []) }
@@ -5119,6 +5126,13 @@ extension PhoneWords {
         "devicesSourceWentBack": ["device"],
         "devicesUpdateApp": [],
         "devicesUpdateAppNamed": ["device"],
+        "devicesUpdateLater": [],
+        "devicesUpdateLaterFailed": [],
+        "devicesUpdateLaterNamed": ["device"],
+        "devicesUpdateLetGo": ["device"],
+        "devicesUpdateResuming": ["device"],
+        "devicesUpdateSaving": ["device"],
+        "devicesUpdateWaitingFor": ["tasks"],
         "devicesWorkCopyGone": ["device"],
         "devicesWorkSavedByNewer": [],
         "dialogAdd": [],

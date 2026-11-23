@@ -616,6 +616,21 @@ function HomeDevicesTab() {
     }
   }, []);
 
+  // Update later: the update waiting on its crew's work goes, and the list says so once it has.
+  const updateLater = useCallback(
+    async (deviceId: string) => {
+      setProblem(null);
+      try {
+        await window.infinitary.devices.updateLater(deviceId);
+      } catch (caught) {
+        setProblem(caught instanceof Error ? caught.message : m.devicesUpdateLaterFailed());
+      } finally {
+        refresh();
+      }
+    },
+    [refresh],
+  );
+
   // Change address: its row says where this Mac looks; a refusal is said here too.
   const changeAddress = useCallback(
     async (deviceId: string, address: string) => {
@@ -850,6 +865,7 @@ function HomeDevicesTab() {
       onTryAgain={(id) => void tryAgain(id)}
       onFixWork={(id) => void fixWork(id)}
       onUpdateApp={(id) => void updateApp(id)}
+      onUpdateLater={(id) => void updateLater(id)}
       onAskChangeAddress={setChanging}
       onChangeAddress={(id, address) => void changeAddress(id, address)}
       onCopyWay={(what) => void make(what, true)}

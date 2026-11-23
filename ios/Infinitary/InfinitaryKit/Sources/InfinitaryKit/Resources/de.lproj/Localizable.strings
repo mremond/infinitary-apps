@@ -870,6 +870,13 @@
 "devicesSourceWentBack" = "%1$@ ist zur vorherigen Kopie zurückgekehrt, weil sein Build des Codes dieses Computers diesen Computer nicht rechtzeitig erreicht hat.";
 "devicesUpdateApp" = "App aktualisieren";
 "devicesUpdateAppNamed" = "Die App auf %1$@ aktualisieren";
+"devicesUpdateLater" = "Später aktualisieren";
+"devicesUpdateLaterFailed" = "Das Update konnte nicht abgebrochen werden.";
+"devicesUpdateLaterNamed" = "%1$@ später aktualisieren";
+"devicesUpdateLetGo" = "%1$@ wurde nicht aktualisiert, weil du „Später aktualisieren“ gewählt hast. Die Arbeit dort läuft weiter.";
+"devicesUpdateResuming" = "%1$@ setzt die Arbeit fort, die das Update pausiert hat.";
+"devicesUpdateSaving" = "Arbeit auf %1$@ wird gesichert.";
+"devicesUpdateWaitingFor" = "Warte darauf, dass %1$@ beendet, was gerade läuft.";
 "devicesWorkCopyGone" = "%1$@ hatte die Infinitary-Kopie, von der seine Arbeit startete, nicht mehr, daher startet seine Arbeit jetzt von dem dort installierten Infinitary.";
 "devicesWorkSavedByNewer" = "Eine neuere Infinitary-Version hat diese Arbeit gespeichert, daher lässt diese Version sie unverändert. Installiere hier diese neuere Infinitary-Version, um weiterzumachen.";
 "dialogAdd" = "Hinzufügen";

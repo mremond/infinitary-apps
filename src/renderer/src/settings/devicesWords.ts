@@ -1,4 +1,4 @@
-import { formatDate, formatTime } from "@shared/i18n/format";
+import { formatDate, formatList, formatTime } from "@shared/i18n/format";
 import * as m from "@shared/i18n/messages.generated";
 import { workSetupWords } from "@shared/workSetupWords";
 import type { DeviceMake } from "../../../shared/deviceArrival";
@@ -392,6 +392,22 @@ export function deviceSummary(device: DeviceView, signIns: DeviceSignIns | undef
         : m.settingsDevicesNoSignIns(),
     );
   return parts.join(" · ");
+}
+
+/**
+ * What a computer's crew's work is doing around its update (docs/devices.md,
+ * "Saving work before an update"): being saved, naming the tasks it waits
+ * for, or resuming once the update is over; null while it does neither.
+ */
+export function updateWorkLine(device: DeviceView): string | null {
+  const work = deviceRunsWork(device.kind) ? device.updateWork : undefined;
+  if (!work) return null;
+  const name = deviceLabel(device);
+  if (work.state === "resuming") return m.devicesUpdateResuming({ device: name });
+  const saving = m.devicesUpdateSaving({ device: name });
+  return work.tasks.length > 0
+    ? `${saving} ${m.devicesUpdateWaitingFor({ tasks: formatList(work.tasks) })}`
+    : saving;
 }
 
 /**

@@ -111,6 +111,13 @@
   "devicesSourceWentBack": "{device} went back to the copy it ran before, because its build of this computer's code did not reach this computer in time.",
   "devicesUpdateApp": "Update app",
   "devicesUpdateAppNamed": "Update the app on {device}",
+  "devicesUpdateLater": "Update later",
+  "devicesUpdateLaterFailed": "Could not let the update go.",
+  "devicesUpdateLaterNamed": "Update {device} later",
+  "devicesUpdateLetGo": "{device} was not updated, since you chose Update later. Its work carries on.",
+  "devicesUpdateResuming": "{device} is resuming work the update paused.",
+  "devicesUpdateSaving": "Saving work on {device}.",
+  "devicesUpdateWaitingFor": "Waiting for {tasks} to finish what is running.",
   "devicesWorkCopyGone": "{device} no longer had the copy of Infinitary its work started from, so its work now starts from the Infinitary installed there.",
   "devicesWorkSavedByNewer": "A newer Infinitary saved this work, so this version leaves it as it is. Install that newer Infinitary here to carry on."
 }

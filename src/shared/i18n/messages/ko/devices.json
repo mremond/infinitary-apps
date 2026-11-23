@@ -110,6 +110,13 @@
   "devicesSourceWentBack": "{device}에서 이 컴퓨터의 코드로 만든 빌드가 제때 이 컴퓨터에 연결되지 않아, 이전에 쓰던 사본으로 돌아갔어요.",
   "devicesUpdateApp": "앱 업데이트",
   "devicesUpdateAppNamed": "{device}의 앱 업데이트",
+  "devicesUpdateLater": "나중에 업데이트",
+  "devicesUpdateLaterFailed": "업데이트를 미룰 수 없습니다.",
+  "devicesUpdateLaterNamed": "{device}을(를) 나중에 업데이트",
+  "devicesUpdateLetGo": "나중에 업데이트를 선택해서 {device}은 업데이트되지 않았어요. 작업은 계속돼요.",
+  "devicesUpdateResuming": "{device}이 업데이트로 멈춘 작업을 다시 시작하고 있어요.",
+  "devicesUpdateSaving": "{device}에서 작업을 저장하고 있어요.",
+  "devicesUpdateWaitingFor": "{tasks}이 실행 중인 일을 마치기를 기다리고 있어요.",
   "devicesWorkCopyGone": "{device}에 작업을 시작하던 Infinitary 사본이 더 이상 없어서, 이제 그곳에 설치된 Infinitary에서 작업을 시작해요.",
   "devicesWorkSavedByNewer": "이 작업은 더 새로운 Infinitary가 저장했기 때문에 이 버전은 그대로 둬요. 계속하려면 여기에 그 새로운 Infinitary를 설치하세요."
 }

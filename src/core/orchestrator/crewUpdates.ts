@@ -20,6 +20,35 @@ type UpdateTurn = {
   ended: Promise<void>;
 };
 
+/**
+ * What a computer that runs work does itself to save its crew's work before
+ * its home updates it (`work-update-saving.md`; docs/helper.md, "Saving its
+ * work before an update").
+ */
+export type SaveThere = {
+  /**
+   * Its turns stop safely there; resolves once each stopped turn's end is
+   * here, naming the tasks whose turn it stopped. Rejects once `signal`
+   * aborts, or when the computer could not be asked or did not come back.
+   */
+  save(signal: AbortSignal): Promise<{ stopped: string[] }>;
+  /** Lets the save there go, naming the tasks whose turn it stopped; undefined when it could not be asked. */
+  release(): Promise<{ stopped: string[] } | undefined>;
+};
+
+/** A computer that runs work while its home updates it (`pauseForUpdate`). */
+type RemoteUpdate = {
+  computer: string;
+  /** It saves its own crew's work, and is let go after (`resumeAfterUpdate`). */
+  there: SaveThere | undefined;
+  /** Each task whose turn there the update holds, with the lane row that carries it on. */
+  turns: Map<string, { task: TaskRuntime; row: number }>;
+  /** Tells the update which tasks' running turns there it waits for now. */
+  report: () => void;
+  /** The pause under way, which a second ask joins. */
+  saving: Promise<UpdateSaveOutcome>;
+};
+
 /** This computer's own update while it saves the crew's work (`saveForUpdate`). */
 type LocalUpdate = {
   turns: Map<string, UpdateTurn>;
@@ -82,11 +111,11 @@ export type CrewUpdatesHost = {
  */
 export class CrewUpdates {
   /**
-   * The computers being updated now, each by its device id with its name:
-   * their crewmates wait as for a computer out of reach (`outOfReach`)
-   * until the update is over and the computer is back and caught up.
+   * The computers being updated now, each by its device id: their
+   * crewmates wait as for a computer out of reach (`outOfReach`) until the
+   * update is over and the computer is back and caught up.
    */
-  private readonly updating = new Map<string, string>();
+  private readonly updating = new Map<string, RemoteUpdate>();
   /**
    * This computer's own update while it saves its crew's work and until
    * the copy is replaced or the update is let go (`saveForUpdate`): no
@@ -198,47 +227,195 @@ export class CrewUpdates {
 
   /** A turn began while its computer is being updated: it stops too. */
   turnBegan(task: TaskRuntime): void {
-    const computer = this.updating.get(this.host.machineOf(task.id));
-    if (computer !== undefined) void this.pauseTurn(task, computer);
+    const update = this.updating.get(this.host.machineOf(task.id));
+    if (update?.there) this.holdTurn(task, update);
+    else if (update) void this.pauseTurn(task, update.computer);
     if (this.localUpdate && this.heldForUpdate(task.id)) this.stopForUpdate(task, this.localUpdate);
   }
 
   /**
    * The computer is about to be updated (docs/helper.md, "Updated by its
-   * home"): each crewmate turn running there stops, as a pause and never a
-   * failure, and nothing is handed to its crew until the update is over
-   * and the computer is back and caught up (`outOfReach`). The update
-   * waits, at most `QUIT_SETTLE_MS`, for the stopped turns to end there,
-   * so each conversation is written down before its computer stops.
+   * home"): nothing is handed to its crew until the update is over and the
+   * computer is back and caught up (`outOfReach`), and each crewmate turn
+   * running there stops, as a pause and never a failure, with a lane row
+   * that carries it on after.
+   *
+   * A computer that saves its own work (`there`; docs/helper.md, "Saving
+   * its work before an update") stops each turn where nothing is lost and
+   * decides when it is saved: this resolves `saved` once it says so, with
+   * every stopped turn's end here, telling `waiting` meanwhile which tasks'
+   * turns there it waits for. Aborting `signal` first lets the update go
+   * (Update later) and resolves `withdrawn`; `resumeAfterUpdate` then lets
+   * the computer go. Any other computer's turns are cut, and the update
+   * waits at most `QUIT_SETTLE_MS` for them to end there. A second ask
+   * joins the first.
    */
-  async pauseForUpdate(deviceId: string): Promise<void> {
-    if (this.host.disposed() || this.updating.has(deviceId)) return;
+  pauseForUpdate(
+    deviceId: string,
+    options: {
+      signal?: AbortSignal;
+      waiting?: (tasks: string[]) => void;
+      there?: SaveThere;
+    } = {},
+  ): Promise<UpdateSaveOutcome> {
+    const known = this.updating.get(deviceId);
+    if (known) return known.saving;
+    if (this.host.disposed()) return Promise.resolve("saved");
     const computer = this.options.machines?.nameOf(deviceId) ?? deviceId;
-    this.updating.set(deviceId, computer);
-    const stopping = [...this.host.runtimes()]
-      .filter((task) => task.turn.running && this.host.machineOf(task.id) === deviceId)
-      .map((task) => this.pauseTurn(task, computer));
-    if (stopping.length === 0) return;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const bound = new Promise<void>((resolve) => {
-      timer = setTimeout(resolve, QUIT_SETTLE_MS);
+    const turns = new Map<string, { task: TaskRuntime; row: number }>();
+    const update: RemoteUpdate = {
+      computer,
+      there: options.there,
+      turns,
+      report: () =>
+        options.waiting?.(
+          [...turns.values()].filter(({ task }) => task.turn.running).map(({ task }) => task.title),
+        ),
+      saving: Promise.resolve("saved"),
+    };
+    this.updating.set(deviceId, update);
+    const running = [...this.host.runtimes()].filter(
+      (task) => task.turn.running && this.host.machineOf(task.id) === deviceId,
+    );
+    if (options.there) {
+      for (const task of running) this.holdTurn(task, update);
+      update.saving = this.saveThere(update, options.there, options.signal);
+    } else if (running.length > 0) {
+      const stopping = running.map((task) => this.pauseTurn(task, computer));
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const bound = new Promise<void>((resolve) => {
+        timer = setTimeout(resolve, QUIT_SETTLE_MS);
+      });
+      update.saving = Promise.race([Promise.all(stopping), bound])
+        .finally(() => clearTimeout(timer))
+        .then(() => "saved" as const);
+    }
+    return update.saving;
+  }
+
+  /**
+   * Waits for the computer to save its own crew's work, without a bound:
+   * it decides when it is saved. Update later (`signal`) stops waiting.
+   */
+  private async saveThere(
+    update: RemoteUpdate,
+    there: SaveThere,
+    signal?: AbortSignal,
+  ): Promise<UpdateSaveOutcome> {
+    const withdraw = new AbortController();
+    const letGo = () => withdraw.abort();
+    if (signal?.aborted) letGo();
+    else signal?.addEventListener("abort", letGo, { once: true });
+    update.report();
+    try {
+      await there.save(withdraw.signal);
+      if (withdraw.signal.aborted) return "withdrawn";
+      update.report();
+      return "saved";
+    } catch (caught) {
+      if (withdraw.signal.aborted) return "withdrawn";
+      throw caught;
+    } finally {
+      signal?.removeEventListener("abort", letGo);
+    }
+  }
+
+  /**
+   * One crewmate's turn there is held for its computer's update, which
+   * stops it there where nothing is lost: a lane row says why for the turn
+   * that carries it on, and its end is a pause (`turnComplete`) - one that
+   * kept what it read, unless the computer quit first or stopped it before
+   * its model took it. No interrupt is recorded, so a kept merge approval stands.
+   */
+  private holdTurn(task: TaskRuntime, update: RemoteUpdate): void {
+    if (update.turns.has(task.id) || task.turn.pause || task.turn.closing || !task.session) return;
+    const row = this.options.inbox.enqueue(task.id, {
+      facts: { kind: "turn-resumed", stopped: "update", computer: update.computer },
     });
-    await Promise.race([Promise.all(stopping), bound]).finally(() => clearTimeout(timer));
+    task.turn.hold({ computer: update.computer, row });
+    this.host.restarts.observe(task.id);
+    this.host.restarts.recordRestartOutcome(
+      task.id,
+      "waiting",
+      `Infinitary on ${update.computer} is being updated`,
+    );
+    this.options.tasks.note(task.id, `paused while Infinitary on ${update.computer} is updated`, {
+      news: true,
+    });
+    update.turns.set(task.id, { task, row });
+    void this.host.untilTurnOver(task).then(() => update.report());
   }
 
   /**
    * The update is over, whatever came of it: the computer's crew carries
    * on, each paused crewmate with the lane row its pause left - once the
    * computer is back and caught up (`placedCaughtUp`), or now when it
-   * never stopped.
+   * never stopped. A computer that saved its own work is let go first, so
+   * a turn it did not stop goes on as if never asked.
    */
   resumeAfterUpdate(deviceId: string): void {
-    if (!this.updating.delete(deviceId) || this.host.disposed()) return;
+    const update = this.updating.get(deviceId);
+    if (!update) return;
+    this.updating.delete(deviceId);
+    if (this.host.disposed()) return;
+    if (!update.there) {
+      this.carryOn(deviceId);
+      return;
+    }
+    void this.letGoThere(update, update.there)
+      .catch((caught: unknown) => {
+        console.warn("[crew] a computer's saved work could not be let go:", caught);
+      })
+      .finally(() => this.carryOn(deviceId));
+  }
+
+  /**
+   * Lets the computer's save go there: a held turn it did not stop still
+   * runs there, so its pause and its lane row go. One it could not be
+   * asked about keeps both, and is carried on.
+   */
+  private async letGoThere(update: RemoteUpdate, there: SaveThere): Promise<void> {
+    const answer = await there.release();
+    if (!answer) return;
+    for (const { task, row } of update.turns.values()) {
+      if (answer.stopped.includes(task.id) || task.turn.pause?.row !== row) continue;
+      task.turn.takePause();
+      this.options.inbox.withdraw([row]);
+      this.host.restarts.forget(task.id);
+    }
+  }
+
+  /** What waited on the computer's lanes goes now, in order. */
+  private carryOn(deviceId: string): void {
+    if (this.host.disposed()) return;
     const now = this.host.now();
     for (const taskId of this.options.inbox.recipientsWithRows())
       if (this.host.machineOf(taskId) === deviceId) void this.host.sweepTaskLane(taskId, now);
     void this.host.sweepGates(now);
     this.host.broadcastCrewCounts();
+  }
+
+  /**
+   * The tasks on a computer that runs work whose turn its update stopped
+   * and which have not started again, by title: that computer's Resuming work.
+   */
+  resumingOn(deviceId: string): string[] {
+    const titles: string[] = [];
+    for (const taskId of this.options.inbox.recipientsWithRows()) {
+      if (this.host.machineOf(taskId) !== deviceId) continue;
+      const waits = this.options.inbox
+        .allFor(taskId)
+        .some(
+          (row) =>
+            row.deliveredAt === null &&
+            row.facts?.kind === "turn-resumed" &&
+            row.facts.stopped === "update" &&
+            row.facts.computer !== undefined,
+        );
+      const title = waits ? this.options.tasks.get(taskId)?.title : undefined;
+      if (title) titles.push(title);
+    }
+    return titles;
   }
 
   /**
