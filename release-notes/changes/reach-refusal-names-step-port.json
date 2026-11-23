@@ -1,0 +1,20 @@
+{
+  "entries": [
+    {
+      "id": "reach-refusal-names-step-port",
+      "kind": "improvement",
+      "area": "devices",
+      "title": "Adding a computer by its address says where it got stuck",
+      "body": "When a computer added by its address cannot be reached, Devices now says which step stopped and on which port: reading its SSH key, signing in or sending Infinitary. It names the private network between the two computers as a thing to check, and points to Run a command there, which works where SSH from here does not. On a server started by a command, the link command also prints the firewall line Devices shows in a window.",
+      "picture": {
+        "dark": "reach-refusal-names-step-port-dark.webp",
+        "light": "reach-refusal-names-step-port-light.webp",
+        "alt": "The address form in Settings, Devices after a failed add, saying it could not read the computer's SSH key on port 22, what to check, and to add it with Run a command there."
+      },
+      "provenance": {
+        "origin": "change"
+      }
+    }
+  ],
+  "exclusions": []
+}

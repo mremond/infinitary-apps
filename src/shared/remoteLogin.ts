@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fileSizeWords } from "./attachments";
 import { COMPUTER, HERE } from "./deviceNames";
 import { type DeviceView, deviceLabel, deviceViewSchema, userDisplayName } from "./devices";
+import * as m from "./i18n/messages.generated.ts";
 
 /**
  * Adding a Mac or a Linux computer by its address over SSH (docs/devices.md,
@@ -409,6 +410,62 @@ export type RemoteLoginPasswordQuestion = z.infer<typeof remoteLoginPasswordQues
 export const remoteLoginDoingSchema = z.enum(["add", "update", "remove", "address"]);
 export type RemoteLoginDoing = z.infer<typeof remoteLoginDoingSchema>;
 
+/**
+ * Which step an `unreachable` refusal stopped at, so its words name it
+ * (docs/devices.md, "When it could not reach the computer"): reading its SSH
+ * key before any sign-in, at the port the person's SSH settings resolve
+ * (`answered` when something took the connection there and sent no key,
+ * false when nothing did, absent when this computer cannot tell); signing in
+ * after the key was read; or sending Infinitary after the sign-in.
+ */
+export type RemoteLoginReach =
+  | { step: "key"; port: number; answered?: boolean }
+  | { step: "sign-in"; port?: number }
+  | { step: "send" };
+
+/**
+ * An `unreachable` refusal's two lines: the step and port it stopped at,
+ * then what to check, the private network among it. An add ends by offering
+ * Run a command there, which works where SSH from here does not.
+ */
+function unreachableLines(
+  address: string,
+  name: string,
+  doing: RemoteLoginDoing | undefined,
+  reach: RemoteLoginReach | undefined,
+): [string, string] {
+  const next = doing === "add" ? m.devicesReachOrCommand() : m.devicesReachAskAgain();
+  if (!reach) return [m.devicesReachNone({ address }), `${m.devicesReachCheck()} ${next}`];
+  switch (reach.step) {
+    case "key": {
+      const port = String(reach.port);
+      if (reach.answered === true)
+        return [
+          m.devicesReachKeyNoKey({ address, port }),
+          `${m.devicesReachCheckNoKey({ port })} ${next}`,
+        ];
+      if (reach.answered === false)
+        return [
+          m.devicesReachKeySilent({ address, port }),
+          `${m.devicesReachCheckSilent()} ${next}`,
+        ];
+      return [
+        m.devicesReachKeyUnread({ address, port }),
+        `${m.devicesReachCheckPort({ port })} ${next}`,
+      ];
+    }
+    case "sign-in":
+      return [
+        reach.port === undefined
+          ? m.devicesReachSignIn({ address })
+          : m.devicesReachSignInPort({ address, port: String(reach.port) }),
+        `${m.devicesReachCheckStay()} ${next}`,
+      ];
+    case "send":
+      return [m.devicesReachSend({ name }), `${m.devicesReachCheckStay()} ${next}`];
+  }
+}
+
 /** The program that installs software on a Linux computer, as the look tells it. */
 export const LINUX_INSTALLERS = ["apt", "dnf", "pacman", "zypper"] as const;
 export type LinuxInstaller = (typeof LINUX_INSTALLERS)[number];
@@ -764,6 +821,8 @@ export const remoteLoginWords = {
       missing?: readonly string[] | undefined;
       /** How that computer names what it installs, for `needs-tools`. */
       installs?: LinuxInstalls | undefined;
+      /** The step an `unreachable` refusal stopped at, when known. */
+      reach?: RemoteLoginReach | undefined;
     },
   ): [string, string] {
     const { address } = at;
@@ -810,10 +869,7 @@ export const remoteLoginWords = {
           "Turn on Remote Login there, in System Settings under General, Sharing, or start the SSH server on a Linux computer. Then ask again.",
         ];
       case "unreachable":
-        return [
-          `Could not reach ${address}.`,
-          "Check its address and that it is awake, then ask again.",
-        ];
+        return unreachableLines(address, name, at.doing, at.reach);
       case "host-unknown":
         return [
           `${HERE.This} has not checked ${address} yet, so it cannot tell it is your ${COMPUTER.one}.`,

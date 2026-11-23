@@ -29,6 +29,7 @@ import {
   type RemoteLoginCopy,
   type RemoteLoginDoing,
   type RemoteLoginPasswordQuestion,
+  type RemoteLoginReach,
   type RemoteLoginRefusal,
   type RemoteLoginStage,
   type RemoteLoginUpdateOptions,
@@ -306,7 +307,8 @@ export class RemoteLogin {
       if (!this.builds.canSendAny()) return step.refuse("cannot-send");
       const gated = await this.confirmHost(address, options.confirm);
       if ("asks" in gated) return gated;
-      if ("refusal" in gated) return step.refuse(gated.refusal);
+      if ("refusal" in gated)
+        return step.refuse(gated.refusal, gated.reach ? { reach: gated.reach } : {});
       step.say("reaching", remoteLoginWords.reaching(address));
       // Whether that Mac is this one is this Mac's own finding, bound to the
       // link it makes, never where the device later dials from.
@@ -336,7 +338,11 @@ export class RemoteLogin {
       } finally {
         here.dispose();
       }
-      if ("refusal" in look) return step.refuse(look.refusal);
+      if ("refusal" in look)
+        return step.refuse(
+          look.refusal,
+          look.refusal === "unreachable" ? { reach: await this.signInReach(address) } : {},
+        );
       // That computer's system decides how it is set up, and which Firstmate it gets.
       const far = farSystemOf(look.os);
       const chip = far?.chips[look.arch ?? ""];
@@ -902,8 +908,14 @@ export class RemoteLogin {
         let backstop: ReturnType<typeof setTimeout> | undefined;
         // The time limit stopped it: said as that, never as what SSH answered after.
         let timedOut = false;
-        const refuse = (refusal: RemoteLoginRefusal): never =>
-          timedOut ? step.stopped(name, "timeout") : step.refuse(refusal, { name });
+        // A connection lost after the sign-in is said as lost while sending.
+        const refuse = (refusal: RemoteLoginRefusal, reach?: RemoteLoginReach): never =>
+          timedOut
+            ? step.stopped(name, "timeout")
+            : step.refuse(refusal, {
+                name,
+                ...(refusal === "unreachable" && reach ? { reach } : {}),
+              });
         const clearBackstop = () => {
           if (backstop) clearTimeout(backstop);
         };
@@ -925,12 +937,14 @@ export class RemoteLogin {
           const stage = heard.get("stage") ?? "";
           if (!ready) {
             const ran = await master.exited;
-            return refuse(ran.code === SSH_FAILED ? sshRefusal(ran.stderr) : "failed");
+            return refuse(ran.code === SSH_FAILED ? sshRefusal(ran.stderr) : "failed", {
+              step: "sign-in",
+            });
           }
           if (!(await master.forward(socket, pairing.port))) {
             const alive = master.alive();
             await master.stop();
-            return refuse(alive ? "forwarding-refused" : "unreachable");
+            return refuse(alive ? "forwarding-refused" : "unreachable", { step: "send" });
           }
           // The bytes sent so far, said as they move, each count in place of the one before.
           const run = { id: `copy-${randomUUID()}` };
@@ -970,7 +984,7 @@ export class RemoteLogin {
             startBackstop();
             downloaded = got.code === 0 && !got.stopped;
             if (!downloaded) {
-              if (!master.alive()) return refuse("unreachable");
+              if (!master.alive()) return refuse("unreachable", { step: "send" });
               step.say(
                 at.stage,
                 remoteLoginWords.downloadFallback(name, got.code === 7),
@@ -1018,7 +1032,7 @@ export class RemoteLogin {
             if (sent.stopped) return step.stopped(name, sent.stopped);
             if (sent.code !== 0) {
               await master.stop();
-              return refuse(sent.code === SSH_FAILED ? "unreachable" : "failed");
+              return refuse(sent.code === SSH_FAILED ? "unreachable" : "failed", { step: "send" });
             }
             copy.end();
           }
@@ -1480,6 +1494,15 @@ export class RemoteLogin {
   }
 
   /**
+   * Where a sign-in that could not reach `address` dialed: the port the
+   * person's SSH settings resolve, unless a proxy stands in between.
+   */
+  private async signInReach(address: string): Promise<RemoteLoginReach> {
+    const where = await resolveDestination(this.options.ssh, address);
+    return where && !where.proxied ? { step: "sign-in", port: where.port } : { step: "sign-in" };
+  }
+
+  /**
    * The check line, before any sign-in. A Mac this Mac has not checked is
    * asked; a yes that matches the line just read is remembered; a Mac that
    * answers unlike a remembered yes is refused. Nothing is signed in to
@@ -1491,7 +1514,7 @@ export class RemoteLogin {
   ): Promise<
     | { ok: true }
     | { asks: "confirm"; address: string; line: string }
-    | { refusal: RemoteLoginRefusal }
+    | { refusal: RemoteLoginRefusal; reach?: RemoteLoginReach }
   > {
     if (this.options.pairing.hostTrustCannotBeRead()) return { refusal: "failed" };
     const live = await readHostKey(this.options.ssh, address);
@@ -1605,7 +1628,12 @@ export class RemoteLogin {
         ...(device ? { name: deviceLabel(device), deviceId: device.id } : {}),
         ...extra,
       });
-    type At = { name?: string; missing?: string[]; installs?: LinuxInstalls };
+    type At = {
+      name?: string;
+      missing?: string[];
+      installs?: LinuxInstalls;
+      reach?: RemoteLoginReach;
+    };
     const lines = (refusal: RemoteLoginRefusal, at: At) =>
       remoteLoginWords.refused(refusal, {
         address,
@@ -1613,6 +1641,7 @@ export class RemoteLogin {
         name: at.name ?? (device ? deviceLabel(device) : undefined),
         missing: at.missing,
         installs: at.installs,
+        reach: at.reach,
       });
     return {
       say: (stage: RemoteLoginStage, text: string, extra: StepFacts = {}) =>

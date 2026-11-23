@@ -1,9 +1,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { request } from "node:http";
 import { join } from "node:path";
+import { firewallKeepsOut, windowsFirewallKeepsOut } from "@core/devices/firewall";
 import { minutesWords } from "@core/helper/words";
+import { hostPlatform } from "@core/platform";
+import { CONNECTION_PORT } from "@shared/connection";
 import { COMPUTER } from "@shared/deviceNames";
-import { LINK_SAY, phoneRouteWords } from "@shared/devices";
+import { firewallWords, type HomeFirewall, LINK_SAY, phoneRouteWords } from "@shared/devices";
 import { PHONE_CODE_QUIET, phoneCodeModules } from "@shared/phoneCode";
 import {
   LINK_COMMAND_PATH,
@@ -24,6 +27,9 @@ import { commandWords } from "./workCommand";
  * over SSH does (`PhoneDoor`, src/core/devices/phoneDoor.ts), so pairing
  * makes the link as Settings -> Devices does; it starts nothing, opens no
  * window and takes no lock. The link reaches this command's output alone.
+ * Under the link it prints what Settings -> Devices says of this computer's
+ * own firewall, when one may keep the other computer out (docs/devices.md,
+ * "A home's firewall"), so a server with no window says it too.
  */
 
 export const LINK_WORDS = {
@@ -177,8 +183,17 @@ export function terminalCode(modules: readonly (readonly boolean[])[]): string[]
 
 export type LinkOutput = { code: number; out: string; error: string };
 
-/** What the command prints for what the door answered, and how it ends: 0 a link, 1 none. */
-export function linkOutput(asked: LinkAsked, answer: LinkAnswer, now: number): LinkOutput {
+/**
+ * What the command prints for what the door answered, and how it ends: 0 a
+ * link, 1 none. `firewall` is this computer's own firewall that may keep the
+ * other computer out, printed under the link as Settings -> Devices says it.
+ */
+export function linkOutput(
+  asked: LinkAsked,
+  answer: LinkAnswer,
+  now: number,
+  firewall: HomeFirewall | null = null,
+): LinkOutput {
   const fail = (lines: readonly string[]): LinkOutput => ({
     code: 1,
     out: "",
@@ -218,15 +233,37 @@ export function linkOutput(asked: LinkAsked, answer: LinkAnswer, now: number): L
           `${lasts} ${phoneRouteWords(answer.link)}`,
         ]
       : [...LINK_SAY.computer, "", answer.link, "", lasts];
+  if (firewall) {
+    const said = firewallWords(firewall);
+    lines.push("", ...said.lines, "", `  ${said.way}`);
+  }
   return { code: 0, out: `${lines.join("\n")}\n`, error: "" };
+}
+
+/**
+ * This computer's own firewall that may keep its other computers out, read
+ * as Settings -> Devices reads it on a Linux or Windows first mate's
+ * computer; null on a Mac, whose firewall asks its person, or when none is
+ * known to.
+ */
+export function ownFirewall(): Promise<HomeFirewall | null> {
+  const platform = hostPlatform();
+  if (platform === "linux") return firewallKeepsOut({ port: CONNECTION_PORT });
+  if (platform === "win32") return windowsFirewallKeepsOut(CONNECTION_PORT, process.execPath);
+  return Promise.resolve(null);
 }
 
 /** The whole command: the words after `link`, asked of the app on this data folder. */
 export async function runLinkCommand(
   words: readonly string[],
   dataDir: string,
+  firewall: () => Promise<HomeFirewall | null> = ownFirewall,
 ): Promise<LinkOutput> {
   const asked = linkAsked(words);
   if (!asked) return { code: 2, out: "", error: `${LINK_WORDS.usage.join("\n")}\n` };
-  return linkOutput(asked, await askForLink(dataDir, asked.for), Date.now());
+  const answer = await askForLink(dataDir, asked.for);
+  // The JSON is for a program, which reads the link alone.
+  const keepsOut =
+    answer.kind === "link" && !asked.json ? await firewall().catch(() => null) : null;
+  return linkOutput(asked, answer, Date.now(), keepsOut);
 }

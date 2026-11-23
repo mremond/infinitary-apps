@@ -34,7 +34,10 @@ A refusal is two feed lines with `warn` dots, never a card:
 - a refused key, when updating, removing or changing its address: "sam@mini.local did not accept your SSH key." and "Check that Remote Login is on there and lets you in, then ask again."
 - Infinitary's own key placed there, and still not let in: "sam@mini.local did not let Infinitary's own key in, after it was placed there." and "Its Remote Login may read keys from another file.
   Add it with a command instead."
-- no answer: "Could not reach sam@mini.local." and "Check its address and that it is awake, then ask again."
+- no answer: the step and port it stopped at, then what to check with the private network among it, ending "Then ask again, or add it with Run a command there.", the button under the form; such as "Nothing answered at sam@mini.local on port 22 when reading its SSH key." and "Check its address and that it is on.
+  Both computers need the same network or private network, such as Tailscale, and its firewall must let SSH in.
+  Then ask again, or add it with Run a command there."
+  (`docs/devices.md`, "When it could not reach the computer").
 - stopped by its thirty-minute time limit before Infinitary started there: "Preparing Infinitary for Mac mini stopped at its 30-minute time limit." and "Nothing changed there.
   Ask again.", never "Could not reach", since that computer answered all along.
 - another system, or Linux on a chip with no published build: "Infinitary cannot run on sam@mini.local's system." and "It runs work on Macs, and on Linux computers with an x64 chip.

@@ -171,9 +171,10 @@ The status command itself never queries the Keychain or creates a display, so an
 `<app> link` prints a one-use link another computer's Infinitary joins with at its first launch, and `<app> link --phone` prints a code the phone app scans, with the same link under it (INF-1228's approved plan, piece 3).
 It asks the Infinitary running in this account, started by a command or with its window, so the link joins that app's first mate; it starts nothing, opens no window, takes no lock and works on Linux without a display.
 It finds the data folder as `status` does, and asks at that folder's phone door with the door's key (`docs/devices.md`, "A phone that joins by its address"), so `DevicePairing` makes the link exactly as Settings -> Devices does: one use, ten minutes, and for a phone the addresses a phone reaches first.
-The words above the link are the ones Settings -> Devices shows (`LINK_SAY`, `src/shared/devices.ts`), and the last line says how long it works.
+The words above the link are the ones Settings -> Devices shows (`LINK_SAY`, `src/shared/devices.ts`), and the line under it says how long it works.
+On Linux and Windows, when this computer's own firewall may keep the other computer out, it then prints what Settings -> Devices says of it, two lines and the one line to run, such as `sudo ufw allow 47623/tcp` (`firewallWords`; `docs/devices.md`, "A home's firewall"); a server started by a command has no window to show it.
 The phone's code is drawn from the same modules as the one in Settings -> Devices (`phoneCodeModules`, `src/shared/phoneCode.ts`), in half blocks, black on white whatever the terminal's own colors, with the margin a camera needs.
-`--json` prints one object instead, `schemaVersion` 1, `for` (`computer` or `phone`), `link` and `expiresAt`; it draws no code.
+`--json` prints one object instead, `schemaVersion` 1, `for` (`computer` or `phone`), `link` and `expiresAt`; it draws no code and reads no firewall.
 A link prints with exit 0; any other word exits 2 with the usage.
 With no link it exits 1 and says why on its error output:
 

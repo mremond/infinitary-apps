@@ -479,7 +479,7 @@ Why SSH failed is read from its own fixed messages after it exits 255 (`sshRefus
 | `password-wrong` | It did not take the password typed once; said in the feed, and the aside asks again | "sam@mini.local did not take that password." "Nothing was kept. Check it, then try again." |
 | `key-not-taken` | Infinitary placed its own key there, and the Mac still did not let it in | "sam@mini.local did not let Infinitary's own key in, after it was placed there." "Its Remote Login may read keys from another file. Add it with a command instead." |
 | `remote-login-off` | Nothing answered Remote Login there | "sam@mini.local did not answer over Remote Login." "Turn on Remote Login there, in System Settings under General, Sharing, or start the SSH server on a Linux computer. Then ask again." |
-| `unreachable` | Nothing answered at that address, or the connection dropped | "Could not reach sam@mini.local." "Check its address and that it is awake, then ask again." |
+| `unreachable` | Nothing answered at that address, or the connection dropped; "When it could not reach the computer" below says each step's lines | "Could not reach sam@mini.local." "Check its address and that it is on. Both computers need the same network or private network, such as Tailscale. Then ask again." |
 | `host-unknown` | This Mac has not checked that address, and the check could not be asked | "This computer has not checked sam@mini.local yet, so it cannot tell it is your computer." "Add it again by its address, and say this is the computer." |
 | `host-changed` | It answers unlike the Mac this Mac reached before | "sam@mini.local does not answer as the computer this computer reached before." "If you did not set it up again, someone may be in between, so nothing was sent to it." |
 | `other-system` | It runs a system Infinitary is not set up on over SSH, or Linux on a chip with no published build | "Infinitary cannot run on sam@mini.local's system." "It runs work on Macs, and on Linux computers with an x64 chip. Nothing changed there." |
@@ -496,6 +496,22 @@ Why SSH failed is read from its own fixed messages after it exits 255 (`sshRefus
 | `cannot-send` | This copy of Infinitary has nothing to send for that system: a development run without `INFINITARY_APP_BUNDLE` for it or a stand-in tap, or an installed one that is no release | "This copy of Infinitary cannot send itself to another computer." "Only an installed Infinitary can add a computer." |
 | `busy` | Someone runs Infinitary's work there by hand | "Someone is running Infinitary's work by hand on Mac mini." "Stop it there, then ask again." |
 | `failed` | Anything else | "Could not set up Infinitary on Mac mini." "Nothing changed there. Ask again." |
+
+### When it could not reach the computer
+
+An `unreachable` refusal names the step it stopped at and the port it dialed (`RemoteLoginReach`, `src/shared/remoteLogin.ts`), so the person can tell a wrong address from a private network that is off or a port that is not SSH.
+Its second line names what to check, the private network among it, and on an add ends "Then ask again, or add it with Run a command there.", the button under the address form, which works where SSH from here does not; an update or a change of address ends "Then ask again."
+
+| Step | What it read | The first line |
+| --- | --- | --- |
+| Reading its SSH key | Something took the connection at that port and sent no key; read on Linux and Windows, which dial the port once themselves after the key read fails | "Something answered at kun@vps on port 22, but sent no SSH key." over "Check that port 22 is its SSH server and not another service." |
+| Reading its SSH key | Nothing answered there in time, on Linux and Windows | "Nothing answered at kun@vps on port 22 when reading its SSH key." over a check of the address, the private network and its firewall |
+| Reading its SSH key | On a Mac, which never dials the port itself, since its local network privacy would ask, or where the name finds no address | "Could not read the SSH key of kun@vps on port 22." over a check that its SSH server listens on that port and of the private network |
+| Signing in | The key was read, and SSH then could not reach it; the port is the one the person's SSH settings resolve, left out behind a proxy | "Could not reach kun@vps on port 22 to sign in, after reading its SSH key." |
+| Sending Infinitary | The connection dropped after the sign-in | "The connection to vps dropped while sending Infinitary." |
+
+The port is the one `ssh -G` resolves for the address (`resolveDestination`, `src/core/devices/hostKey.ts`); an address the settings reach through a proxy, or one SSH cannot resolve, keeps the bare "Could not reach sam@mini.local." with the same second line.
+Join by its address on the first launch says the bare lines too (`joinAtRefusalWords`, `src/shared/joinByAddress.ts`), with no command way, since it joins a first mate that already runs there.
 
 ### Where a computer joins from
 
@@ -1369,6 +1385,7 @@ A profile keeps devices out while it is on and blocks every incoming connection,
 Windows asks its person when this app first listens and writes a rule from their answer, so the warning names the profiles the answer left closed.
 Settings -> Devices then says "To let them in, run this once in PowerShell as an administrator:" over one line that lets the profile's rules apply where it blocked every incoming connection, removes the rule that blocks this app where one does, and adds one that allows this app's program at the port on those profiles (`windowsFirewallWay`, `src/shared/devices.ts`).
 It stands in the open link or command panel while one for another computer is open, and otherwise under the ways box; the command for another user on this computer never takes it, since that user dials loopback.
+A server with no window says it from `<app> link`: under a link it prints the same two lines and the way, read the same way on Linux and Windows (`docs/run.md`, "A link by command").
 A Mac never looks: macOS asks its person before its firewall keeps Infinitary out.
 The new field keeps older windows reading the addresses: one that knows only `firewall` shows no warning for a Windows home.
 

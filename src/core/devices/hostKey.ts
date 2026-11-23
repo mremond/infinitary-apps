@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createConnection } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { addressParts, type RemoteLoginRefusal } from "@shared/remoteLogin";
+import { addressParts, type RemoteLoginReach, type RemoteLoginRefusal } from "@shared/remoteLogin";
 import { hostEnv } from "../hostEnv";
 import { hostPlatform } from "../platform";
 import { type HostKey, preferHostKey, RSA_HOST_KEY_ALGORITHMS } from "./hostTrust";
@@ -28,7 +28,11 @@ const PROXY_KEY_ALGORITHMS = `ssh-ed25519,ecdsa-sha2-nistp256,${RSA_HOST_KEY_ALG
 /** Where the known-hosts command writes the key it was offered, named in its environment. */
 const OFFERED_FILE = "INFINITARY_OFFERED_HOST_KEY";
 
-export type HostKeyRead = HostKey | { refusal: RemoteLoginRefusal };
+/**
+ * The key, or why it could not be read: an `unreachable` key read on a port
+ * it dialed says that port, and whether anything took the connection there.
+ */
+export type HostKeyRead = HostKey | { refusal: RemoteLoginRefusal; reach?: RemoteLoginReach };
 
 /**
  * The user the captain's own SSH signs in to `address` as, as its settings
@@ -175,26 +179,53 @@ function scan(host: string, port: number): Promise<HostKeyRead> {
     // macOS ssh-keyscan says "Broken pipe" when nothing answers the port.
     if (/Connection refused|connect\(\) failed|Connection reset|Broken pipe/i.test(ran.stderr))
       return { refusal: "remote-login-off" };
-    // Linux's says nothing when the port is refused, so it is asked once
-    // itself; a Mac never dials it, which its local network privacy would ask.
-    if (hostPlatform() !== "darwin" && (await portRefuses(host, port)))
-      return { refusal: "remote-login-off" };
-    return { refusal: "unreachable" };
+    // A Mac never dials it itself, which its local network privacy would
+    // ask, so it cannot tell a silent port from one that sent no key.
+    if (hostPlatform() === "darwin")
+      return { refusal: "unreachable", reach: { step: "key", port } };
+    // Linux's and Windows' say nothing when the port is refused, so it is
+    // asked once itself; what answers there tells the rest apart.
+    const answer = await portAnswer(host, port);
+    if (answer === "refused") return { refusal: "remote-login-off" };
+    return {
+      refusal: "unreachable",
+      reach: {
+        step: "key",
+        port,
+        ...(answer === "unknown" ? {} : { answered: answer === "open" }),
+      },
+    };
   });
 }
 
-/** Whether `host` answers that nothing listens at `port`: a refused connection, never a silence. */
-function portRefuses(host: string, port: number): Promise<boolean> {
+/**
+ * What `host` answers at `port`: `refused` when nothing listens there,
+ * `open` when something took the connection, `silent` when nothing came
+ * back in time or the network said it cannot be reached, `unknown` when
+ * the name found no address, which says nothing of the port.
+ */
+function portAnswer(
+  host: string,
+  port: number,
+): Promise<"refused" | "open" | "silent" | "unknown"> {
   return new Promise((resolve) => {
     // A refusal comes at once; anything slower is no answer, which the scan already waited out.
     const socket = createConnection({ host, port, timeout: PROBE_TIMEOUT_MS });
-    const done = (refused: boolean) => {
+    const done = (answer: "refused" | "open" | "silent" | "unknown") => {
       socket.destroy();
-      resolve(refused);
+      resolve(answer);
     };
-    socket.once("connect", () => done(false));
-    socket.once("timeout", () => done(false));
-    socket.once("error", (error: NodeJS.ErrnoException) => done(error.code === "ECONNREFUSED"));
+    socket.once("connect", () => done("open"));
+    socket.once("timeout", () => done("silent"));
+    socket.once("error", (error: NodeJS.ErrnoException) =>
+      done(
+        error.code === "ECONNREFUSED"
+          ? "refused"
+          : error.code === "ENOTFOUND" || error.code === "EAI_AGAIN"
+            ? "unknown"
+            : "silent",
+      ),
+    );
   });
 }
 

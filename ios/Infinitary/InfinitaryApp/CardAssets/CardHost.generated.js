@@ -29091,6 +29091,397 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     return `Its SSH server, or Remote Login on a Mac, must be on.`;
   }
+  function devicesReachAskAgain() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `ثم اطلب مجددًا.`;
+      case "de":
+        return `Frag dann erneut.`;
+      case "es":
+        return `Luego vuelve a pedirlo.`;
+      case "fr":
+        return `Puis redemandez.`;
+      case "ja":
+        return `その後、もう一度頼んでください。`;
+      case "ko":
+        return `그런 다음 다시 요청하세요.`;
+      case "pt-BR":
+        return `Depois peça de novo.`;
+      case "zh-Hans":
+        return `然后再请求一次。`;
+      case "zh-Hant":
+        return `然後再要求一次。`;
+      case "en-XA":
+        return `[Ţĥéñ ášķ áĝáîñ. ~~~~~]`;
+      case "ar-XB":
+        return `‮Then ask again.‬`;
+    }
+    return `Then ask again.`;
+  }
+  function devicesReachCheck() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `تحقق من عنوانه ومن أنه قيد التشغيل. يحتاج الحاسوبان إلى الشبكة نفسها أو الشبكة الخاصة نفسها، مثل Tailscale.`;
+      case "de":
+        return `Prüfe seine Adresse und ob er eingeschaltet ist. Beide Computer brauchen dasselbe Netzwerk oder private Netzwerk, etwa Tailscale.`;
+      case "es":
+        return `Revisa su dirección y que esté encendido. Ambos computadores necesitan la misma red o red privada, como Tailscale.`;
+      case "fr":
+        return `Vérifiez son adresse et qu’il est allumé. Les deux ordinateurs doivent partager un réseau ou un réseau privé, comme Tailscale.`;
+      case "ja":
+        return `アドレスと、電源が入っていることを確認してください。両方のコンピュータが同じネットワーク、または Tailscale などの同じプライベートネットワークにある必要があります。`;
+      case "ko":
+        return `주소와 전원이 켜져 있는지 확인하세요. 두 컴퓨터가 같은 네트워크나 Tailscale 같은 같은 사설 네트워크에 있어야 해요.`;
+      case "pt-BR":
+        return `Verifique o endereço dele e se ele está ligado. Os dois computadores precisam da mesma rede ou rede privada, como a Tailscale.`;
+      case "zh-Hans":
+        return `请检查它的地址，并确认它已开机。两台电脑需要在同一网络或同一私有网络上，例如 Tailscale。`;
+      case "zh-Hant":
+        return `請檢查它的位址，並確認它已開機。兩台電腦需要在同一個網路或同一個私人網路上，例如 Tailscale。`;
+      case "en-XA":
+        return `[Çĥéçķ îţš áððŕéšš áñð ţĥáţ îţ îš öñ. Ɓöţĥ çöɱþûţéŕš ñééð ţĥé šáɱé ñéţŵöŕķ öŕ þŕîṽáţé ñéţŵöŕķ, šûçĥ áš Ţáîļšçáļé. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Check its address and that it is on. Both computers need the same network or private network, such as Tailscale.‬`;
+    }
+    return `Check its address and that it is on. Both computers need the same network or private network, such as Tailscale.`;
+  }
+  function devicesReachCheckNoKey(input2) {
+    const port = input2.port;
+    switch (currentLanguage()) {
+      case "ar":
+        return `تحقق من أن المنفذ ${port} هو خادم SSH الخاص به وليس خدمة أخرى.`;
+      case "de":
+        return `Prüfe, ob an Port ${port} sein SSH-Server läuft und kein anderer Dienst.`;
+      case "es":
+        return `Revisa que el puerto ${port} sea su servidor SSH y no otro servicio.`;
+      case "fr":
+        return `Vérifiez que le port ${port} est bien son serveur SSH et pas un autre service.`;
+      case "ja":
+        return `ポート ${port} が別のサービスではなく、その SSH サーバーであることを確認してください。`;
+      case "ko":
+        return `포트 ${port}가 다른 서비스가 아니라 그 컴퓨터의 SSH 서버인지 확인하세요.`;
+      case "pt-BR":
+        return `Verifique se a porta ${port} é o servidor SSH dele e não outro serviço.`;
+      case "zh-Hans":
+        return `请确认端口 ${port} 是它的 SSH 服务器，而不是其他服务。`;
+      case "zh-Hant":
+        return `請確認連接埠 ${port} 是它的 SSH 伺服器，而不是其他服務。`;
+      case "en-XA":
+        return `[Çĥéçķ ţĥáţ þöŕţ ${port} îš îţš ŠŠĤ šéŕṽéŕ áñð ñöţ áñöţĥéŕ šéŕṽîçé. ~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Check that port ‬${port}‮ is its SSH server and not another service.‬`;
+    }
+    return `Check that port ${port} is its SSH server and not another service.`;
+  }
+  function devicesReachCheckPort(input2) {
+    const port = input2.port;
+    switch (currentLanguage()) {
+      case "ar":
+        return `تحقق من عنوانه ومن أن خادم SSH الخاص به يستمع على المنفذ ${port}. يحتاج الحاسوبان إلى الشبكة نفسها أو الشبكة الخاصة نفسها، مثل Tailscale.`;
+      case "de":
+        return `Prüfe seine Adresse und ob sein SSH-Server an Port ${port} lauscht. Beide Computer brauchen dasselbe Netzwerk oder private Netzwerk, etwa Tailscale.`;
+      case "es":
+        return `Revisa su dirección y que su servidor SSH escuche en el puerto ${port}. Ambos computadores necesitan la misma red o red privada, como Tailscale.`;
+      case "fr":
+        return `Vérifiez son adresse et que son serveur SSH écoute sur le port ${port}. Les deux ordinateurs doivent partager un réseau ou un réseau privé, comme Tailscale.`;
+      case "ja":
+        return `アドレスと、その SSH サーバーがポート ${port} で待ち受けていることを確認してください。両方のコンピュータが同じネットワーク、または Tailscale などの同じプライベートネットワークにある必要があります。`;
+      case "ko":
+        return `주소와 그 SSH 서버가 포트 ${port}에서 대기 중인지 확인하세요. 두 컴퓨터가 같은 네트워크나 Tailscale 같은 같은 사설 네트워크에 있어야 해요.`;
+      case "pt-BR":
+        return `Verifique o endereço dele e se o servidor SSH dele escuta na porta ${port}. Os dois computadores precisam da mesma rede ou rede privada, como a Tailscale.`;
+      case "zh-Hans":
+        return `请检查它的地址，并确认它的 SSH 服务器在端口 ${port} 上监听。两台电脑需要在同一网络或同一私有网络上，例如 Tailscale。`;
+      case "zh-Hant":
+        return `請檢查它的位址，並確認它的 SSH 伺服器在連接埠 ${port} 上接聽。兩台電腦需要在同一個網路或同一個私人網路上，例如 Tailscale。`;
+      case "en-XA":
+        return `[Çĥéçķ îţš áððŕéšš áñð ţĥáţ îţš ŠŠĤ šéŕṽéŕ ļîšţéñš öñ þöŕţ ${port}. Ɓöţĥ çöɱþûţéŕš ñééð ţĥé šáɱé ñéţŵöŕķ öŕ þŕîṽáţé ñéţŵöŕķ, šûçĥ áš Ţáîļšçáļé. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Check its address and that its SSH server listens on port ‬${port}‮. Both computers need the same network or private network, such as Tailscale.‬`;
+    }
+    return `Check its address and that its SSH server listens on port ${port}. Both computers need the same network or private network, such as Tailscale.`;
+  }
+  function devicesReachCheckSilent() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `تحقق من عنوانه ومن أنه قيد التشغيل. يحتاج الحاسوبان إلى الشبكة نفسها أو الشبكة الخاصة نفسها، مثل Tailscale، ويجب أن يسمح جداره الناري بمرور SSH.`;
+      case "de":
+        return `Prüfe seine Adresse und ob er eingeschaltet ist. Beide Computer brauchen dasselbe Netzwerk oder private Netzwerk, etwa Tailscale, und seine Firewall muss SSH durchlassen.`;
+      case "es":
+        return `Revisa su dirección y que esté encendido. Ambos computadores necesitan la misma red o red privada, como Tailscale, y su cortafuegos debe dejar pasar SSH.`;
+      case "fr":
+        return `Vérifiez son adresse et qu’il est allumé. Les deux ordinateurs doivent partager un réseau ou un réseau privé, comme Tailscale, et son pare-feu doit laisser passer SSH.`;
+      case "ja":
+        return `アドレスと、電源が入っていることを確認してください。両方のコンピュータが同じネットワーク、または Tailscale などの同じプライベートネットワークにあり、そのファイアウォールが SSH を通す必要があります。`;
+      case "ko":
+        return `주소와 전원이 켜져 있는지 확인하세요. 두 컴퓨터가 같은 네트워크나 Tailscale 같은 같은 사설 네트워크에 있어야 하고, 그 방화벽이 SSH를 허용해야 해요.`;
+      case "pt-BR":
+        return `Verifique o endereço dele e se ele está ligado. Os dois computadores precisam da mesma rede ou rede privada, como a Tailscale, e o firewall dele precisa deixar o SSH passar.`;
+      case "zh-Hans":
+        return `请检查它的地址，并确认它已开机。两台电脑需要在同一网络或同一私有网络上，例如 Tailscale，并且它的防火墙需要放行 SSH。`;
+      case "zh-Hant":
+        return `請檢查它的位址，並確認它已開機。兩台電腦需要在同一個網路或同一個私人網路上，例如 Tailscale，而且它的防火牆需要讓 SSH 通過。`;
+      case "en-XA":
+        return `[Çĥéçķ îţš áððŕéšš áñð ţĥáţ îţ îš öñ. Ɓöţĥ çöɱþûţéŕš ñééð ţĥé šáɱé ñéţŵöŕķ öŕ þŕîṽáţé ñéţŵöŕķ, šûçĥ áš Ţáîļšçáļé, áñð îţš ƒîŕéŵáļļ ɱûšţ ļéţ ŠŠĤ îñ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Check its address and that it is on. Both computers need the same network or private network, such as Tailscale, and its firewall must let SSH in.‬`;
+    }
+    return `Check its address and that it is on. Both computers need the same network or private network, such as Tailscale, and its firewall must let SSH in.`;
+  }
+  function devicesReachCheckStay() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `تحقق من أن الحاسوبين يبقيان على الشبكة نفسها أو الشبكة الخاصة نفسها، مثل Tailscale.`;
+      case "de":
+        return `Prüfe, ob beide Computer im selben Netzwerk oder privaten Netzwerk bleiben, etwa Tailscale.`;
+      case "es":
+        return `Revisa que ambos computadores sigan en la misma red o red privada, como Tailscale.`;
+      case "fr":
+        return `Vérifiez que les deux ordinateurs restent sur le même réseau ou réseau privé, comme Tailscale.`;
+      case "ja":
+        return `両方のコンピュータが同じネットワーク、または Tailscale などの同じプライベートネットワークにあり続けることを確認してください。`;
+      case "ko":
+        return `두 컴퓨터가 같은 네트워크나 Tailscale 같은 같은 사설 네트워크에 계속 있는지 확인하세요.`;
+      case "pt-BR":
+        return `Verifique se os dois computadores continuam na mesma rede ou rede privada, como a Tailscale.`;
+      case "zh-Hans":
+        return `请确认两台电脑一直在同一网络或同一私有网络上，例如 Tailscale。`;
+      case "zh-Hant":
+        return `請確認兩台電腦一直在同一個網路或同一個私人網路上，例如 Tailscale。`;
+      case "en-XA":
+        return `[Çĥéçķ ţĥáţ ƀöţĥ çöɱþûţéŕš šţáý öñ ţĥé šáɱé ñéţŵöŕķ öŕ þŕîṽáţé ñéţŵöŕķ, šûçĥ áš Ţáîļšçáļé. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Check that both computers stay on the same network or private network, such as Tailscale.‬`;
+    }
+    return `Check that both computers stay on the same network or private network, such as Tailscale.`;
+  }
+  function devicesReachKeyNoKey(input2) {
+    const address = input2.address;
+    const port = input2.port;
+    switch (currentLanguage()) {
+      case "ar":
+        return `أجاب شيء ما على ${address} في المنفذ ${port}، لكنه لم يرسل أي مفتاح SSH.`;
+      case "de":
+        return `Unter ${address} hat an Port ${port} etwas geantwortet, aber keinen SSH-Schlüssel gesendet.`;
+      case "es":
+        return `Algo respondió en ${address} en el puerto ${port}, pero no envió ninguna clave SSH.`;
+      case "fr":
+        return `Quelque chose a répondu à ${address} sur le port ${port}, mais n’a envoyé aucune clé SSH.`;
+      case "ja":
+        return `${address} のポート ${port} で何かが応答しましたが、SSH キーは送られてきませんでした。`;
+      case "ko":
+        return `${address}의 포트 ${port}에서 무언가 응답했지만 SSH 키를 보내지 않았어요.`;
+      case "pt-BR":
+        return `Algo respondeu em ${address} na porta ${port}, mas não enviou nenhuma chave SSH.`;
+      case "zh-Hans":
+        return `${address} 的端口 ${port} 有程序应答，但没有发来 SSH 密钥。`;
+      case "zh-Hant":
+        return `${address} 的連接埠 ${port} 有程式回應，但沒有傳來 SSH 金鑰。`;
+      case "en-XA":
+        return `[Šöɱéţĥîñĝ áñšŵéŕéð áţ ${address} öñ þöŕţ ${port}, ƀûţ šéñţ ñö ŠŠĤ ķéý. ~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Something answered at ‬${address}‮ on port ‬${port}‮, but sent no SSH key.‬`;
+    }
+    return `Something answered at ${address} on port ${port}, but sent no SSH key.`;
+  }
+  function devicesReachKeySilent(input2) {
+    const address = input2.address;
+    const port = input2.port;
+    switch (currentLanguage()) {
+      case "ar":
+        return `لم يُجب شيء على ${address} في المنفذ ${port} أثناء قراءة مفتاح SSH الخاص به.`;
+      case "de":
+        return `Unter ${address} hat an Port ${port} nichts geantwortet, als sein SSH-Schlüssel gelesen wurde.`;
+      case "es":
+        return `Nada respondió en ${address} en el puerto ${port} al leer su clave SSH.`;
+      case "fr":
+        return `Rien n’a répondu à ${address} sur le port ${port} pendant la lecture de sa clé SSH.`;
+      case "ja":
+        return `SSH キーの読み取り中、${address} のポート ${port} からは何も応答がありませんでした。`;
+      case "ko":
+        return `SSH 키를 읽는 동안 ${address}의 포트 ${port}에서 아무것도 응답하지 않았어요.`;
+      case "pt-BR":
+        return `Nada respondeu em ${address} na porta ${port} ao ler a chave SSH dele.`;
+      case "zh-Hans":
+        return `读取 SSH 密钥时，${address} 的端口 ${port} 没有任何应答。`;
+      case "zh-Hant":
+        return `讀取 SSH 金鑰時，${address} 的連接埠 ${port} 沒有任何回應。`;
+      case "en-XA":
+        return `[Ñöţĥîñĝ áñšŵéŕéð áţ ${address} öñ þöŕţ ${port} ŵĥéñ ŕéáðîñĝ îţš ŠŠĤ ķéý. ~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Nothing answered at ‬${address}‮ on port ‬${port}‮ when reading its SSH key.‬`;
+    }
+    return `Nothing answered at ${address} on port ${port} when reading its SSH key.`;
+  }
+  function devicesReachKeyUnread(input2) {
+    const address = input2.address;
+    const port = input2.port;
+    switch (currentLanguage()) {
+      case "ar":
+        return `تعذّرت قراءة مفتاح SSH الخاص بـ ${address} في المنفذ ${port}.`;
+      case "de":
+        return `Der SSH-Schlüssel von ${address} an Port ${port} konnte nicht gelesen werden.`;
+      case "es":
+        return `No se pudo leer la clave SSH de ${address} en el puerto ${port}.`;
+      case "fr":
+        return `Impossible de lire la clé SSH de ${address} sur le port ${port}.`;
+      case "ja":
+        return `${address} のポート ${port} で SSH キーを読み取れませんでした。`;
+      case "ko":
+        return `${address}의 포트 ${port}에서 SSH 키를 읽을 수 없었어요.`;
+      case "pt-BR":
+        return `Não foi possível ler a chave SSH de ${address} na porta ${port}.`;
+      case "zh-Hans":
+        return `无法在端口 ${port} 读取 ${address} 的 SSH 密钥。`;
+      case "zh-Hant":
+        return `無法在連接埠 ${port} 讀取 ${address} 的 SSH 金鑰。`;
+      case "en-XA":
+        return `[Çöûļð ñöţ ŕéáð ţĥé ŠŠĤ ķéý öƒ ${address} öñ þöŕţ ${port}. ~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Could not read the SSH key of ‬${address}‮ on port ‬${port}‮.‬`;
+    }
+    return `Could not read the SSH key of ${address} on port ${port}.`;
+  }
+  function devicesReachNone(input2) {
+    const address = input2.address;
+    switch (currentLanguage()) {
+      case "ar":
+        return `تعذّر الوصول إلى ${address}.`;
+      case "de":
+        return `${address} ist nicht erreichbar.`;
+      case "es":
+        return `No se pudo conectar con ${address}.`;
+      case "fr":
+        return `Impossible de joindre ${address}.`;
+      case "ja":
+        return `${address} に到達できませんでした。`;
+      case "ko":
+        return `${address}에 연결할 수 없었어요.`;
+      case "pt-BR":
+        return `Não foi possível alcançar ${address}.`;
+      case "zh-Hans":
+        return `无法连接 ${address}。`;
+      case "zh-Hant":
+        return `無法連到 ${address}。`;
+      case "en-XA":
+        return `[Çöûļð ñöţ ŕéáçĥ ${address}. ~~~~~~]`;
+      case "ar-XB":
+        return `‮Could not reach ‬${address}‮.‬`;
+    }
+    return `Could not reach ${address}.`;
+  }
+  function devicesReachOrCommand() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `ثم اطلب مجددًا، أو أضفه عبر تشغيل أمر هناك.`;
+      case "de":
+        return `Frag dann erneut oder füge ihn mit „Dort einen Befehl ausführen“ hinzu.`;
+      case "es":
+        return `Luego vuelve a pedirlo, o agrégalo con Ejecutar un comando allí.`;
+      case "fr":
+        return `Puis redemandez, ou ajoutez-le avec Exécuter une commande là-bas.`;
+      case "ja":
+        return `その後、もう一度頼むか、「そちらでコマンドを実行する」で追加してください。`;
+      case "ko":
+        return `그런 다음 다시 요청하거나, 그곳에서 명령 실행으로 추가하세요.`;
+      case "pt-BR":
+        return `Depois peça de novo, ou adicione-o com Executar um comando lá.`;
+      case "zh-Hans":
+        return `然后再请求一次，或通过“在那里运行命令”添加它。`;
+      case "zh-Hant":
+        return `然後再要求一次，或用「在那裡執行指令」加入它。`;
+      case "en-XA":
+        return `[Ţĥéñ ášķ áĝáîñ, öŕ áðð îţ ŵîţĥ Ŕûñ á çöɱɱáñð ţĥéŕé. ~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Then ask again, or add it with Run a command there.‬`;
+    }
+    return `Then ask again, or add it with Run a command there.`;
+  }
+  function devicesReachSend(input2) {
+    const name = input2.name;
+    switch (currentLanguage()) {
+      case "ar":
+        return `انقطع الاتصال بـ ${name} أثناء إرسال Infinitary.`;
+      case "de":
+        return `Die Verbindung zu ${name} ist beim Senden von Infinitary abgebrochen.`;
+      case "es":
+        return `La conexión con ${name} se cortó mientras se enviaba Infinitary.`;
+      case "fr":
+        return `La connexion à ${name} a été coupée pendant l’envoi d’Infinitary.`;
+      case "ja":
+        return `Infinitary の送信中に ${name} への接続が切れました。`;
+      case "ko":
+        return `Infinitary를 보내는 중에 ${name}와의 연결이 끊겼어요.`;
+      case "pt-BR":
+        return `A conexão com ${name} caiu enquanto o Infinitary era enviado.`;
+      case "zh-Hans":
+        return `发送 Infinitary 时，与 ${name} 的连接断开了。`;
+      case "zh-Hant":
+        return `傳送 Infinitary 時，與 ${name} 的連線中斷了。`;
+      case "en-XA":
+        return `[Ţĥé çöññéçţîöñ ţö ${name} ðŕöþþéð ŵĥîļé šéñðîñĝ Îñƒîñîţáŕý. ~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮The connection to ‬${name}‮ dropped while sending Infinitary.‬`;
+    }
+    return `The connection to ${name} dropped while sending Infinitary.`;
+  }
+  function devicesReachSignIn(input2) {
+    const address = input2.address;
+    switch (currentLanguage()) {
+      case "ar":
+        return `تعذّر الوصول إلى ${address} لتسجيل الدخول، بعد قراءة مفتاح SSH الخاص به.`;
+      case "de":
+        return `${address} war nach dem Lesen seines SSH-Schlüssels zum Anmelden nicht erreichbar.`;
+      case "es":
+        return `No se pudo conectar con ${address} para iniciar sesión, tras leer su clave SSH.`;
+      case "fr":
+        return `Impossible de joindre ${address} pour se connecter, après la lecture de sa clé SSH.`;
+      case "ja":
+        return `SSH キーを読み取った後、サインインのために ${address} に到達できませんでした。`;
+      case "ko":
+        return `SSH 키를 읽은 뒤 로그인하려고 ${address}에 연결할 수 없었어요.`;
+      case "pt-BR":
+        return `Não foi possível alcançar ${address} para entrar, depois de ler a chave SSH dele.`;
+      case "zh-Hans":
+        return `读取 SSH 密钥后，无法连接 ${address} 进行登录。`;
+      case "zh-Hant":
+        return `讀取 SSH 金鑰後，無法連到 ${address} 來登入。`;
+      case "en-XA":
+        return `[Çöûļð ñöţ ŕéáçĥ ${address} ţö šîĝñ îñ, áƒţéŕ ŕéáðîñĝ îţš ŠŠĤ ķéý. ~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Could not reach ‬${address}‮ to sign in, after reading its SSH key.‬`;
+    }
+    return `Could not reach ${address} to sign in, after reading its SSH key.`;
+  }
+  function devicesReachSignInPort(input2) {
+    const address = input2.address;
+    const port = input2.port;
+    switch (currentLanguage()) {
+      case "ar":
+        return `تعذّر الوصول إلى ${address} في المنفذ ${port} لتسجيل الدخول، بعد قراءة مفتاح SSH الخاص به.`;
+      case "de":
+        return `${address} war an Port ${port} nach dem Lesen seines SSH-Schlüssels zum Anmelden nicht erreichbar.`;
+      case "es":
+        return `No se pudo conectar con ${address} en el puerto ${port} para iniciar sesión, tras leer su clave SSH.`;
+      case "fr":
+        return `Impossible de joindre ${address} sur le port ${port} pour se connecter, après la lecture de sa clé SSH.`;
+      case "ja":
+        return `SSH キーを読み取った後、サインインのために ${address} のポート ${port} に到達できませんでした。`;
+      case "ko":
+        return `SSH 키를 읽은 뒤 로그인하려고 ${address}의 포트 ${port}에 연결할 수 없었어요.`;
+      case "pt-BR":
+        return `Não foi possível alcançar ${address} na porta ${port} para entrar, depois de ler a chave SSH dele.`;
+      case "zh-Hans":
+        return `读取 SSH 密钥后，无法通过端口 ${port} 连接 ${address} 进行登录。`;
+      case "zh-Hant":
+        return `讀取 SSH 金鑰後，無法透過連接埠 ${port} 連到 ${address} 來登入。`;
+      case "en-XA":
+        return `[Çöûļð ñöţ ŕéáçĥ ${address} öñ þöŕţ ${port} ţö šîĝñ îñ, áƒţéŕ ŕéáðîñĝ îţš ŠŠĤ ķéý. ~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Could not reach ‬${address}‮ on port ‬${port}‮ to sign in, after reading its SSH key.‬`;
+    }
+    return `Could not reach ${address} on port ${port} to sign in, after reading its SSH key.`;
+  }
   function devicesRemoteBack(input2) {
     const name = input2.name;
     switch (currentLanguage()) {
@@ -97088,6 +97479,20 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     devicesNearbyPortPlaceholder,
     devicesNearbyRemoteLoginOn,
     devicesNearbySshOn,
+    devicesReachAskAgain,
+    devicesReachCheck,
+    devicesReachCheckNoKey,
+    devicesReachCheckPort,
+    devicesReachCheckSilent,
+    devicesReachCheckStay,
+    devicesReachKeyNoKey,
+    devicesReachKeySilent,
+    devicesReachKeyUnread,
+    devicesReachNone,
+    devicesReachOrCommand,
+    devicesReachSend,
+    devicesReachSignIn,
+    devicesReachSignInPort,
     devicesRemoteBack,
     devicesRemoteChangesOff,
     devicesRemoteControlling,
@@ -100205,6 +100610,20 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "devicesNearbyPortPlaceholder": [],
     "devicesNearbyRemoteLoginOn": [],
     "devicesNearbySshOn": [],
+    "devicesReachAskAgain": [],
+    "devicesReachCheck": [],
+    "devicesReachCheckNoKey": ["port"],
+    "devicesReachCheckPort": ["port"],
+    "devicesReachCheckSilent": [],
+    "devicesReachCheckStay": [],
+    "devicesReachKeyNoKey": ["address", "port"],
+    "devicesReachKeySilent": ["address", "port"],
+    "devicesReachKeyUnread": ["address", "port"],
+    "devicesReachNone": ["address"],
+    "devicesReachOrCommand": [],
+    "devicesReachSend": ["name"],
+    "devicesReachSignIn": ["address"],
+    "devicesReachSignInPort": ["address", "port"],
     "devicesRemoteBack": ["name"],
     "devicesRemoteChangesOff": [],
     "devicesRemoteControlling": ["name"],

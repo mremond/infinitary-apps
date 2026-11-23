@@ -4,8 +4,11 @@ import { afterEach, describe, expect, it } from "vitest";
 import { scratchDir } from "../../tests/helpers/scratchDirs";
 import { DevicePairing } from "../core/devices/pairing";
 import { PhoneDoor } from "../core/devices/phoneDoor";
+import { CONNECTION_PORT } from "../shared/connection";
 import {
+  firewallWords,
   LINK_SAY,
+  PAIRING_LINK_PREFIX,
   PAIRING_LINK_TTL_MS,
   parsePairingLink,
   phoneRouteWords,
@@ -98,6 +101,31 @@ describe("asking the app running here", () => {
       expect(answer.expiresAt - Date.now()).toBeGreaterThan(PAIRING_LINK_TTL_MS - 60_000);
     }
     expect(parsePairingLink(phone.link).code).not.toBe(parsePairingLink(computer.link).code);
+  });
+
+  // INF-6043's change 5: on a server, the link command also prints the
+  // firewall line Settings -> Devices shows in a window.
+  it("prints under the link the firewall line Settings shows, and leaves it out of the JSON", async () => {
+    const { data } = await answering();
+    const ufw = { name: "ufw", port: CONNECTION_PORT } as const;
+    let read = 0;
+    const firewall = async () => {
+      read += 1;
+      return ufw;
+    };
+    const said = await runLinkCommand([], data, firewall);
+    const { lines, way } = firewallWords(ufw);
+    expect(said.code).toBe(0);
+    expect(said.out.trimEnd().split("\n").slice(-5)).toEqual(["", ...lines, "", `  ${way}`]);
+    expect(said.out.indexOf(way)).toBeGreaterThan(said.out.indexOf(PAIRING_LINK_PREFIX));
+    const json = await runLinkCommand(["--json"], data, firewall);
+    expect(Object.keys(JSON.parse(json.out)).sort()).toEqual([
+      "expiresAt",
+      "for",
+      "link",
+      "schemaVersion",
+    ]);
+    expect(read).toBe(1);
   });
 
   it("says why when pairing makes no link", async () => {

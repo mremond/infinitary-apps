@@ -881,6 +881,20 @@ public enum PhoneMessages {
     public static func `devicesNearbyPortPlaceholder`() -> String { PhoneWords.format("devicesNearbyPortPlaceholder", []) }
     public static func `devicesNearbyRemoteLoginOn`() -> String { PhoneWords.format("devicesNearbyRemoteLoginOn", []) }
     public static func `devicesNearbySshOn`() -> String { PhoneWords.format("devicesNearbySshOn", []) }
+    public static func `devicesReachAskAgain`() -> String { PhoneWords.format("devicesReachAskAgain", []) }
+    public static func `devicesReachCheck`() -> String { PhoneWords.format("devicesReachCheck", []) }
+    public static func `devicesReachCheckNoKey`(`port`: String) -> String { PhoneWords.format("devicesReachCheckNoKey", [`port`]) }
+    public static func `devicesReachCheckPort`(`port`: String) -> String { PhoneWords.format("devicesReachCheckPort", [`port`]) }
+    public static func `devicesReachCheckSilent`() -> String { PhoneWords.format("devicesReachCheckSilent", []) }
+    public static func `devicesReachCheckStay`() -> String { PhoneWords.format("devicesReachCheckStay", []) }
+    public static func `devicesReachKeyNoKey`(`address`: String, `port`: String) -> String { PhoneWords.format("devicesReachKeyNoKey", [`address`, `port`]) }
+    public static func `devicesReachKeySilent`(`address`: String, `port`: String) -> String { PhoneWords.format("devicesReachKeySilent", [`address`, `port`]) }
+    public static func `devicesReachKeyUnread`(`address`: String, `port`: String) -> String { PhoneWords.format("devicesReachKeyUnread", [`address`, `port`]) }
+    public static func `devicesReachNone`(`address`: String) -> String { PhoneWords.format("devicesReachNone", [`address`]) }
+    public static func `devicesReachOrCommand`() -> String { PhoneWords.format("devicesReachOrCommand", []) }
+    public static func `devicesReachSend`(`name`: String) -> String { PhoneWords.format("devicesReachSend", [`name`]) }
+    public static func `devicesReachSignIn`(`address`: String) -> String { PhoneWords.format("devicesReachSignIn", [`address`]) }
+    public static func `devicesReachSignInPort`(`address`: String, `port`: String) -> String { PhoneWords.format("devicesReachSignInPort", [`address`, `port`]) }
     public static func `devicesRemoteBack`(`name`: String) -> String { PhoneWords.format("devicesRemoteBack", [`name`]) }
     public static func `devicesRemoteChangesOff`() -> String { PhoneWords.format("devicesRemoteChangesOff", []) }
     public static func `devicesRemoteControlling`(`name`: String) -> String { PhoneWords.format("devicesRemoteControlling", [`name`]) }
@@ -5081,6 +5095,20 @@ extension PhoneWords {
         "devicesNearbyPortPlaceholder": [],
         "devicesNearbyRemoteLoginOn": [],
         "devicesNearbySshOn": [],
+        "devicesReachAskAgain": [],
+        "devicesReachCheck": [],
+        "devicesReachCheckNoKey": ["port"],
+        "devicesReachCheckPort": ["port"],
+        "devicesReachCheckSilent": [],
+        "devicesReachCheckStay": [],
+        "devicesReachKeyNoKey": ["address", "port"],
+        "devicesReachKeySilent": ["address", "port"],
+        "devicesReachKeyUnread": ["address", "port"],
+        "devicesReachNone": ["address"],
+        "devicesReachOrCommand": [],
+        "devicesReachSend": ["name"],
+        "devicesReachSignIn": ["address"],
+        "devicesReachSignInPort": ["address", "port"],
         "devicesRemoteBack": ["name"],
         "devicesRemoteChangesOff": [],
         "devicesRemoteControlling": ["name"],

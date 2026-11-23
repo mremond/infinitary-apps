@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import * as m from "./i18n/messages.generated.ts";
 import {
   addressAtPort,
   addressParts,
@@ -53,6 +54,54 @@ describe("a refusal's lines", () => {
     const [what, todo] = remoteLoginWords.refused("unreachable", { address: "sam@mini.local" });
     expect(remoteLoginRefusalLines(`${what}\n${todo}`)).toEqual([what, todo]);
     expect(remoteLoginRefusalLines("That is not an address.")).toEqual(["That is not an address."]);
+  });
+});
+
+// INF-6043's change 5: "Could not reach" names the step and port that failed, names the
+// private network as a thing to check, and offers Run a command there.
+describe("a refusal that could not reach the computer", () => {
+  const address = "kun@100.94.48.29";
+  const command = m.settingsDevicesAddByCommand();
+
+  it("names the port the key read stopped at, tells its three answers apart, and offers the command way on an add", () => {
+    const said = [true, false, undefined].map((answered) =>
+      remoteLoginWords.refused("unreachable", {
+        address,
+        doing: "add",
+        reach: { step: "key", port: 2222, ...(answered === undefined ? {} : { answered }) },
+      }),
+    );
+    expect(new Set(said.map(([what]) => what)).size).toBe(3);
+    for (const [what, todo] of said) {
+      expect(what).toContain(address);
+      expect(what).toContain("2222");
+      expect(todo).toContain(command);
+    }
+    // Where nothing answered, or this computer cannot tell, the private network is a thing to check.
+    for (const [, todo] of said.slice(1)) expect(todo).toContain("Tailscale");
+  });
+
+  it("says the sign-in and the sending apart from the key read, and offers the command way only on an add", () => {
+    const signIn = remoteLoginWords.refused("unreachable", {
+      address,
+      doing: "add",
+      reach: { step: "sign-in", port: 22 },
+    });
+    const send = remoteLoginWords.refused("unreachable", {
+      address,
+      name: "vps",
+      doing: "update",
+      reach: { step: "send" },
+    });
+    expect(signIn[0]).toContain("22");
+    expect(signIn[1]).toContain(command);
+    expect(send[0]).toContain("vps");
+    expect(send[0]).not.toBe(signIn[0]);
+    expect(send[1]).toContain("Tailscale");
+    expect(send[1]).not.toContain(command);
+    const bare = remoteLoginWords.refused("unreachable", { address });
+    expect(bare[1]).toContain("Tailscale");
+    expect(bare[1]).not.toContain(command);
   });
 });
 

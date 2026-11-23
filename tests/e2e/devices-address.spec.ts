@@ -107,7 +107,13 @@ test("the captain asks Firstmate to add a Mac at its address: Devices reaches it
     await page.getByLabel(`The other ${COMPUTER.one}'s address`).fill("sam@no-such-mac.invalid");
     await page.getByRole("button", { name: "Add it", exact: true }).click();
     const refusedAddress = "sam@no-such-mac.invalid";
-    const [what, todo] = remoteLoginWords.refused("unreachable", { address: refusedAddress });
+    // It stopped reading its SSH key at the port its SSH settings name; a name that
+    // finds no address says nothing of what answers at that port (hostKey.ts).
+    const [what, todo] = remoteLoginWords.refused("unreachable", {
+      address: refusedAddress,
+      doing: "add",
+      reach: { step: "key", port: sshd.port },
+    });
     const question = page.locator("[data-device-address-question]");
     const field = question.getByLabel(`The other ${COMPUTER.one}'s address`);
     await expect(question).toBeVisible();
