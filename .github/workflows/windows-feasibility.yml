@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   repro:
-    name: Manual request · Claude account add on fresh Windows 11 (diagnostic)
+    name: Manual request · Claude sign-out then account add on fresh Windows 11 (diagnostic)
     runs-on: ${{ vars.WINDOWS_CLEAN_RUNNER || 'shell-pc-win11' }}
     timeout-minutes: 30
     defaults:
@@ -51,42 +51,37 @@ jobs:
             "stdout: $(Get-Content -Raw $o)"
             "stderr: $(Get-Content -Raw $e)"
           }
-      - name: Probe A - add the account with no Git on the machine
-        run: node (Join-Path $env:RUNNER_TEMP 'probe.mjs') no-git | Tee-Object "$env:EVIDENCE/probe-a-no-git.json"
-      - name: Install Git for Windows as the app does (pinned, this person only)
+      - name: Probe E - a real Claude Code sign-out over a stand-in login that also keeps an MCP server's sign-in
         run: |
-          $ProgressPreference = 'SilentlyContinue'
-          $exe = Join-Path $env:RUNNER_TEMP 'Git-2.56.1-64-bit.exe'
-          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/git-for-windows/git/releases/download/v2.56.1.windows.1/Git-2.56.1-64-bit.exe' -OutFile $exe
-          if ((Get-FileHash -Algorithm SHA256 $exe).Hash.ToLower() -ne 'c330c72e10b408cc39994bfefdb63542b0d93d21699325c3e0bd874af8a5a559') { throw 'the Git download differs from its release' }
-          $p = Start-Process $exe -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOCANCEL','/SP-','/CURRENTUSER' -PassThru -Wait
-          "Git installer exit $($p.ExitCode); git.exe: $(Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\Git\cmd\git.exe')); bash.exe: $(Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\Git\bin\bash.exe'))"
-      - name: Raw client reads with that Git's cmd folder on the search path
-        run: |
-          $env:PATH = (Join-Path $env:LOCALAPPDATA 'Programs\Git\cmd') + ';' + $env:PATH
           $c = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
-          $o = Join-Path $env:RUNNER_TEMP 'o.txt'; $e = Join-Path $env:RUNNER_TEMP 'e.txt'
-          $sw = [Diagnostics.Stopwatch]::StartNew()
-          $p = Start-Process -FilePath $c -ArgumentList 'auth status --json' -NoNewWindow -PassThru -Wait -RedirectStandardOutput $o -RedirectStandardError $e
-          "== claude auth status --json -> exit $($p.ExitCode) in $($sw.ElapsedMilliseconds) ms"
-          "stdout: $(Get-Content -Raw $o)"
-          "stderr: $(Get-Content -Raw $e)"
-      - name: Probe B - add the account with Git installed as the app installs it
-        run: node (Join-Path $env:RUNNER_TEMP 'probe.mjs') app-git | Tee-Object "$env:EVIDENCE/probe-b-app-git.json"
-      - name: Probe C - a stored login file (synthetic, not a real token)
-        run: |
           $d = Join-Path $env:USERPROFILE '.claude'; New-Item -ItemType Directory -Force $d | Out-Null
           $f = Join-Path $d '.credentials.json'
           $exp = [DateTimeOffset]::UtcNow.AddDays(1).ToUnixTimeMilliseconds()
-          [IO.File]::WriteAllText($f, "{`"claudeAiOauth`":{`"accessToken`":`"probe-synthetic-not-a-token`",`"expiresAt`":$exp,`"subscriptionType`":`"pro`"}}")
-          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') synthetic-login-file | Tee-Object "$env:EVIDENCE/probe-c-login-file.json"
-          Remove-Item -Force $f
-      - name: Probe D - a stored file that holds no Claude login (synthetic)
+          [IO.File]::WriteAllText($f, "{`"claudeAiOauth`":{`"accessToken`":`"probe-synthetic-not-a-token`",`"refreshToken`":`"probe-synthetic-not-a-token`",`"expiresAt`":$exp,`"scopes`":[`"user:inference`",`"user:profile`"],`"subscriptionType`":`"pro`"},`"mcpOAuth`":{`"probe-server|0`":{`"serverName`":`"probe-server`",`"serverUrl`":`"https://example.invalid/mcp`",`"accessToken`":`"probe-synthetic-not-a-token`",`"expiresAt`":$exp}}}")
+          $o = Join-Path $env:RUNNER_TEMP 'o.txt'; $e = Join-Path $env:RUNNER_TEMP 'e.txt'
+          foreach ($a in @('auth status --json', 'auth logout', 'auth status --json')) {
+            $p = Start-Process -FilePath $c -ArgumentList $a -NoNewWindow -PassThru -Wait -RedirectStandardOutput $o -RedirectStandardError $e
+            "== claude $a -> exit $($p.ExitCode)"
+            "stdout: $(Get-Content -Raw $o)"
+            "stderr: $(Get-Content -Raw $e)"
+          }
+          if (Test-Path $f) { "file left after sign-out; its top-level keys: $(((Get-Content -Raw $f | ConvertFrom-Json).PSObject.Properties.Name) -join ', ')" } else { 'no file left after sign-out' }
+          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') after-logout-with-mcp | Tee-Object "$env:EVIDENCE/probe-e-after-logout-with-mcp.json"
+          if (Test-Path $f) { Remove-Item -Force $f }
+      - name: Probe F - a real Claude Code sign-out over a stand-in login alone
         run: |
+          $c = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
           $f = Join-Path $env:USERPROFILE '.claude\.credentials.json'
-          [IO.File]::WriteAllText($f, '{}')
-          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') empty-login-file | Tee-Object "$env:EVIDENCE/probe-d-empty-file.json"
-          Remove-Item -Force $f
+          $exp = [DateTimeOffset]::UtcNow.AddDays(1).ToUnixTimeMilliseconds()
+          [IO.File]::WriteAllText($f, "{`"claudeAiOauth`":{`"accessToken`":`"probe-synthetic-not-a-token`",`"refreshToken`":`"probe-synthetic-not-a-token`",`"expiresAt`":$exp,`"scopes`":[`"user:inference`",`"user:profile`"],`"subscriptionType`":`"pro`"}}")
+          $o = Join-Path $env:RUNNER_TEMP 'o.txt'; $e = Join-Path $env:RUNNER_TEMP 'e.txt'
+          $p = Start-Process -FilePath $c -ArgumentList 'auth logout' -NoNewWindow -PassThru -Wait -RedirectStandardOutput $o -RedirectStandardError $e
+          "== claude auth logout -> exit $($p.ExitCode)"
+          "stdout: $(Get-Content -Raw $o)"
+          "stderr: $(Get-Content -Raw $e)"
+          if (Test-Path $f) { "file left after sign-out; its top-level keys: $(((Get-Content -Raw $f | ConvertFrom-Json).PSObject.Properties.Name) -join ', ')" } else { 'no file left after sign-out' }
+          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') after-logout-alone | Tee-Object "$env:EVIDENCE/probe-f-after-logout-alone.json"
+          if (Test-Path $f) { Remove-Item -Force $f }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
