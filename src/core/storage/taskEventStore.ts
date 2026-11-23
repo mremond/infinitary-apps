@@ -301,9 +301,13 @@ export class TaskEventStore {
    * message is only tied to the task (`tie`, with the response requests it
    * asked there), not its whole timeline.
    */
-  askAttributions(
-    askIds: readonly string[],
-  ): { taskId: string; via: string | null; tie: boolean; requests: string[] }[] {
+  askAttributions(askIds: readonly string[]): {
+    taskId: string;
+    via: string | null;
+    tie: boolean;
+    carried: boolean;
+    requests: string[];
+  }[] {
     if (askIds.length === 0) return [];
     return (
       this.db
@@ -312,6 +316,7 @@ export class TaskEventStore {
           `SELECT events.task_id AS taskId,
          CASE WHEN json_valid(events.data_json) THEN json_extract(events.data_json, '$.via') END AS via,
          CASE WHEN json_valid(events.data_json) THEN json_extract(events.data_json, '$.tie') END AS tie,
+         CASE WHEN json_valid(events.data_json) THEN json_extract(events.data_json, '$.threadCarried') END AS carried,
          CASE WHEN json_valid(events.data_json) THEN json_extract(events.data_json, '$.requests') END AS requests
          FROM json_each(?) AS asks CROSS JOIN task_events AS events
          WHERE events.kind = 'ask' AND events.ref = asks.value
@@ -321,12 +326,14 @@ export class TaskEventStore {
         taskId: string;
         via: unknown;
         tie: unknown;
+        carried: unknown;
         requests: unknown;
       }[]
     ).map((row) => ({
       taskId: row.taskId,
       via: typeof row.via === "string" ? row.via : null,
       tie: row.tie === 1 || row.tie === true,
+      carried: row.carried === 1 || row.carried === true,
       requests: requestIdsOf(row.requests),
     }));
   }
@@ -348,6 +355,20 @@ export class TaskEventStore {
       .prepare(
         // i18n-exempt: SQL, never shown to a person
         `UPDATE task_events SET data_json = json_remove(data_json, '$.tie')
+         WHERE id = ? AND kind = 'ask' AND json_valid(data_json)`,
+      )
+      .run(eventId);
+  }
+
+  /**
+   * The one-time step to one thread per message kept this attachment as the
+   * message's work (INF-6115): it counts as acted, whatever attached it first.
+   */
+  markAskCarried(eventId: number): void {
+    this.db
+      .prepare(
+        // i18n-exempt: SQL, never shown to a person
+        `UPDATE task_events SET data_json = json_set(data_json, '$.threadCarried', json('true'))
          WHERE id = ? AND kind = 'ask' AND json_valid(data_json)`,
       )
       .run(eventId);

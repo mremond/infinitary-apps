@@ -1,6 +1,7 @@
 import type { Card } from "@shared/cards";
 import { describe, expect, it, vi } from "vitest";
 import { freshDatabase } from "../../../tests/helpers/database";
+import type { AskAttachedVia } from "../storage/askStore";
 import { FIRSTMATE_RECIPIENT, InboxStore } from "../storage/inboxStore";
 import { ASK_THREAD_CARRIES } from "../storage/migrations";
 import { TaskEventStore } from "../storage/taskEventStore";
@@ -262,7 +263,7 @@ describe("the answer-delivery check across a restart", () => {
     const f = fixture();
     seedTask(f.tasks, { id: "plan", title: "Plan the panels", status: "running" });
     seedTask(f.tasks, { id: "size", title: "Say what size the panels are", status: "running" });
-    const covered = (id: string, taskId: string, via: `tool:${string}`) => {
+    const covered = (id: string, taskId: string, via: AskAttachedVia) => {
       f.ask(id);
       f.tasks.capture.attachAsk(id, taskId, via);
       f.tasks.capture.closeAsk(id, "closed");
@@ -270,10 +271,13 @@ describe("the answer-delivery check across a restart", () => {
     };
     covered("m1", "plan", "tool:spawn_crewmate");
     covered("m2", "size", "tool:steer_crewmate");
+    // A reply typed under the plan's card reached it only by the host's
+    // fallback, which the old release joined to m1's thread just the same.
+    covered("m3", "plan", "host:fallback");
     f.tasks.close("size", { status: "done", reason: "answered", actor: "host" });
     // As the release before the update saved it: the later message joined
     // the first message's thread. The update's migration then lists both.
-    f.db.prepare("UPDATE captain_asks SET continues = 'm1' WHERE id = 'm2'").run();
+    f.db.prepare("UPDATE captain_asks SET continues = 'm1' WHERE id IN ('m2', 'm3')").run();
     f.db.exec("DROP TABLE ask_thread_carries;");
     f.db.exec(ASK_THREAD_CARRIES);
     const ending = askEndingOf(f.tasks, {
@@ -289,9 +293,12 @@ describe("the answer-delivery check across a restart", () => {
     };
     // Its own thread alone holds only finished work: it would be retried.
     expect(state("m2")).toEqual({ kind: "missing" });
+    // Its fallback attachment never made the plan its own work.
+    expect(state("m3")).toEqual({ kind: "missing" });
     ending.carryThreads();
     expect(state("m1")).toEqual({ kind: "working" });
     expect(state("m2")).toEqual({ kind: "working" });
+    expect(state("m3")).toEqual({ kind: "working" });
     expect(f.tasks.capture.threadCarries()).toEqual([]);
     // The carried attachment is never quoted as where the work came from.
     expect(f.tasks.capture.originAbout("plan")).toMatchObject({ text: "message m1" });

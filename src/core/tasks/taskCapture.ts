@@ -331,7 +331,11 @@ export class TaskCapture {
     this.writer.write(() => {
       for (const taskId of carry.work) {
         if (!this.writer.store.get(taskId)) continue;
-        this.attachAsk(askId, taskId, CARRIED_VIA, false);
+        if (this.attachAsk(askId, taskId, CARRIED_VIA, false)) continue;
+        // Attached before, often by the host's fallback, which never counts
+        // as acted: the carry marks that attachment so the work stays its own.
+        const event = this.writer.events.askEvent(taskId, askId);
+        if (event) this.writer.events.markAskCarried(event.id);
       }
       for (const taskId of carry.ties) {
         if (!this.writer.store.get(taskId) || this.writer.events.askEvent(taskId, askId)) continue;

@@ -77,7 +77,9 @@ export class AskThreads {
     const attached = [...new Set(worked.map((entry) => entry.taskId))];
     const acted = new Set(
       worked
-        .filter((entry) => entry.via?.startsWith("tool:") || entry.via === CARRIED_VIA)
+        .filter(
+          (entry) => entry.carried || entry.via?.startsWith("tool:") || entry.via === CARRIED_VIA,
+        )
         .map((entry) => entry.taskId),
     );
     const requests = attributions.flatMap((entry) =>
