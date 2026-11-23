@@ -669,7 +669,7 @@ describe("a change rebuilt on an open batch", () => {
     expect(carried(waiting).map((entry) => entry.taskId)).toEqual([AXIS_CHANGE.taskId]);
     expect(standing(waiting, LEGEND.taskId, LEGEND.head)).toEqual({
       state: "left-out",
-      reason: LEFT_OUT_WORDS.clashesBatch,
+      reason: LEFT_OUT_WORDS.batchMerged(BATCH_HEAD),
       rebuild: { head: BATCH_HEAD, branch: "infinitary-batch/7c41" },
     });
     expect(carried({ ...waiting, line: [REBUILT] }).map((entry) => entry.head)).toEqual([

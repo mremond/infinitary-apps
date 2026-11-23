@@ -7,8 +7,7 @@ import {
   batchRepairOf,
 } from "@shared/batches";
 import type { RepoView } from "@shared/repos";
-import { LEFT_OUT_WORDS } from "./combine";
-import { finishedWithin, nextBatchAt, rebuildStands } from "./line";
+import { finishedWithin, nextBatchAt, rebuildStands, standingRebuild } from "./line";
 
 /** What the view reads of the app's own records for one repository. */
 export type BatchesViewSources = {
@@ -111,13 +110,12 @@ function repoView(
         reason: entry.reason,
         aheadKey: entry.ahead ? keyOf(entry.ahead) : null,
       })),
-      ...record.line
-        .filter((change) => rebuildStands(record, change))
-        .map((change) => ({
-          ...taskOf(change.taskId, change.title),
-          reason: LEFT_OUT_WORDS.clashesBatch,
-          aheadKey: null,
-        })),
+      ...record.line.flatMap((change) => {
+        const waits = standingRebuild(record, change);
+        return waits
+          ? [{ ...taskOf(change.taskId, change.title), reason: waits.reason, aheadKey: null }]
+          : [];
+      }),
     ],
     finished: finishedWithin(record.finished ?? [], sources.now).map((batch) => ({
       number: batch.number,

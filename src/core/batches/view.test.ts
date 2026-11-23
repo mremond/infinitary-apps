@@ -2,6 +2,7 @@ import { type BatchRecord, FINISHED_BATCH_KEPT_MS } from "@shared/batches";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import type { RepoView } from "@shared/repos";
 import { describe, expect, it } from "vitest";
+import { LEFT_OUT_WORDS } from "./combine";
 import { type BatchesViewSources, batchesView } from "./view";
 
 // Intent: the captain's approved plan for the Batches panel: `batches.list` gives each project
@@ -133,6 +134,40 @@ describe("batches.list", () => {
         outcome: "merged",
         holds: 2,
         members: [{ taskId: "t-export", key: "MTR-14", title: "feat(export): add a CSV export" }],
+      },
+    ]);
+  });
+
+  // Intent: INF-6147's accepted plan, piece 1, with the captain's answer to its review (let the
+  // first rebuild stand): a version told to rebuild while in line, whose batch merged first,
+  // waits in no batch, so the panel lists it as left out with why and what it waits for.
+  it("lists a version waiting for its rebuild on a batch that merged as left out, not in line", () => {
+    const on = "4444444444444444444444444444444444444444";
+    const record: BatchRecord = {
+      ...RECORD,
+      open: undefined,
+      leftOut: [],
+      rebuilds: [
+        {
+          taskId: "t-legend",
+          head: RECORD.line[0]?.head as string,
+          on,
+          branch: "infinitary-batch/7c41",
+          members: [{ taskId: "t-parser", head: HEAD }],
+          at: NOW - 60_000,
+          merged: true,
+        },
+      ],
+    };
+    const [repo] = batchesView(sources([{ ...METER, batch: record }])).repos;
+    expect(repo?.line).toEqual([]);
+    expect(repo?.leftOut).toEqual([
+      {
+        taskId: "t-legend",
+        key: "MTR-15",
+        title: "fix(chart): keep the legend inside the chart",
+        reason: LEFT_OUT_WORDS.batchMerged(on),
+        aheadKey: null,
       },
     ]);
   });

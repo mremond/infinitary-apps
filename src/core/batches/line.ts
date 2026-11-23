@@ -78,14 +78,8 @@ export function standing(record: BatchRecord, taskId: string, head: string): Sta
   if (record.line.some((entry) => entry.taskId === taskId && entry.head === head)) {
     // Told to rebuild while in line, with that rebuild standing: no batch carries this version,
     // and its merge waits for the version rebuilt on that batch.
-    const told = record.rebuilds?.find((entry) => entry.taskId === taskId);
-    if (told && rebuildStands(record, { taskId, head }))
-      return {
-        state: "left-out",
-        reason: LEFT_OUT_WORDS.clashesBatch,
-        rebuild: { head: told.on, branch: told.branch },
-      };
-    return { state: "waiting", place: "line" };
+    const waits = standingRebuild(record, { taskId, head });
+    return waits ? { state: "left-out", ...waits } : { state: "waiting", place: "line" };
   }
   const left = record.leftOut.find((entry) => entry.taskId === taskId && entry.head === head);
   if (left)
@@ -837,6 +831,23 @@ export function rebuildStands(
 ): boolean {
   const told = record.rebuilds?.find((entry) => entry.taskId === change.taskId);
   return told?.merged === true && told.head === change.head;
+}
+
+/**
+ * Why a version in line whose rebuild stands waits in no batch, and the
+ * version it waits to be rebuilt on (`rebuildStands`): its merge and the
+ * Batches panel read it as left out. Undefined for any other version.
+ */
+export function standingRebuild(
+  record: BatchRecord,
+  change: Pick<BatchChange, "taskId" | "head">,
+): { reason: string; rebuild: { head: string; branch: string } } | undefined {
+  const told = record.rebuilds?.find((entry) => entry.taskId === change.taskId);
+  if (!told || !rebuildStands(record, change)) return undefined;
+  return {
+    reason: LEFT_OUT_WORDS.batchMerged(told.on),
+    rebuild: { head: told.on, branch: told.branch },
+  };
 }
 
 /**

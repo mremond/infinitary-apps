@@ -136,6 +136,9 @@ export const LEFT_OUT_WORDS = {
   // i18n-exempt: a left-out reason is English the crewmate reads, carried in the batch check's English words beside its siblings
   clashesBatch:
     "it no longer combines with the changes of the open batch ahead of it, which are not merged yet",
+  // i18n-exempt: a left-out reason is English the crewmate reads, carried in the batch check's English words beside its siblings
+  batchMerged: (head: string) =>
+    `it clashed with a batch that has since merged, and waits for its version rebuilt on that batch's version ${head}, which goes first in the next batch`,
   behindBase: (head: string) =>
     `it does not build on ${head}, the approved version of the change it was built on that the batch carries or merged, so the batch would carry that change's earlier work that was not approved with it; bring your branch onto ${head} and show a new version`,
 } as const;

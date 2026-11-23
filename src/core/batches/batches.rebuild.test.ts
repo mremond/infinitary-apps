@@ -197,7 +197,7 @@ describe("a change that clashes with the open batch", () => {
     // Its merge reads it out of every batch, waiting for the version rebuilt on that batch.
     expect(home.place(LEGEND)).toEqual({
       state: "left-out",
-      reason: LEFT_OUT_WORDS.clashesBatch,
+      reason: LEFT_OUT_WORDS.batchMerged(open.head),
       rebuild: { head: open.head, branch: open.branch },
     });
     expect(home.batches.status(REPO, LEGEND.taskId, LEGEND.head)?.kind).toBe("paused");
