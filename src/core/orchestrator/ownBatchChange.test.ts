@@ -815,6 +815,44 @@ describe("the merge of a change that joins a batch", () => {
     });
   });
 
+  // Intent: INF-6147's accepted plan, piece 1: a change left out for a clash while its batch
+  // stays open had its crewmate told to rebuild on that batch's version, so its kept merge
+  // waits quietly and names that version as the base to declare the repair on.
+  it("names the open batch's version to rebuild on when the change's crewmate was told to", async () => {
+    const at = home();
+    await at.confirmed();
+    at.conflicting.add(TASK);
+    const guard = at.guard();
+    await at.service.merges.merge(TASK, guard);
+    await at.pass();
+    const reason = LEFT_OUT_WORDS.ahead("fix(parser): read dates with a time zone");
+    const record = at.batches.record(REPO);
+    const on = "9".repeat(40);
+    const branch = "infinitary-batch/5d1e";
+    at.repos.recordBatch(REPO, {
+      ...record,
+      open: {
+        branch,
+        head: on,
+        base: "8".repeat(40),
+        members: [],
+        since: 1,
+      },
+      leftOut: record.leftOut.map((entry) => ({
+        ...entry,
+        reason,
+        ahead: "t-parser",
+        rebuild: { head: on, branch },
+      })),
+    });
+    expect(await at.service.merges.merge(TASK, guard)).toEqual({
+      ok: false,
+      text: `Cannot merge yet: the change was left out of its batch because ${reason}. Its crewmate was told to rebuild it on the open batch's version ${on} (branch ${branch}) and declare that push with check_change conflictRepair, giving ${on} as newBase; the rebuilt version then goes in line right behind that batch's changes and first in the next batch.`,
+      plain: reason,
+      stop: "queue",
+    });
+  });
+
   it("reads its batch's failed checks as its own when it is the batch's only change", async () => {
     const at = home();
     await at.confirmed();

@@ -1,0 +1,14 @@
+{
+  "entries": [
+    {
+      "id": "batch-rebuild-early",
+      "kind": "improvement",
+      "area": "projects",
+      "title": "A change that clashes with your batch is rebuilt on it right away",
+      "body": "When an approved change no longer fits with the batch of approved changes being checked, its crewmate now rebuilds it on that batch at once instead of waiting for the batch to merge. The rebuilt change waits right behind that batch and goes first in the next one, so a large change is brought up to date once instead of again for every batch that leaves it out.",
+      "noPicture": "No view changes; the change's task line and its crewmate's work change.",
+      "provenance": { "origin": "change" }
+    }
+  ],
+  "exclusions": []
+}

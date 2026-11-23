@@ -46,6 +46,20 @@ export const batchChangeSchema = z.object({
    * left out, never carried whole, when its branch no longer builds on it.
    */
   heldBase: z.string().optional(),
+  /**
+   * The open batch's version this change was rebuilt on while that batch
+   * ran (docs/forge.md, "A change rebuilt on an open batch"), and the
+   * changes, by task and approved version, that version carries. It goes
+   * right behind those changes, carried as its own difference from `head`,
+   * and is left out, never carried whole, once any of them is neither ahead
+   * of it at that version nor merged at it.
+   */
+  onBatch: z
+    .object({
+      head: z.string(),
+      members: z.array(z.object({ taskId: z.string(), head: z.string() })),
+    })
+    .optional(),
 });
 export type BatchChange = z.infer<typeof batchChangeSchema>;
 
@@ -210,6 +224,12 @@ export const batchLeftOutSchema = z.object({
    * clashes with the default branch itself.
    */
   ahead: z.string().optional(),
+  /**
+   * The open batch's version its crewmate was told to rebuild it on, and
+   * that batch's branch: while that batch is open nothing else is asked,
+   * since the rebuilt version goes in line behind it.
+   */
+  rebuild: z.object({ head: z.string(), branch: z.string() }).optional(),
 });
 export type BatchLeftOut = z.infer<typeof batchLeftOutSchema>;
 
@@ -249,6 +269,19 @@ export const finishedBatchSchema = z.object({
 });
 export type FinishedBatch = z.infer<typeof finishedBatchSchema>;
 
+/** One crewmate told to rebuild its change on an open batch's version (`BatchRecord.rebuilds`). */
+export const batchRebuildSchema = z.object({
+  taskId: z.string(),
+  /** The change's version that clashed with the batch. */
+  head: z.string(),
+  /** The open batch's version it was told to rebuild on, and that batch's branch. */
+  on: z.string(),
+  branch: z.string(),
+  members: z.array(z.object({ taskId: z.string(), head: z.string() })),
+  at: z.number(),
+});
+export type BatchRebuild = z.infer<typeof batchRebuildSchema>;
+
 export const batchRecordSchema = z.object({
   line: z.array(batchChangeSchema),
   open: openBatchSchema.optional(),
@@ -284,6 +317,15 @@ export const batchRecordSchema = z.object({
   formed: z.number().optional(),
   /** The batches that ended within `FINISHED_BATCH_KEPT_MS`, oldest first. */
   finished: z.array(finishedBatchSchema).optional(),
+  /**
+   * The last open batch version each task's crewmate was told to rebuild
+   * its change on (docs/forge.md, "A change rebuilt on an open batch"), at
+   * the version that clashed, with the changes that batch version carries:
+   * the crewmate hears once per clashing version and set of changes, and a
+   * repair declared on that version goes in line as built on them. Kept
+   * until the task closes.
+   */
+  rebuilds: z.array(batchRebuildSchema).optional(),
 });
 export type BatchRecord = z.infer<typeof batchRecordSchema>;
 

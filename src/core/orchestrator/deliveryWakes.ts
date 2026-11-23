@@ -257,6 +257,28 @@ export type DeliveryFacts =
       approval?: string;
     } & SentBackFacts)
   | {
+      /**
+       * The task's change clashes with the project's open batch, left out of
+       * it or waiting in line, and its own crewmate rebuilds it on that
+       * batch's version now rather than after the batch merges (docs/forge.md,
+       * "A change rebuilt on an open batch").
+       */
+      kind: "batch-rebuild";
+      /** The change's version that clashes. */
+      head: string;
+      reason: string;
+      /** The open batch's pull request as its host labels it, where it was opened. */
+      change?: string;
+      url?: string;
+      /** The open batch's branch and the version to rebuild on. */
+      branch: string;
+      on: string;
+      /** The changes that version carries, in order. */
+      members: { task: string; title: string }[];
+      /** The kept approval's line: the wake goes only while the approval covers the version. */
+      approval: string;
+    }
+  | {
       /** A task-scoped run's first failure or terminal reading, independent of PR green. */
       kind: "run-watch";
       outcome:
@@ -366,6 +388,19 @@ function renderBatchSentBack(facts: Extract<WakeFacts, { kind: "batch-sent-back"
   const reason = facts.reason.trim();
   const ended = /[.!?]["')]?$/.test(reason) ? reason : `${reason}.`;
   return `Your change at ${facts.head} ${BATCH_SENT_BACK_WORDS.opening}${facts.change ? `, ${facts.change},` : ""} with this reason: ${ended}${before}${failed}${never} The other changes of that batch go on without it.${reproof}${next}`;
+}
+
+/**
+ * A change's own crewmate hears that it clashes with the open batch and
+ * rebuilds it on that batch's version now (docs/forge.md, "A change rebuilt
+ * on an open batch").
+ */
+function renderBatchRebuild(facts: Extract<WakeFacts, { kind: "batch-rebuild" }>): string {
+  const reason = facts.reason.trim().replace(/[.]+$/, "");
+  const batch = facts.change ? `${facts.change}${facts.url ? ` (${facts.url})` : ""}` : "";
+  const members = facts.members.map((member) => `${member.task} "${member.title}"`).join(", ");
+  // i18n-exempt: served to a crewmate, never shown to a person (docs/i18n.md, "What stays English")
+  return `Your change at ${facts.head} clashes with this project's open batch of approved changes${batch ? `, ${batch}` : ""}: ${reason}. Rebuild it on that batch's version now rather than waiting for the batch to merge: git fetch origin ${facts.branch}, then bring only your own commits onto ${facts.on}, resolve the clash, run your validation again and push. That version carries, in order: ${members}. Declare that push with check_change conflictRepair, giving ${facts.on} as newBase. ${facts.approval} Once its own checks pass, the rebuilt version waits right behind that batch's changes, joins it if the batch is combined again, and goes first in the next batch as one commit of its own difference from ${facts.on}. If the batch's changes change before then, you are told once to rebuild on its new version.`;
 }
 
 export type RunBatchFacts = {
@@ -896,6 +931,7 @@ export const DELIVERY_WORDS: KindWords<DeliveryFacts> = {
       .map(writeAnsweredWords)
       .join("\n\n"),
   "batch-sent-back": (facts) => renderBatchSentBack(facts),
+  "batch-rebuild": (facts) => renderBatchRebuild(facts),
   "merge-card-behind": (facts) => renderMergeCardBehind(facts),
   "run-watch": (facts) => renderRunWatch(facts),
   "checks-settled": (facts) =>

@@ -2,7 +2,9 @@
  * The words of the wakes batches of your own queue, byte for byte
  * (`tests/helpers/wakeWords.ts` says why): the hold the first mate hears and
  * the send-back a change's own crewmate hears (docs/forge.md, "Batches of your own"),
- * and the one steer telling a crewmate its approved change waits in a line.
+ * the one steer telling a crewmate its approved change waits in a line, and the
+ * one telling it to rebuild on the open batch's version (docs/forge.md, "A change
+ * rebuilt on an open batch").
  */
 import {
   type OwnBatchWakeKind,
@@ -154,6 +156,32 @@ const CASES: WordsCases<OwnBatchWakeKind> = {
       },
       words:
         "Your change at 5f0c2a9e41b7d3c8a6e2f9b0d4c1a7e3b8f6d2c0 was sent back from its batch of approved changes, #31, with this reason: Its new parser fails the date tests the batch ran. This change has been sent back once, this time: no earlier send-back is on its record. The batch's failed checks: unit-tests. Which of the batch's checks never ran to an end on it is not known. The other changes of that batch go on without it. Run at the repaired version the checks your project's rules name for a change sent back from its batch, and the checks that never ran on it, and let them finish before you declare the repair with check_change conflictRepair or put up a new merge card for it: a repair declared with impact none rejoins the next batch with no card, and a batch can be the first place many of a project's tests run, so a repair that re-proves only the failure named can be sent back again. Repair it on your branch, push and confirm its story, then put up a new merge card for the new version: once approved it joins the project's next batch.",
+    },
+  ],
+  "batch-rebuild": [
+    {
+      // INF-6147 piece 1: a change that clashes with the open batch is rebuilt on its version at once.
+      name: "a change left out for a clash with a change ahead in the open batch",
+      wake: {
+        facts: {
+          kind: "batch-rebuild",
+          head: "7c3e9a1f5b2d8c4a0e6f1b9d3a7c5e2f8b4d0a6c",
+          reason:
+            'it combines with the default branch but clashes with "feat(meter): show the weekly window", an approved change ahead of it in the batch that is not merged yet',
+          change: "#34",
+          url: "https://github.com/acme/meter/pull/34",
+          branch: "infinitary-batch/3f9a0c1d",
+          on: "9a1e4c7b2d8f0a3e6c5b1d9f7a2e4c8b0d6f3a1e",
+          members: [
+            { task: "MTR-12", title: "fix(meter): read the reset date" },
+            { task: "MTR-14", title: "feat(meter): show the weekly window" },
+          ],
+          approval:
+            "The captain's merge approval is kept and covers 7c3e9a1f5b2d8c4a0e6f1b9d3a7c5e2f8b4d0a6c: impact none keeps it, with no new card.",
+        },
+      },
+      words:
+        'Your change at 7c3e9a1f5b2d8c4a0e6f1b9d3a7c5e2f8b4d0a6c clashes with this project\'s open batch of approved changes, #34 (https://github.com/acme/meter/pull/34): it combines with the default branch but clashes with "feat(meter): show the weekly window", an approved change ahead of it in the batch that is not merged yet. Rebuild it on that batch\'s version now rather than waiting for the batch to merge: git fetch origin infinitary-batch/3f9a0c1d, then bring only your own commits onto 9a1e4c7b2d8f0a3e6c5b1d9f7a2e4c8b0d6f3a1e, resolve the clash, run your validation again and push. That version carries, in order: MTR-12 "fix(meter): read the reset date", MTR-14 "feat(meter): show the weekly window". Declare that push with check_change conflictRepair, giving 9a1e4c7b2d8f0a3e6c5b1d9f7a2e4c8b0d6f3a1e as newBase. The captain\'s merge approval is kept and covers 7c3e9a1f5b2d8c4a0e6f1b9d3a7c5e2f8b4d0a6c: impact none keeps it, with no new card. Once its own checks pass, the rebuilt version waits right behind that batch\'s changes, joins it if the batch is combined again, and goes first in the next batch as one commit of its own difference from 9a1e4c7b2d8f0a3e6c5b1d9f7a2e4c8b0d6f3a1e. If the batch\'s changes change before then, you are told once to rebuild on its new version.',
     },
   ],
   "merge-line": [

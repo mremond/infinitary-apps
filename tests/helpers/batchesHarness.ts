@@ -376,7 +376,11 @@ function standInHost(ways: MergeWays) {
   return { host, forge: forge as unknown as Forge };
 }
 
-export function setup(ways: MergeWays = EVERY_WAY) {
+export function setup(
+  ways: MergeWays = EVERY_WAY,
+  /** Whether a crewmate is told to rebuild a change that clashes with the open batch, as the app does. */
+  opts: { rebuilding?: boolean } = {},
+) {
   const db = openInMemoryDatabase();
   const repos = new RepoRegistry(db, "/fleet");
   seedProject(db, {
@@ -408,6 +412,8 @@ export function setup(ways: MergeWays = EVERY_WAY) {
   const carryingBase = new Set<string>();
   /** A fix's version and the held batch version its branch builds on, as git reads its history. */
   const builtOn = new Map<string, string>();
+  /** Versions waiting in line whose branch no longer combines with the open batch's version, as `merge-tree` reads it. */
+  const clashingOpen = new Set<string>();
   /** Whether a push leaves the app and never comes back, as when it stops or the network drops. */
   let pushesStop = false;
   const heard = {
@@ -424,6 +430,10 @@ export function setup(ways: MergeWays = EVERY_WAY) {
     landedReads: 0,
     /** Each time the open batch's checks reading changed (`BatchesOptions.checksRead`). */
     checksRead: [] as string[],
+    /** Each crewmate told to rebuild on the open batch: its task, version and the batch version. */
+    rebuilds: [] as { taskId: string; head: string; on: string; reason: string }[],
+    /** Each change tried against the open batch's version. */
+    tried: [] as { head: string; batch: string }[],
   };
   const names = ["infinitary-batch/3fa9c1d2", "infinitary-batch/8be04a67"];
   let clock = 10_000;
@@ -471,6 +481,21 @@ export function setup(ways: MergeWays = EVERY_WAY) {
       note: (fact) => heard.notes.push(fact),
       checksRead: (repoId) => heard.checksRead.push(repoId),
       taskNote: (taskId, text) => heard.taskNotes.push({ taskId, text }),
+      ...(opts.rebuilding
+        ? {
+            rebuild: ({ change, reason, told }) =>
+              heard.rebuilds.push({
+                taskId: change.taskId,
+                head: change.head,
+                on: told.on,
+                reason,
+              }),
+            clashes: async (input) => {
+              heard.tried.push({ head: input.head, batch: input.batch });
+              return clashingOpen.has(input.head);
+            },
+          }
+        : {}),
       combine: async (input: CombineInput): Promise<Combined> => {
         duringCombine?.();
         duringCombine = undefined;
@@ -496,7 +521,7 @@ export function setup(ways: MergeWays = EVERY_WAY) {
             }
           }
           if (conflicting.has(change.taskId)) {
-            leftOut.push({ change, reason: LEFT_OUT_WORDS.conflict });
+            leftOut.push({ change, reason: LEFT_OUT_WORDS.conflict, clash: true });
             continue;
           }
           const ahead = members.find((member) => member.taskId === clashing.get(change.taskId));
@@ -505,6 +530,7 @@ export function setup(ways: MergeWays = EVERY_WAY) {
               change,
               reason: LEFT_OUT_WORDS.ahead(ahead.title),
               ahead: ahead.taskId,
+              clash: true,
             });
             continue;
           }
@@ -555,6 +581,7 @@ export function setup(ways: MergeWays = EVERY_WAY) {
     declaredNoChecks,
     conflicting,
     clashing,
+    clashingOpen,
     unwritable,
     retold,
     storyLengths,
@@ -574,6 +601,12 @@ export function setup(ways: MergeWays = EVERY_WAY) {
       approvals.set(change.taskId, change.head);
       approvedOrigins.set(change.taskId, repos.get(REPO)?.origin ?? null);
       return batches.enqueue(REPO, change);
+    },
+    /** The captain's approval kept, a repair declared on `on` puts the version in line. */
+    approveRebuilt(change: BatchChange, on: string): Promise<void> {
+      approvals.set(change.taskId, change.head);
+      approvedOrigins.set(change.taskId, repos.get(REPO)?.origin ?? null);
+      return batches.enqueue(REPO, change, on);
     },
     /** The captain turns on a naming runbook of their own, or turns naming off. */
     nameBy(rule: NamingRule | null) {

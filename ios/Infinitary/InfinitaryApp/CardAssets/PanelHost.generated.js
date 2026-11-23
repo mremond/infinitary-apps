@@ -110726,7 +110726,19 @@ ${FRAME_KEYBOARD_SCRIPT}
      * the fix is carried as its own difference from it from then on, and is
      * left out, never carried whole, when its branch no longer builds on it.
      */
-    heldBase: string().optional()
+    heldBase: string().optional(),
+    /**
+     * The open batch's version this change was rebuilt on while that batch
+     * ran (docs/forge.md, "A change rebuilt on an open batch"), and the
+     * changes, by task and approved version, that version carries. It goes
+     * right behind those changes, carried as its own difference from `head`,
+     * and is left out, never carried whole, once any of them is neither ahead
+     * of it at that version nor merged at it.
+     */
+    onBatch: object({
+      head: string(),
+      members: array(object({ taskId: string(), head: string() }))
+    }).optional()
   });
   const batchMemberSchema = batchChangeSchema.extend({ commit: string() });
   const batchHoldSchema = object({
@@ -110843,7 +110855,13 @@ ${FRAME_KEYBOARD_SCRIPT}
      * be done until that change merges or leaves the batch. Absent when it
      * clashes with the default branch itself.
      */
-    ahead: string().optional()
+    ahead: string().optional(),
+    /**
+     * The open batch's version its crewmate was told to rebuild it on, and
+     * that batch's branch: while that batch is open nothing else is asked,
+     * since the rebuilt version goes in line behind it.
+     */
+    rebuild: object({ head: string(), branch: string() }).optional()
   });
   const mergeWaysSchema = object({
     squash: boolean(),
@@ -110860,6 +110878,16 @@ ${FRAME_KEYBOARD_SCRIPT}
     members: array(object({ taskId: string(), title: string() })),
     /** How many times it was held while it was open. */
     holds: number().int().nonnegative()
+  });
+  const batchRebuildSchema = object({
+    taskId: string(),
+    /** The change's version that clashed with the batch. */
+    head: string(),
+    /** The open batch's version it was told to rebuild on, and that batch's branch. */
+    on: string(),
+    branch: string(),
+    members: array(object({ taskId: string(), head: string() })),
+    at: number()
   });
   const batchRecordSchema = object({
     line: array(batchChangeSchema),
@@ -110895,7 +110923,16 @@ ${FRAME_KEYBOARD_SCRIPT}
      */
     formed: number().optional(),
     /** The batches that ended within `FINISHED_BATCH_KEPT_MS`, oldest first. */
-    finished: array(finishedBatchSchema).optional()
+    finished: array(finishedBatchSchema).optional(),
+    /**
+     * The last open batch version each task's crewmate was told to rebuild
+     * its change on (docs/forge.md, "A change rebuilt on an open batch"), at
+     * the version that clashed, with the changes that batch version carries:
+     * the crewmate hears once per clashing version and set of changes, and a
+     * repair declared on that version goes in line as built on them. Kept
+     * until the task closes.
+     */
+    rebuilds: array(batchRebuildSchema).optional()
   });
   discriminatedUnion("action", [
     object({ action: literal("try-again"), head: string().min(1) }),

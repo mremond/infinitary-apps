@@ -65,6 +65,13 @@ export type CombineInput = {
    * that version, so it can change lines a member added or changed.
    */
   held?: readonly string[];
+  /**
+   * The approved version of a task's change that merged, with a batch or
+   * otherwise; absent while it has not. A change rebuilt on an open batch's
+   * version (`onBatch`) goes once each change that version carries is ahead
+   * of it at the same version or merged at it.
+   */
+  mergedWith?: (taskId: string) => string | undefined;
 };
 
 export type Combined = {
@@ -78,7 +85,17 @@ export type Combined = {
    * of the approved change ahead of it in the batch that it clashes with,
    * where it still combines with the default branch alone.
    */
-  leftOut: { change: BatchChange; reason: string; ahead?: string }[];
+  leftOut: {
+    change: BatchChange;
+    reason: string;
+    ahead?: string;
+    /**
+     * It no longer combines with the batch, or the batch version it was
+     * rebuilt on no longer stands: rebuilding it on the open batch's version
+     * answers it (docs/forge.md, "A change rebuilt on an open batch").
+     */
+    clash?: true;
+  }[];
   /**
    * The changes built on another change's approved version (`after`) whose
    * base did not combine: they go back in line behind it, with no note.
@@ -106,6 +123,18 @@ export const LEFT_OUT_WORDS = {
     `it builds on ${base}, whose work is not merged or ahead of it in the batch, so the batch would carry work that was not approved with it`,
   baseClosed: (head: string) =>
     `it builds on ${head}, the approved version of a change that closed without merging, so the batch would carry that change's work that never merged; rebuild your branch on the default branch without that work`,
+  // i18n-exempt: a left-out reason is English the crewmate reads, carried in the batch check's English words beside its siblings
+  batchChanged: (head: string) =>
+    `it was rebuilt on ${head}, a version of the open batch, and the batch's changes it was built on are no longer all ahead of it at their versions, so the batch would carry work that was not approved with it; rebuild your branch on the batch's version as it is now and show a new version`,
+  // i18n-exempt: a left-out reason is English the crewmate reads, carried in the batch check's English words beside its siblings
+  batchLost: (head: string) =>
+    `it was declared rebuilt on ${head}, a version of the open batch, and its pushed branch does not build on that version; rebuild your branch on the batch's version as it is now and show a new version`,
+  // i18n-exempt: a left-out reason is English the crewmate reads, carried in the batch check's English words beside its siblings
+  batchClash: (head: string) =>
+    `it was rebuilt on ${head}, a version of the open batch, and what it changes since that version no longer combines with the batch as it is now; rebuild your branch on the batch's version as it is now and show a new version`,
+  // i18n-exempt: a left-out reason is English the crewmate reads, carried in the batch check's English words beside its siblings
+  clashesBatch:
+    "it no longer combines with the changes of the open batch ahead of it, which are not merged yet",
   behindBase: (head: string) =>
     `it does not build on ${head}, the approved version of the change it was built on that the batch carries or merged, so the batch would carry that change's earlier work that was not approved with it; bring your branch onto ${head} and show a new version`,
 } as const;
@@ -163,6 +192,39 @@ export async function combine(input: CombineInput): Promise<Combined> {
       leftOut.push({ change, reason: LEFT_OUT_WORDS.baseClosed(carriedBase) });
       continue;
     }
+    // Rebuilt on an open batch's version: it goes right behind the changes that version
+    // carries, as its own difference from it, and never with work that is not approved.
+    const onBatch = change.onBatch;
+    if (onBatch) {
+      const standsAhead = (carried: { taskId: string; head: string }) =>
+        members.some(
+          (member) => member.taskId === carried.taskId && member.head === carried.head,
+        ) || input.mergedWith?.(carried.taskId) === carried.head;
+      if (!onBatch.members.every(standsAhead)) {
+        leftOut.push({ change, reason: LEFT_OUT_WORDS.batchChanged(onBatch.head), clash: true });
+        continue;
+      }
+      if (!(await contains(input.repoDir, change.head, onBatch.head))) {
+        leftOut.push({ change, reason: LEFT_OUT_WORDS.batchLost(onBatch.head), clash: true });
+        continue;
+      }
+      const own = await mergedTree(
+        input.repoDir,
+        await rebased(input.repoDir, head, onBatch.head),
+        change.head,
+      );
+      if (own === null) {
+        leftOut.push({ change, reason: LEFT_OUT_WORDS.batchClash(onBatch.head), clash: true });
+        continue;
+      }
+      if (own === (await git(input.repoDir, ["rev-parse", `${head}^{tree}`]))) {
+        leftOut.push({ change, reason: LEFT_OUT_WORDS.nothing });
+        continue;
+      }
+      head = await commit(input.repoDir, own, head, change, input.at);
+      members.push({ ...change, commit: head });
+      continue;
+    }
     if (builtOn && !(await contains(input.repoDir, change.head, builtOn))) {
       leftOut.push({ change, reason: LEFT_OUT_WORDS.behindBase(builtOn) });
       continue;
@@ -198,8 +260,13 @@ export async function combine(input: CombineInput): Promise<Combined> {
       const clash = await clashAhead(input.repoDir, base, members, change.head);
       leftOut.push(
         clash
-          ? { change, reason: LEFT_OUT_WORDS.ahead(clash.title), ahead: clash.taskId }
-          : { change, reason: LEFT_OUT_WORDS.conflict },
+          ? {
+              change,
+              reason: LEFT_OUT_WORDS.ahead(clash.title),
+              ahead: clash.taskId,
+              clash: true,
+            }
+          : { change, reason: LEFT_OUT_WORDS.conflict, clash: true },
       );
       continue;
     }
@@ -227,6 +294,41 @@ export async function combine(input: CombineInput): Promise<Combined> {
   // Kept until the next combine, so the written commits outlive a cleanup before their push.
   await git(input.repoDir, ["update-ref", HEAD_REF, head]);
   return { base, head, members, leftOut, ...(waiting.length ? { waiting } : {}) };
+}
+
+/**
+ * Whether a change waiting in line no longer combines with the open batch's
+ * version `batch` (docs/forge.md, "A change rebuilt on an open batch"),
+ * read with `merge-tree`, which writes no ref a person sees. Undefined when
+ * it cannot be told here: the branch is not at `head` where the project
+ * lives, or the batch's version is not in this clone; the next combine
+ * decides then.
+ */
+export async function clashesWithBatch(input: {
+  repoDir: string;
+  branch: string;
+  head: string;
+  batch: string;
+  remote?: string;
+  timeoutMs?: number;
+}): Promise<boolean | undefined> {
+  if (!(await readable(input.repoDir, input.batch))) return undefined;
+  const fetched = await git(
+    input.repoDir,
+    [
+      "fetch",
+      "--quiet",
+      "--no-tags",
+      input.remote ?? "origin",
+      `+refs/heads/${input.branch}:${CHANGE_REF}`,
+    ],
+    network(input.timeoutMs),
+  )
+    .then(() => git(input.repoDir, ["rev-parse", "--verify", `${CHANGE_REF}^{commit}`]))
+    .catch(unread);
+  if (fetched !== input.head || !(await sharesHistory(input.repoDir, input.batch, input.head)))
+    return undefined;
+  return (await mergedTree(input.repoDir, input.batch, input.head)) === null;
 }
 
 /** A missing merge base is an expected Git result, unlike an unreadable commit. */

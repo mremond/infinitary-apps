@@ -866,6 +866,8 @@ export class RepoRegistry {
       !record.fixes?.length &&
       !record.held?.length &&
       !record.fixBases &&
+      // Who was told to rebuild on an open batch stays until that task closes.
+      !record.rebuilds?.length &&
       // The batches that ended in the last day stay for the Batches panel (docs/forge.md, "The Batches panel").
       !record.finished?.length;
     const json = empty ? null : JSON.stringify(batchRecordSchema.parse(record));

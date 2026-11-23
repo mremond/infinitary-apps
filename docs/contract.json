@@ -2263,6 +2263,36 @@
                       },
                       "heldBase": {
                         "type": "string"
+                      },
+                      "onBatch": {
+                        "type": "object",
+                        "properties": {
+                          "head": {
+                            "type": "string"
+                          },
+                          "members": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "taskId": {
+                                  "type": "string"
+                                },
+                                "head": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "taskId",
+                                "head"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "head",
+                          "members"
+                        ]
                       }
                     },
                     "required": [
@@ -2352,6 +2382,36 @@
                           },
                           "heldBase": {
                             "type": "string"
+                          },
+                          "onBatch": {
+                            "type": "object",
+                            "properties": {
+                              "head": {
+                                "type": "string"
+                              },
+                              "members": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "taskId": {
+                                      "type": "string"
+                                    },
+                                    "head": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "taskId",
+                                    "head"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "head",
+                              "members"
+                            ]
                           },
                           "commit": {
                             "type": "string"
@@ -2533,6 +2593,21 @@
                       },
                       "ahead": {
                         "type": "string"
+                      },
+                      "rebuild": {
+                        "type": "object",
+                        "properties": {
+                          "head": {
+                            "type": "string"
+                          },
+                          "branch": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "head",
+                          "branch"
+                        ]
                       }
                     },
                     "required": [
@@ -2704,6 +2779,55 @@
                       "outcome",
                       "members",
                       "holds"
+                    ]
+                  }
+                },
+                "rebuilds": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "taskId": {
+                        "type": "string"
+                      },
+                      "head": {
+                        "type": "string"
+                      },
+                      "on": {
+                        "type": "string"
+                      },
+                      "branch": {
+                        "type": "string"
+                      },
+                      "members": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "taskId": {
+                              "type": "string"
+                            },
+                            "head": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "taskId",
+                            "head"
+                          ]
+                        }
+                      },
+                      "at": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "taskId",
+                      "head",
+                      "on",
+                      "branch",
+                      "members",
+                      "at"
                     ]
                   }
                 }
@@ -3190,6 +3314,36 @@
                         },
                         "heldBase": {
                           "type": "string"
+                        },
+                        "onBatch": {
+                          "type": "object",
+                          "properties": {
+                            "head": {
+                              "type": "string"
+                            },
+                            "members": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "taskId": {
+                                    "type": "string"
+                                  },
+                                  "head": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "taskId",
+                                  "head"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "head",
+                            "members"
+                          ]
                         }
                       },
                       "required": [
@@ -3279,6 +3433,36 @@
                             },
                             "heldBase": {
                               "type": "string"
+                            },
+                            "onBatch": {
+                              "type": "object",
+                              "properties": {
+                                "head": {
+                                  "type": "string"
+                                },
+                                "members": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "taskId": {
+                                        "type": "string"
+                                      },
+                                      "head": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "taskId",
+                                      "head"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "head",
+                                "members"
+                              ]
                             },
                             "commit": {
                               "type": "string"
@@ -3460,6 +3644,21 @@
                         },
                         "ahead": {
                           "type": "string"
+                        },
+                        "rebuild": {
+                          "type": "object",
+                          "properties": {
+                            "head": {
+                              "type": "string"
+                            },
+                            "branch": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "head",
+                            "branch"
+                          ]
                         }
                       },
                       "required": [
@@ -3631,6 +3830,55 @@
                         "outcome",
                         "members",
                         "holds"
+                      ]
+                    }
+                  },
+                  "rebuilds": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "taskId": {
+                          "type": "string"
+                        },
+                        "head": {
+                          "type": "string"
+                        },
+                        "on": {
+                          "type": "string"
+                        },
+                        "branch": {
+                          "type": "string"
+                        },
+                        "members": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taskId": {
+                                "type": "string"
+                              },
+                              "head": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "taskId",
+                              "head"
+                            ]
+                          }
+                        },
+                        "at": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "taskId",
+                        "head",
+                        "on",
+                        "branch",
+                        "members",
+                        "at"
                       ]
                     }
                   }
@@ -4447,6 +4695,36 @@
                     },
                     "heldBase": {
                       "type": "string"
+                    },
+                    "onBatch": {
+                      "type": "object",
+                      "properties": {
+                        "head": {
+                          "type": "string"
+                        },
+                        "members": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taskId": {
+                                "type": "string"
+                              },
+                              "head": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "taskId",
+                              "head"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "head",
+                        "members"
+                      ]
                     }
                   },
                   "required": [
@@ -4536,6 +4814,36 @@
                         },
                         "heldBase": {
                           "type": "string"
+                        },
+                        "onBatch": {
+                          "type": "object",
+                          "properties": {
+                            "head": {
+                              "type": "string"
+                            },
+                            "members": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "taskId": {
+                                    "type": "string"
+                                  },
+                                  "head": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "taskId",
+                                  "head"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "head",
+                            "members"
+                          ]
                         },
                         "commit": {
                           "type": "string"
@@ -4717,6 +5025,21 @@
                     },
                     "ahead": {
                       "type": "string"
+                    },
+                    "rebuild": {
+                      "type": "object",
+                      "properties": {
+                        "head": {
+                          "type": "string"
+                        },
+                        "branch": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "head",
+                        "branch"
+                      ]
                     }
                   },
                   "required": [
@@ -4888,6 +5211,55 @@
                     "outcome",
                     "members",
                     "holds"
+                  ]
+                }
+              },
+              "rebuilds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "taskId": {
+                      "type": "string"
+                    },
+                    "head": {
+                      "type": "string"
+                    },
+                    "on": {
+                      "type": "string"
+                    },
+                    "branch": {
+                      "type": "string"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "taskId": {
+                            "type": "string"
+                          },
+                          "head": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "taskId",
+                          "head"
+                        ]
+                      }
+                    },
+                    "at": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "taskId",
+                    "head",
+                    "on",
+                    "branch",
+                    "members",
+                    "at"
                   ]
                 }
               }
@@ -10708,6 +11080,36 @@
                     },
                     "heldBase": {
                       "type": "string"
+                    },
+                    "onBatch": {
+                      "type": "object",
+                      "properties": {
+                        "head": {
+                          "type": "string"
+                        },
+                        "members": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taskId": {
+                                "type": "string"
+                              },
+                              "head": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "taskId",
+                              "head"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "head",
+                        "members"
+                      ]
                     }
                   },
                   "required": [
@@ -10797,6 +11199,36 @@
                         },
                         "heldBase": {
                           "type": "string"
+                        },
+                        "onBatch": {
+                          "type": "object",
+                          "properties": {
+                            "head": {
+                              "type": "string"
+                            },
+                            "members": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "taskId": {
+                                    "type": "string"
+                                  },
+                                  "head": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "taskId",
+                                  "head"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "head",
+                            "members"
+                          ]
                         },
                         "commit": {
                           "type": "string"
@@ -10978,6 +11410,21 @@
                     },
                     "ahead": {
                       "type": "string"
+                    },
+                    "rebuild": {
+                      "type": "object",
+                      "properties": {
+                        "head": {
+                          "type": "string"
+                        },
+                        "branch": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "head",
+                        "branch"
+                      ]
                     }
                   },
                   "required": [
@@ -11149,6 +11596,55 @@
                     "outcome",
                     "members",
                     "holds"
+                  ]
+                }
+              },
+              "rebuilds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "taskId": {
+                      "type": "string"
+                    },
+                    "head": {
+                      "type": "string"
+                    },
+                    "on": {
+                      "type": "string"
+                    },
+                    "branch": {
+                      "type": "string"
+                    },
+                    "members": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "taskId": {
+                            "type": "string"
+                          },
+                          "head": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "taskId",
+                          "head"
+                        ]
+                      }
+                    },
+                    "at": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "taskId",
+                    "head",
+                    "on",
+                    "branch",
+                    "members",
+                    "at"
                   ]
                 }
               }

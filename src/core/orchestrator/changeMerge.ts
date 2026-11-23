@@ -669,6 +669,16 @@ export class ChangeMerge {
         plain: BATCH_WAITING_WORDS.toLowerCase(),
         stop: "queue",
       };
+    // Its crewmate was told to rebuild it on the open batch's version now: the
+    // rebuilt version goes in line behind that batch once declared, so nothing
+    // else is asked (docs/forge.md, "A change rebuilt on an open batch").
+    if (place?.state === "left-out" && place.rebuild)
+      return {
+        ok: false,
+        text: `Cannot merge yet: the change was left out of its batch because ${place.reason}. Its crewmate was told to rebuild it on the open batch's version ${place.rebuild.head} (branch ${place.rebuild.branch}) and declare that push with check_change conflictRepair, giving ${place.rebuild.head} as newBase; the rebuilt version then goes in line right behind that batch's changes and first in the next batch.`,
+        plain: place.reason,
+        stop: "queue",
+      };
     // A clash only with a change ahead that is not merged yet: nothing can be
     // done until that batch merges or that change leaves it, and the batch
     // runs this merge again then.
@@ -828,20 +838,29 @@ export class ChangeMerge {
           text: `Cannot merge: ${withdrawn}${withdrawn.endsWith(".") ? "" : "."}`,
           stop: "withdrawn",
         };
-      await batches.enqueue(repo.id, {
-        taskId,
-        branch: change.branch,
-        head: change.headSha,
-        title: commit.title,
-        body: commit.body,
-        // The line keeps the order of the approvals, not of the runs that carry them here.
-        at: guard.approvedAt ?? this.context.now(),
-        ...(change.number !== undefined ? { number: change.number } : {}),
-        ...(stacked ? { base: stacked } : {}),
-        ...(builtOn ? { base: builtOn.branch, after: builtOn.task.id } : {}),
-        // The held version this approval verified the fix on goes with its repair as it enters the line.
-        ...(heldBase ? { heldBase } : {}),
-      });
+      // A repair declared on a version of the open batch goes in line behind that batch.
+      const keptNow = standingAuthorization(this.options.tasks.get(taskId)?.delivery);
+      const rebuiltOn = keptNow?.lineage.findLast(
+        (step) => step.toHead === change.headSha,
+      )?.newBase;
+      await batches.enqueue(
+        repo.id,
+        {
+          taskId,
+          branch: change.branch,
+          head: change.headSha,
+          title: commit.title,
+          body: commit.body,
+          // The line keeps the order of the approvals, not of the runs that carry them here.
+          at: guard.approvedAt ?? this.context.now(),
+          ...(change.number !== undefined ? { number: change.number } : {}),
+          ...(stacked ? { base: stacked } : {}),
+          ...(builtOn ? { base: builtOn.branch, after: builtOn.task.id } : {}),
+          // The held version this approval verified the fix on goes with its repair as it enters the line.
+          ...(heldBase ? { heldBase } : {}),
+        },
+        rebuiltOn,
+      );
       // The reading now carries the change's place in the batch, so the
       // check watch follows it and wakes its crewmate if the batch fails it.
       await this.checks.run(taskId).catch(() => {});

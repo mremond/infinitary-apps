@@ -182,6 +182,41 @@ export function createOwnBatches(owners: {
         },
       });
     },
+    rebuild: ({ change, reason, told, open }) => {
+      // The approval stays kept: the rebuilt version is declared as its repair.
+      const kept = approval(change.taskId, change.head);
+      const front = kept ? standingAuthorization(tasks.get(change.taskId)?.delivery) : undefined;
+      // No approval covers the version any more: its line and merge card say what follows.
+      if (!front) return;
+      const repoId = tasks.get(change.taskId)?.repoId;
+      const repo = repoId ? owners.repos.get(repoId) : undefined;
+      const label =
+        repo && open.number !== undefined
+          ? forgeFor(repo).label({
+              number: open.number,
+              branch: open.branch,
+              headSha: open.head,
+              url: null,
+            })
+          : undefined;
+      owners.inbox.enqueue(change.taskId, {
+        facts: {
+          kind: "batch-rebuild",
+          head: change.head,
+          reason,
+          ...(label ? { change: label } : {}),
+          ...(open.url ? { url: open.url } : {}),
+          branch: told.branch,
+          on: told.on,
+          members: told.members.map((member) => ({
+            task: tasks.get(member.taskId)?.key || member.taskId,
+            title: open.members.find((entry) => entry.taskId === member.taskId)?.title ?? "",
+          })),
+          // i18n-exempt: served to a crewmate, never shown to a person (docs/i18n.md, "What stays English")
+          approval: `The captain's merge approval is kept and covers ${candidateHead(front)}: impact none keeps it, with no new card.`,
+        },
+      });
+    },
     addressMoved: (change, reason) => {
       // The approval belongs to the project's former address: it ends, and
       // the crewmate asks for fresh approval at the new one.

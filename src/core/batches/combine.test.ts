@@ -9,7 +9,7 @@ import {
 } from "@shared/batches";
 import { describe, expect, it, vi } from "vitest";
 import { scratchDir } from "../../../tests/helpers/scratchDirs";
-import { combine, LEFT_OUT_WORDS, landedCommits, pushBatch } from "./combine";
+import { clashesWithBatch, combine, LEFT_OUT_WORDS, landedCommits, pushBatch } from "./combine";
 import { carried, combined, declared, enqueue, heldVersions, release, withdraw } from "./line";
 
 // This file chains real git and is not about the utility-QoS clamp, so what
@@ -268,7 +268,12 @@ describe("combining approved changes at home", () => {
 
     expect(result.members.map((member) => member.taskId)).toEqual(["task-parser", "task-export"]);
     expect(result.leftOut).toEqual([
-      { change: clash, reason: LEFT_OUT_WORDS.ahead(PARSER.title), ahead: "task-parser" },
+      {
+        change: clash,
+        reason: LEFT_OUT_WORDS.ahead(PARSER.title),
+        ahead: "task-parser",
+        clash: true,
+      },
     ]);
   });
 
@@ -295,7 +300,9 @@ describe("combining approved changes at home", () => {
     });
 
     expect(result.members.map((member) => member.taskId)).toEqual(["task-export"]);
-    expect(result.leftOut).toEqual([{ change: clash, reason: LEFT_OUT_WORDS.conflict }]);
+    expect(result.leftOut).toEqual([
+      { change: clash, reason: LEFT_OUT_WORDS.conflict, clash: true },
+    ]);
   });
 
   it("leaves out a change whose pushed branch moved past the approved version", async () => {
@@ -1164,6 +1171,212 @@ describe("a held batch's fix built on the version that held", () => {
       string,
     ];
     expect(run(at.home, "diff", "--name-only", second, third)).toBe("src/parser.ts");
+  });
+});
+
+describe("a change rebuilt on an open batch's version", () => {
+  // Intent: INF-6147's accepted plan, piece 1, from the captain's ask that batches stop paying
+  // again and again to bring a large change up to date that never gets in: a change that
+  // clashes with the open batch is rebuilt on its version while it runs, then goes right
+  // behind that batch's changes, or first in the next batch once they merge, as one commit of
+  // its own difference, and never with work that is not approved.
+  const ROWS = {
+    taskId: "task-rows",
+    title: "feat(report): add a zone row",
+    files: { "src/report.ts": "export const rows = ['date', 'total', 'zone'];\n" },
+    approvedAt: 1_000,
+  };
+  const COUNT = {
+    taskId: "task-count",
+    title: "feat(report): add a count row",
+    files: { "src/report.ts": "export const rows = ['date', 'total', 'count'];\n" },
+    approvedAt: 500,
+  };
+  const BATCH = "infinitary-batch/6a2b";
+
+  /** The rows change combined and pushed as the open batch, with the count change left out. */
+  async function openBatch(at: Host) {
+    const rows = change(at, ROWS);
+    const count = change(at, COUNT);
+    const first = await combine({
+      repoDir: at.home,
+      defaultBranch: "main",
+      changes: [rows, count],
+      at: AT,
+    });
+    await pushBatch({ repoDir: at.home, branch: BATCH, head: first.head, expected: null });
+    // Its crewmate rebuilds the count change on the batch's version, keeping both rows.
+    const rebuilt: BatchChange = {
+      ...change(at, {
+        ...COUNT,
+        files: { "src/report.ts": "export const rows = ['date', 'total', 'zone', 'count'];\n" },
+        from: `origin/${BATCH}`,
+      }),
+      onBatch: { head: first.head, members: [{ taskId: rows.taskId, head: rows.head }] },
+    };
+    return { rows, count, first, rebuilt };
+  }
+
+  /** The default branch moves where the project lives, so the next combine re-makes every commit. */
+  function mainMoves(at: Host): void {
+    run(at.work, "fetch", "--quiet", "origin");
+    run(at.work, "checkout", "--quiet", "-B", "main", "origin/main");
+    write(at.work, "README.md", "# Meter\n");
+    run(at.work, "add", "-A");
+    run(at.work, "commit", "-m", "docs: add a readme");
+    run(at.work, "push", "origin", "HEAD:refs/heads/main");
+  }
+
+  it("tells a change waiting in line that clashes with the open batch's version, and not one that combines", async () => {
+    const at = host();
+    const rows = change(at, ROWS);
+    const batch = await combine({
+      repoDir: at.home,
+      defaultBranch: "main",
+      changes: [rows],
+      at: AT,
+    });
+    const count = change(at, { ...COUNT, approvedAt: 3_000 });
+    const exported = change(at, EXPORT);
+
+    const ask = (entry: BatchChange) =>
+      clashesWithBatch({
+        repoDir: at.home,
+        branch: entry.branch,
+        head: entry.head,
+        batch: batch.head,
+      });
+
+    expect(await ask(count)).toBe(true);
+    expect(await ask(exported)).toBe(false);
+    // A batch version this clone does not hold cannot be told here.
+    expect(
+      await clashesWithBatch({
+        repoDir: at.home,
+        branch: count.branch,
+        head: count.head,
+        batch: "0".repeat(40),
+      }),
+    ).toBeUndefined();
+  });
+
+  it("is left out of the batch for its clash, then joins right behind that batch's change as its own difference when the batch is combined again", async () => {
+    const at = host();
+    const { rows, count, first, rebuilt } = await openBatch(at);
+    expect(first.leftOut).toEqual([
+      {
+        change: count,
+        reason: LEFT_OUT_WORDS.ahead(ROWS.title),
+        ahead: "task-rows",
+        clash: true,
+      },
+    ]);
+    mainMoves(at);
+
+    const result = await combine({
+      repoDir: at.home,
+      defaultBranch: "main",
+      changes: [rows, rebuilt],
+      at: AT + 60_000,
+    });
+
+    expect(result.leftOut).toEqual([]);
+    expect(result.members.map((member) => member.taskId)).toEqual(["task-rows", "task-count"]);
+    const [rowsCommit, countCommit] = result.members.map((member) => member.commit) as [
+      string,
+      string,
+    ];
+    // Its commit sits on the re-made rows commit and carries only its own row.
+    expect(run(at.home, "rev-list", "--parents", "-n", "1", countCommit)).toBe(
+      `${countCommit} ${rowsCommit}`,
+    );
+    expect(run(at.home, "diff", "--name-only", rowsCommit, countCommit)).toBe("src/report.ts");
+    expect(run(at.home, "show", `${result.head}:src/report.ts`)).toBe(
+      "export const rows = ['date', 'total', 'zone', 'count'];",
+    );
+    expect(run(at.home, "show", `${result.head}:README.md`)).toBe("# Meter");
+    expect(run(at.home, "log", "-1", "--format=%s", countCommit)).toBe(COUNT.title);
+  });
+
+  it("goes as its own difference once the batch merged by a rebase, where merged the ordinary way it clashes", async () => {
+    const at = host();
+    const { rows, first, rebuilt } = await openBatch(at);
+    // The batch merges by a rebase onto a default branch that moved: its commit is written again.
+    mainMoves(at);
+    run(at.work, "checkout", "--quiet", "-B", "rebased", `origin/${BATCH}`);
+    run(at.work, "rebase", "--quiet", "main");
+    run(at.work, "push", "origin", "HEAD:refs/heads/main");
+    expect(run(at.work, "rev-parse", "HEAD")).not.toBe(first.head);
+
+    const ordinary = await combine({
+      repoDir: at.home,
+      defaultBranch: "main",
+      changes: [{ ...rebuilt, onBatch: undefined }],
+      at: AT + 120_000,
+    });
+    expect(ordinary.members).toEqual([]);
+
+    const result = await combine({
+      repoDir: at.home,
+      defaultBranch: "main",
+      changes: [rebuilt],
+      at: AT + 120_000,
+      mergedWith: (taskId) => (taskId === rows.taskId ? rows.head : undefined),
+    });
+
+    expect(result.leftOut).toEqual([]);
+    expect(result.members.map((member) => member.taskId)).toEqual(["task-count"]);
+    expect(run(at.home, "diff", "--name-only", result.base, result.head)).toBe("src/report.ts");
+    expect(run(at.home, "show", `${result.head}:src/report.ts`)).toBe(
+      "export const rows = ['date', 'total', 'zone', 'count'];",
+    );
+  });
+
+  it("is left out, never carried with work that is not approved, once a change it was built on is neither ahead of it nor merged", async () => {
+    const at = host();
+    const { rebuilt } = await openBatch(at);
+    const exported = change(at, EXPORT);
+
+    const result = await combine({
+      repoDir: at.home,
+      defaultBranch: "main",
+      changes: [exported, rebuilt],
+      at: AT + 60_000,
+    });
+
+    expect(result.members.map((member) => member.taskId)).toEqual(["task-export"]);
+    expect(result.leftOut).toEqual([
+      {
+        change: rebuilt,
+        reason: LEFT_OUT_WORDS.batchChanged(rebuilt.onBatch?.head as string),
+        clash: true,
+      },
+    ]);
+    expect(run(at.home, "show", `${result.head}:src/report.ts`)).toBe(
+      "export const rows = ['date', 'total'];",
+    );
+  });
+
+  it("is left out when the change it was built on is ahead of it at another version", async () => {
+    const at = host();
+    const { rows, rebuilt } = await openBatch(at);
+    const newer = change(at, {
+      ...ROWS,
+      files: { "src/report.ts": "export const rows = ['date', 'total', 'zone', 'tz'];\n" },
+    });
+    expect(newer.head).not.toBe(rows.head);
+
+    const result = await combine({
+      repoDir: at.home,
+      defaultBranch: "main",
+      changes: [newer, rebuilt],
+      at: AT + 60_000,
+    });
+
+    expect(result.members.map((member) => member.taskId)).toEqual(["task-rows"]);
+    expect(result.leftOut.map((entry) => entry.reason)).toEqual([
+      LEFT_OUT_WORDS.batchChanged(rebuilt.onBatch?.head as string),
+    ]);
   });
 });
 
