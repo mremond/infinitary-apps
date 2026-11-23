@@ -77,17 +77,13 @@ struct PhoneComputerSheet: View {
     @State private var named: ReadOnlySession?
     @State private var choosingWay = false
     @FocusState private var focusedRow: String?
-    /// The rows' own height, and the bar and edge around them. The edges keep their smallest reading: the first, taken
-    /// before the sheet settles, still counts the status bar, which would leave empty space under the rows.
+    /// The rows' own height, the height the scroll view shows them in, and the whole sheet's height: the sheet less the
+    /// scroll view is its bar and edges, so the fitted sheet is the rows plus those.
     @State private var rows: CGFloat = 0
-    @State private var edges: CGFloat = 0
+    @State private var shown: CGFloat = 0
+    @State private var sheet: CGFloat = 0
     /// The height the sheet stands at, kept while the rows refit so a sheet pulled up stays up.
     @State private var detent = PresentationDetent.custom(PhoneFittedDetent.self)
-    /// Rows taller than half height, as a takeover's adds: the sheet then stands at the system's own half height, which a
-    /// swipe on its rows pulls up, as it always did. It stays so once seen.
-    @State private var tall = false
-    /// The height the sheet shows its rows in.
-    @State private var shown: CGFloat = 0
 
     var body: some View {
         NavigationStack {
@@ -100,10 +96,9 @@ struct PhoneComputerSheet: View {
                         PhoneTakeOverSection(session: session, standbys: standbys)
                     }
                 }.padding(PhoneTheme.space5).frame(maxWidth: .infinity, alignment: .leading)
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rows = $0; checkTall() }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rows = $0 }
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { shown = $0; checkTall() }
-            .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top + $0.safeAreaInsets.bottom } action: { if $0 > 0, edges == 0 || $0 < edges { edges = $0 } }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { shown = $0 }
             .onAppear { model.lookAtOthers() }
             // Another computer showing closes a confirmation that named the one before.
             .onChange(of: session.mac.pin) { leaving = false; forgetting = false; named = nil }
@@ -131,9 +126,11 @@ struct PhoneComputerSheet: View {
                 Button(PhoneMessages.phoneCommonCancel(), role: .cancel) {}
             }
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.height + $0.safeAreaInsets.top + $0.safeAreaInsets.bottom } action: { sheet = $0 }
         .font(PhoneFont.body).foregroundStyle(PhoneTheme.text).tint(PhoneTheme.accent)
-        .presentationDetents(tall ? [.medium, .large] : [.custom(PhoneFittedDetent.self), .large], selection: $detent).presentationDragIndicator(.visible)
-        .environment(\.phoneSheetFit, rows > 0 ? rows + edges : 0).phoneSheetSurface()
+        .presentationDetents([.custom(PhoneFittedDetent.self), .large], selection: $detent).presentationDragIndicator(.visible)
+        .presentationContentInteraction(.resizes)
+        .environment(\.phoneSheetFit, rows > 0 && shown > 0 && sheet > shown ? rows + sheet - shown : 0).phoneSheetSurface()
     }
 
     private func pick(_ way: PhoneAddWay) {
@@ -232,12 +229,6 @@ struct PhoneComputerSheet: View {
     }
 
     private static let addRow = "add-computer" // i18n-exempt: a focus name, not shown
-
-    /// Rows that overflow the fitted sheet mean the fit reached half height: the sheet turns to the system's half height.
-    private func checkTall() {
-        guard !tall, shown > 0, rows > shown + 1, detent != .large else { return }
-        tall = true; detent = .medium
-    }
 
     private func step(_ rows: [String], from row: String, by offset: Int) -> String {
         guard let index = rows.firstIndex(of: row) else { return row }
