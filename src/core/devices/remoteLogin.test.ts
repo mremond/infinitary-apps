@@ -245,7 +245,13 @@ describe.runIf(SSH_SERVER_AVAILABLE)("adding a Mac by its address over Remote Lo
       // A refused key, at a Remote Login that takes no password either.
       { ssh: sshd.ssh({ key: "refused" }), refusal: "password-off" },
       { ssh: sshd.ssh({ port: closed }), refusal: "remote-login-off" },
-      { ssh: sshd.ssh(), address: "sam@no-such-mac.invalid", refusal: "unreachable" },
+      // The key read stops at the port its SSH settings name, and the name finds no address.
+      {
+        ssh: sshd.ssh(),
+        address: "sam@no-such-mac.invalid",
+        refusal: "unreachable",
+        reach: { step: "key", port: sshd.port },
+      },
     ] as const;
     for (const each of cases) {
       sshd.knownHosts("known");
@@ -253,7 +259,11 @@ describe.runIf(SSH_SERVER_AVAILABLE)("adding a Mac by its address over Remote Lo
       const at = await home({ ssh: each.ssh, bundle });
       const address = "address" in each ? each.address : sshd.address;
       const refused = await addChecked(at.remote, address).catch((error: unknown) => error);
-      const lines = remoteLoginWords.refused(each.refusal, { address, doing: "add" });
+      const lines = remoteLoginWords.refused(each.refusal, {
+        address,
+        doing: "add",
+        ...("reach" in each ? { reach: each.reach } : {}),
+      });
       expect(refused, each.refusal).toBeInstanceOf(RemoteLoginRefusedError);
       expect((refused as RemoteLoginRefusedError).refusal, each.refusal).toBe(each.refusal);
       expect((refused as RemoteLoginRefusedError).message, each.refusal).toBe(lines.join("\n"));
