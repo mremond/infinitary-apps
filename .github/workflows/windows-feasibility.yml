@@ -100,6 +100,13 @@ jobs:
           "stdout: $(Get-Content -Raw $o)"
           node (Join-Path $env:RUNNER_TEMP 'probe.mjs') after-logout-with-device-key | Tee-Object "$env:EVIDENCE/probe-g-after-logout-with-device-key.json"
           if (Test-Path $f) { Remove-Item -Force $f }
+      - name: Probe H - a login Claude Code itself emptied after Anthropic refused its renewal
+        run: |
+          $f = Join-Path $env:USERPROFILE '.claude\.credentials.json'
+          New-Item -ItemType Directory -Force (Split-Path $f) | Out-Null
+          [IO.File]::WriteAllText($f, '{"claudeAiOauth":{"accessToken":"","refreshToken":"","expiresAt":0,"scopes":["user:inference","user:profile"],"subscriptionType":"pro","loginEnded":"time_limit"}}')
+          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') emptied-login | Tee-Object "$env:EVIDENCE/probe-h-emptied-login.json"
+          Remove-Item -Force $f
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
