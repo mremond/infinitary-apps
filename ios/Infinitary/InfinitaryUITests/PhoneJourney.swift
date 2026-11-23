@@ -469,7 +469,8 @@ import XCTest
     }
     /// INF-1109's phone approvals (docs/secrets.md, "Remote decisions"), built by INF-1202. Result: this phone offers its
     /// own approval key from Settings, the computer's card shows the same code and only a click there enrolls it, one
-    /// Allow here, confirmed by Face ID, runs exactly the use waiting on the computer, and Deny needs no key. Data: the
+    /// Allow here, confirmed by Face ID, runs exactly the use waiting on the computer, and Deny needs no key. Before it
+    /// is set up, the phone keeps every choice the computer's card carries and says where each allow is made. Data: the
     /// real Secrets controller over disposable custody and an invented calendar token; the computer's own confirmation
     /// and the calendar are the test home's stand-ins. Completion: the computer's Secrets history reads each use's end.
     /// Prerequisites: the owned simulator's Face ID, which the test home enrolls. It runs alone or in the rest part,
@@ -509,6 +510,35 @@ import XCTest
             tapOnPhone(close, repeatDiscarded: false)
             XCTAssertTrue(close.waitForAbsence(timeout: 10))
         }
+
+        // INF-6221: a phone not set up keeps every choice the computer's card carries. Allow once says where to set
+        // up and the computer's short allowance says to do it on the computer; neither sends anything, and Don't allow
+        // still refuses here.
+        let unset = try await home("secrets-request")
+        let unsetTitle = try XCTUnwrap(unset["title"] as? String)
+        showCard(unsetTitle)
+        func passed(_ answer: String) -> XCUIElement {
+            app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "card-action-\(answer):")).firstMatch
+        }
+        let allowHere = passed("allow-once"), allowOnComputer = passed("allow-short"), denyHere = app.buttons["approval-deny"]
+        XCTAssertTrue(denyHere.waitForPresence(timeout: 20), app.debugDescription)
+        XCTAssertTrue(allowHere.exists && allowOnComputer.exists, app.debugDescription)
+        XCTAssertEqual(allowHere.label, "Allow once")
+        XCTAssertEqual(allowOnComputer.label, "Allow for 10 minutes")
+        XCTAssertFalse(app.buttons["approval-allow"].exists, "Allow once here needs this phone's key first")
+        waitUntilEnabled(allowHere)
+        try await appearances("secrets-use-not-set-up", showing: allowHere)
+        reveal(allowHere); tapOnPhone(allowHere, repeatDiscarded: false)
+        XCTAssertTrue(app.staticTexts["To allow here, turn on Approves secret uses in Settings. You can also allow on Test Mac mini."]
+            .waitForPresence(timeout: 10), app.debugDescription)
+        reveal(allowOnComputer); tapOnPhone(allowOnComputer, repeatDiscarded: false)
+        XCTAssertTrue(app.staticTexts["Do this on Test Mac mini."].waitForPresence(timeout: 10), app.debugDescription)
+        picture("secrets-use-not-set-up-pressed")
+        let untouched = try await home("secrets-state", method: "GET")
+        XCTAssertEqual((untouched["uses"] as? [[String: Any]])?.first { $0["request"] as? String == unset["request"] as? String }?["state"] as? String,
+            "waiting", "Neither press decides the use")
+        reveal(denyHere); tapOnPhone(denyHere, repeatDiscarded: false)
+        XCTAssertTrue(cardHeading(unsetTitle).waitForAbsence(timeout: 20), app.debugDescription)
 
         // Settings offers this phone's key when its Approves secret uses switch is turned on (INF-1690 piece 4); the
         // computer raises its card with the code this phone shows.

@@ -390,4 +390,47 @@ import Testing
         #expect(secrets.approvals == nil)
         #expect(secrets.use(card: "card-secrets-use-7f3a") == nil)
     }
+
+    /// INF-6221, from a user's report that a permission card offered Allow once, Always allow this and Don't allow on
+    /// the computer while the phone showed only Don't allow (INF-6220's reproduction). Every choice the computer's
+    /// card carries stays on the phone: a fresh phone, which the home gives no challenge, keeps Allow once and says
+    /// where to set up; Always allow this, and Allow for 10 minutes, stay drawn for the computer to save.
+    /// The waiting use and the passes are as SecretsSettings raises a deploy script's use card for them.
+    @Test func everyChoiceOnTheComputersCardStaysOnThePhone() async throws {
+        func use(nonce: String?) -> [String: Any] { [
+            "request": "36a7854d-5203-4c4f-ac9a-9d93b7ddcbab", "card": "card-secrets-use-36a7854d-5203-4c4f-ac9a-9d93b7ddcbab",
+            "digest": "59187c63ce9b30f0afdc7a037d6a4912fda81514f6a03e883a25127c81ceed46", "expires": 301000,
+            "nonce": nonce ?? NSNull(), "reason": "Deploy the website to staging and check it", "recipient": "/bin/sh",
+            "task": "Deploy the site",
+            "secrets": [["ref": "website-staging", "label": "Website deployment", "version": 1, "environment": "Staging",
+                         "name": "Website deployment"]],
+            "facts": [["name": "Program", "value": "/bin/sh · nothing you run can change it · fingerprint f338dc2ba973"]],
+        ] }
+        let passes = ["allow-once:5d1f0c9e-2b7a-4c55-9a43-0e6f2d8b1a77", "deny:9b3e7f12-61d4-4f0a-8c2e-3a5b7d9e0f14"]
+        let always = "allow-always:c2a8e4f6-0b1d-4e3f-9a7c-5d6e8f0a1b23"
+        let short = "allow-short:e7f9a1b3-4c5d-4e6f-8a9b-0c1d2e3f4a56"
+        let card = "card-secrets-use-36a7854d-5203-4c4f-ac9a-9d93b7ddcbab"
+
+        let fresh = Home()
+        fresh.waiting = [use(nonce: nil)]
+        let freshPhone = Self.secrets(fresh, ApprovalStorageTests.Keychain())
+        await freshPhone.read()
+        let freshUse = try #require(freshPhone.use(card: card))
+        #expect((passes + [always, short]).map { freshPhone.choice($0, for: freshUse) }
+            == [.setUpFirst, .deny, .onComputer, .onComputer])
+        // A press on a choice made elsewhere says where, as the note above the choices and every computer-only choice do.
+        #expect(PhoneSecrets.Choice.setUpFirst.notice(computer: "Mac mini") == PhoneMessages.phoneCardsApprovalTurnOn(computer: "Mac mini"))
+        #expect(PhoneSecrets.Choice.onComputer.notice(computer: "Mac mini") == PhoneMessages.phoneCardsDoThisOn(computer: "Mac mini"))
+        #expect(PhoneSecrets.Choice.deny.notice(computer: "Mac mini") == nil)
+
+        let keychain = ApprovalStorageTests.Keychain()
+        let kept = try ApprovalKey.create(on: .simulator, in: keychain)
+        let enrolled = Home()
+        enrolled.enrolled = (kept.device, kept.publicKey)
+        enrolled.waiting = [use(nonce: "Wm9vbVZhbGlkTm9uY2VGb3JUZXN0")]
+        let enrolledPhone = Self.secrets(enrolled, keychain)
+        await enrolledPhone.read()
+        let enrolledUse = try #require(enrolledPhone.use(card: card))
+        #expect((passes + [always]).map { enrolledPhone.choice($0, for: enrolledUse) } == [.allow, .deny, .onComputer])
+    }
 }

@@ -114,6 +114,47 @@ public struct PhoneApprovals: Decodable, Sendable, Equatable {
     /// The waiting use the home raised this card for, if it is one.
     public func use(card: String) -> PhoneApprovals.Use? { approvals?.waiting.first { $0.card == card } }
 
+    /// Whether this phone can allow this use itself: it is enrolled and the home gave it this use's challenge.
+    public func allows(_ use: PhoneApprovals.Use) -> Bool { standing == .enrolled && use.nonce != nil }
+
+    /// What a press on one of a use card's own choices does here (docs/secrets.md, "Remote decisions").
+    public enum Choice: Equatable, Sendable {
+        /// The phone confirms the person and signs an Allow once with its own key.
+        case allow
+        /// The phone refuses; a refusal needs no key.
+        case deny
+        /// An Allow once on a phone not enrolled: the press says where to set up, or to allow on the computer.
+        case setUpFirst
+        /// A lasting or short allowance, which only the computer's own confirmation saves.
+        case onComputer
+
+        /// What a press says instead of deciding, for a choice made elsewhere.
+        public func notice(computer: String) -> String? {
+            switch self {
+            case .allow, .deny: return nil
+            case .setUpFirst: return PhoneMessages.phoneCardsApprovalTurnOn(computer: computer)
+            case .onComputer: return PhoneMessages.phoneCardsDoThisOn(computer: computer)
+            }
+        }
+
+        /// The choice's name for UI tests: the phone's own Allow once and Don't allow keep theirs, and any other
+        /// choice is named by its pass, as every card's choices are.
+        public func identifier(_ pass: String?) -> String {
+            self == .allow ? "approval-allow" : self == .deny ? "approval-deny" : "card-action-\(pass ?? "")"
+        }
+    }
+
+    /// The phone keeps every choice the computer's card carries and reads which answer each gives from the start of
+    /// its pass (`allow-once:<id>`, the computer's SECRET_USE_ANSWERS), so a choice it cannot make here stays
+    /// drawn and says where to make it instead of vanishing.
+    public func choice(_ pass: String?, for use: PhoneApprovals.Use) -> Choice {
+        switch pass?.split(separator: ":", maxSplits: 1).first {
+        case "deny": return .deny
+        case "allow-once": return allows(use) ? .allow : .setUpFirst
+        default: return .onComputer
+        }
+    }
+
     /// The home's Secrets changed, or contact came back: every notice starts a read of its own, and only the newest
     /// read's answer stands (`reading`), so changes that arrive together end at the home's last answer (INF-4168).
     func changed() {
@@ -232,6 +273,16 @@ public struct PhoneApprovals: Decodable, Sendable, Equatable {
         let signature = try await key.sign(message, reason: use.giving)
         return try await decide(["kind": "allow", "request": use.request, "device": key.device,
             "generation": enrolled.generation, "nonce": nonce, "signature": signature])
+    }
+
+    /// Decides one use by a choice the phone makes itself: Allow once signs and Don't allow refuses. A choice made
+    /// elsewhere sends nothing.
+    public func decide(_ choice: Choice, _ use: PhoneApprovals.Use) async throws -> Outcome {
+        switch choice {
+        case .allow: return try await allow(use)
+        case .deny: return try await deny(use)
+        case .setUpFirst, .onComputer: throw PhoneError.refused(PhoneMessages.phoneSecretsTurnOnFirst())
+        }
     }
 
     /// Refuses one use. A refusal needs no key.

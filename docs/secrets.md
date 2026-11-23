@@ -502,8 +502,10 @@ A failed read, a device that cannot keep a key, a changed record or a failed wri
 The damaged record's device name cannot be read back, so the new key takes a new one, which the computer enrolls only after the ordinary code comparison and its own confirmation.
 An enrollment the computer holds under the earlier name stays until the captain stops it in Settings → Devices or Settings → Secrets; nothing it allowed carries over.
 Each Allow evaluates a fresh `LAContext` with no reuse, naming exactly what it gives, before the key signs; a failed confirmation sends nothing.
-A use's approval card on the phone shows Allow once and Don't allow in place of the computer's own choices; a phone that is not enrolled shows only Don't allow and says where to set up.
-A saved decision is made only on the computer: the phone does not offer Always allow this.
+A use's approval card on the phone shows every choice the computer's card carries, in its footer order, and reads which answer each gives from the start of its pass (`allow-once:<id>`, `SECRET_USE_ANSWERS`).
+Allow once confirms and signs on an enrolled phone holding the use's challenge; on a phone that is not enrolled it stays drawn, sends nothing, and its press says to turn on Approves secret uses or allow on the computer, as the note above the choices does.
+A saved decision or a short read allowance is made only on the computer: Always allow this and Allow for 10 minutes stay drawn on the phone, send nothing, and their press says to do it on the computer, as the phone's other computer-only choices do.
+Don't allow refuses from any phone.
 Only an executing or completed Allow, or a denied Don't allow, marks the phone's choice accepted; waiting, refusal and uncertain outcomes retain their explanation instead.
 A later successful key read clears an earlier locked-store problem without replacing the key.
 The computer's card title names one or two secrets as "the X secret" or "the X and Y secrets" and the task that asked.
@@ -512,7 +514,7 @@ When the title holds that exact phrase, the foot above the choices names no secr
 Otherwise, with three or more secrets or an older computer's title, the foot names each requested secret, one line each: its name, then its environment label, and its reference only when another secret of the use shares its name and environment.
 The system's confirmation names the same secrets and the task (`task`), or the recipient when no task is named.
 The shared approval body names each secret the same way, describes confirmation without assigning it to a particular device, and labels temporary read access as available only on the computer.
-Like every card's choices, Allow once and Don't allow take a press only once the card's body is revealed at its drawn height (`docs/ios.md`, INF-1574).
+Like every card's choices, these take a press only once the card's body is revealed at its drawn height (`docs/ios.md`, INF-1574).
 The simulator has no Secure Enclave, so there the key is a software key behind the simulator's own Face ID.
 
 A Mac that views the first mate's computer approves the same way (`MacApprover`, `src/main/view/macApprover.ts`), set up once on the home like a phone.
