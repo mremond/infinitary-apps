@@ -469,7 +469,12 @@ export async function startHomeDevices(options: {
         inReach: workDevices.inReach(deviceId),
         ssh: sshConnections.state(deviceId),
       }),
-      { startedAt, now: Date.now(), seenAt: devices.lastSeen(deviceId) },
+      {
+        startedAt,
+        now: Date.now(),
+        seenAt: devices.lastSeen(deviceId),
+        pairedAt: devices.list().find((device) => device.id === deviceId)?.pairedAt,
+      },
     );
   const remoteLogin: RemoteLogin = new RemoteLogin({
     pairing: devices,

@@ -186,14 +186,26 @@ describe("the words for a device", () => {
 describe("a computer's reach in the first minute after the home starts", () => {
   const startedAt = 1_000_000;
   it("reads connecting until it is heard from or the minute ends, then its own reach", () => {
+    const pairedAt = startedAt - 86_400_000;
     const at = (now: number, seenAt?: number) =>
-      reachAfterStart("out-of-reach", { startedAt, now, seenAt });
+      reachAfterStart("out-of-reach", { startedAt, now, seenAt, pairedAt });
     expect(at(startedAt + 5_000)).toBe("connecting");
     expect(at(startedAt + 5_000, startedAt - 60_000)).toBe("connecting");
     // Heard from since the start, and gone again: a real absence.
     expect(at(startedAt + 5_000, startedAt + 2_000)).toBe("out-of-reach");
     expect(at(startedAt + STARTUP_CONNECTING_MS)).toBe("out-of-reach");
+    // Joined since the start, it has nothing to come back from.
+    expect(
+      reachAfterStart("out-of-reach", {
+        startedAt,
+        now: startedAt + 5_000,
+        seenAt: undefined,
+        pairedAt: startedAt + 1_000,
+      }),
+    ).toBe("out-of-reach");
     for (const reach of ["in-reach", "reconnecting", "connecting"] as const)
-      expect(reachAfterStart(reach, { startedAt, now: startedAt, seenAt: undefined })).toBe(reach);
+      expect(
+        reachAfterStart(reach, { startedAt, now: startedAt, seenAt: undefined, pairedAt }),
+      ).toBe(reach);
   });
 });

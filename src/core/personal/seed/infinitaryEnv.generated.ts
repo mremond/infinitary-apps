@@ -317,6 +317,8 @@ declare module "@infinitary/contracts" {
       where: string;
       reach?: "in-reach" | "connecting" | "reconnecting" | "out-of-reach";
       noNewWork?: true;
+      /** Its computer is being updated: the row reads updating, never out of reach. */
+      updating?: true;
       catchingUpSince?: number;
     };
     assignee: string | null;

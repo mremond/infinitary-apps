@@ -1518,7 +1518,7 @@ The tab after Usage, built to the agreed design in the design skill's `component
   The first mate's `app_state` for `device-sign-in` separates the window from work reach and carries the typed reason when known.
   It reads connecting for at most `CONNECTING_MS` (5 minutes) from when it began, read when reach is read, and then reads "reconnecting", which Devices shows as an active retry rather than a stopped connection.
   The host clock re-reads the list, so no timer flips it.
-  For the first minute after the app starts here (`STARTUP_CONNECTING_MS`), a computer not yet seen since then reads connecting in the core (`reachAfterStart`), so a task there reads "connecting" while the computers come back, and out of reach only after that minute; Devices reads each entry's own reach.
+  For the first minute after the app starts here (`STARTUP_CONNECTING_MS`), a computer on the list before then and not yet seen since reads connecting in the core (`reachAfterStart`), so a task there reads "connecting" while the computers come back, and out of reach only after that minute; Devices reads each entry's own reach.
   A far end that keeps ending as moved keeps backing off on the ordinary waits and times out the same way.
   A computer never seen says "connecting using SSH…" on its line for every try, whether its first attempt failed or it dropped before its first hello, and "reconnecting using SSH…" only once it has been seen (design skill `components/devices/DevicesTab`, "Reached over your SSH").
   Devices continues to say it is connecting if the computer has never answered, even after an attempt fails or five minutes pass and retries slow.

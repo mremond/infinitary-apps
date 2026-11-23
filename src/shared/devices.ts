@@ -599,15 +599,17 @@ export const STARTUP_CONNECTING_MS = 60_000;
 /**
  * The reach a reader takes in the first minute after the home started
  * (`STARTUP_CONNECTING_MS`): out of reach reads connecting for a computer
- * not heard from since that start, so an update round that restarts the
- * home never flashes out of reach. Every other reading is kept.
+ * on the list before that start and not heard from since, so an update
+ * round that restarts the home never flashes out of reach; one that joined
+ * since has nothing to come back from. Every other reading is kept.
  */
 export function reachAfterStart(
   reach: ComputerReach,
-  { startedAt, now, seenAt }: { startedAt: number; now: number; seenAt: number | undefined },
+  at: { startedAt: number; now: number; seenAt: number | undefined; pairedAt: number | undefined },
 ): ComputerReach {
-  if (reach !== "out-of-reach" || now - startedAt >= STARTUP_CONNECTING_MS) return reach;
-  return seenAt !== undefined && seenAt >= startedAt ? reach : "connecting";
+  if (reach !== "out-of-reach" || at.now - at.startedAt >= STARTUP_CONNECTING_MS) return reach;
+  if (at.pairedAt === undefined || at.pairedAt >= at.startedAt) return reach;
+  return at.seenAt !== undefined && at.seenAt >= at.startedAt ? reach : "connecting";
 }
 
 /** One device on the home's list, as every reader sees it: never its secret. */
