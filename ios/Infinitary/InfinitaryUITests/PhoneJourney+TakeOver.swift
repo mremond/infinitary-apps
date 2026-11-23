@@ -23,8 +23,10 @@ extension PhoneJourney {
         XCTAssertTrue(row.staticTexts["It cannot reach Test Mac mini either."].waitForPresence(timeout: 20), app.debugDescription)
         let button = app.buttons["take-over-\(id)"]
         XCTAssertEqual(waitForPhonePredicate(NSPredicate(format: "enabled == true"), object: button, timeout: 20), .completed, app.debugDescription)
-        // The sheet opens at half height with Take over below its edge: pulled up, the whole row is in view.
-        for _ in 0..<3 where !app.frame.contains(button.frame) { row.swipeUp(); waitForSteadyTarget(row) }
+        // The sheet opens at half height with Take over below its edge: pulled up by its grabber, as a person does, the
+        // whole row is in view. A swipe on the row itself starts below the sheet's edge whenever the row's middle is.
+        let grabber = app.buttons["Sheet Grabber"].firstMatch
+        for _ in 0..<3 where !app.frame.contains(button.frame) { grabber.swipeUp(); waitForSteadyTarget(row) }
         XCTAssertTrue(app.frame.contains(button.frame), app.debugDescription)
         // Both themes, for the change's pictures and its release note's hero picture.
         try await appearances("take-over-offer", showing: row.staticTexts["It cannot reach Test Mac mini either."])
