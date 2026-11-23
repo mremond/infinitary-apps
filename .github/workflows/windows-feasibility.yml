@@ -82,6 +82,24 @@ jobs:
           if (Test-Path $f) { "file left after sign-out; its top-level keys: $(((Get-Content -Raw $f | ConvertFrom-Json).PSObject.Properties.Name) -join ', ')" } else { 'no file left after sign-out' }
           node (Join-Path $env:RUNNER_TEMP 'probe.mjs') after-logout-alone | Tee-Object "$env:EVIDENCE/probe-f-after-logout-alone.json"
           if (Test-Path $f) { Remove-Item -Force $f }
+      - name: Probe G - a real Claude Code sign-out over a stand-in login that also keeps a remote device key
+        run: |
+          $c = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
+          $f = Join-Path $env:USERPROFILE '.claude\.credentials.json'
+          $exp = [DateTimeOffset]::UtcNow.AddDays(1).ToUnixTimeMilliseconds()
+          $k = node -e "process.stdout.write(require('crypto').generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({type:'pkcs8',format:'der'}).toString('base64'))"
+          [IO.File]::WriteAllText($f, "{`"claudeAiOauth`":{`"accessToken`":`"probe-synthetic-not-a-token`",`"refreshToken`":`"probe-synthetic-not-a-token`",`"expiresAt`":$exp,`"scopes`":[`"user:inference`",`"user:profile`"],`"subscriptionType`":`"pro`"},`"coworkRemoteDevice`":{`"probe-device`":{`"privateKeyPkcs8B64`":`"$k`"}}}")
+          $o = Join-Path $env:RUNNER_TEMP 'o.txt'; $e = Join-Path $env:RUNNER_TEMP 'e.txt'
+          $p = Start-Process -FilePath $c -ArgumentList 'auth logout' -NoNewWindow -PassThru -Wait -RedirectStandardOutput $o -RedirectStandardError $e
+          "== claude auth logout -> exit $($p.ExitCode)"
+          "stdout: $(Get-Content -Raw $o)"
+          "stderr: $(Get-Content -Raw $e)"
+          if (Test-Path $f) { "file left after sign-out; its top-level keys: $(((Get-Content -Raw $f | ConvertFrom-Json).PSObject.Properties.Name) -join ', ')" } else { 'no file left after sign-out' }
+          $p = Start-Process -FilePath $c -ArgumentList 'auth status --json' -NoNewWindow -PassThru -Wait -RedirectStandardOutput $o -RedirectStandardError $e
+          "== claude auth status --json -> exit $($p.ExitCode)"
+          "stdout: $(Get-Content -Raw $o)"
+          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') after-logout-with-device-key | Tee-Object "$env:EVIDENCE/probe-g-after-logout-with-device-key.json"
+          if (Test-Path $f) { Remove-Item -Force $f }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: ${{ always() }}
         with:
