@@ -1733,7 +1733,7 @@ public enum PhoneMessages {
     public static func `phoneComputerAddLine`() -> String { PhoneWords.format("phoneComputerAddLine", []) }
     public static func `phoneComputerAddTitle`() -> String { PhoneWords.format("phoneComputerAddTitle", []) }
     public static func `phoneComputerAnswers`() -> String { PhoneWords.format("phoneComputerAnswers", []) }
-    public static func `phoneComputerFirstMateHere`() -> String { PhoneWords.format("phoneComputerFirstMateHere", []) }
+    public static func `phoneComputerCurrentConnection`() -> String { PhoneWords.format("phoneComputerCurrentConnection", []) }
     public static func `phoneComputerForgetAsk`() -> String { PhoneWords.format("phoneComputerForgetAsk", []) }
     public static func `phoneComputerForgetButton`() -> String { PhoneWords.format("phoneComputerForgetButton", []) }
     public static func `phoneComputerForgetConfirm`() -> String { PhoneWords.format("phoneComputerForgetConfirm", []) }
@@ -5930,7 +5930,7 @@ extension PhoneWords {
         "phoneComputerAddLine": [],
         "phoneComputerAddTitle": [],
         "phoneComputerAnswers": [],
-        "phoneComputerFirstMateHere": [],
+        "phoneComputerCurrentConnection": [],
         "phoneComputerForgetAsk": [],
         "phoneComputerForgetButton": [],
         "phoneComputerForgetConfirm": [],

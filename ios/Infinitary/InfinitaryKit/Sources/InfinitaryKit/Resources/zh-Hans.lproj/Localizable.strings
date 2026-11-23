@@ -1649,7 +1649,7 @@
 "phoneComputerAddLine" = "再加入一台，并保留这一台。";
 "phoneComputerAddTitle" = "添加另一台电脑";
 "phoneComputerAnswers" = "现在可连接";
-"phoneComputerFirstMateHere" = "你的大副住在这里。";
+"phoneComputerCurrentConnection" = "当前连接";
 "phoneComputerForgetAsk" = "忘记这台电脑？";
 "phoneComputerForgetButton" = "忘记这台电脑";
 "phoneComputerForgetConfirm" = "忘记这台电脑";

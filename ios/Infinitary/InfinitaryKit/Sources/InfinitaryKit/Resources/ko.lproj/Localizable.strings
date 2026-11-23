@@ -1649,7 +1649,7 @@
 "phoneComputerAddLine" = "이 컴퓨터는 그대로 두고 하나 더 연결해요.";
 "phoneComputerAddTitle" = "다른 컴퓨터 추가";
 "phoneComputerAnswers" = "지금 응답함";
-"phoneComputerFirstMateHere" = "일등항해사가 여기에 있어요.";
+"phoneComputerCurrentConnection" = "현재 연결";
 "phoneComputerForgetAsk" = "이 컴퓨터를 지울까요?";
 "phoneComputerForgetButton" = "이 컴퓨터 지우기";
 "phoneComputerForgetConfirm" = "이 컴퓨터 지우기";

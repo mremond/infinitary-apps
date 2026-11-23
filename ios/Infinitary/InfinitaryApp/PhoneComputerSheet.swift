@@ -217,7 +217,7 @@ struct PhoneComputerSheet: View {
                 .fixedSize(horizontal: oneLine, vertical: false)
                 .alignmentGuide(.phoneNameLine) { $0[VerticalAlignment.center] }
                 .accessibilityIdentifier("home-name")
-            Text(PhoneMessages.phoneComputerFirstMateHere()).font(PhoneFont.caption).foregroundStyle(PhoneTheme.secondary)
+            Text(PhoneMessages.phoneComputerCurrentConnection()).font(PhoneFont.caption).foregroundStyle(PhoneTheme.secondary)
         }.multilineTextAlignment(.leading)
     }
 

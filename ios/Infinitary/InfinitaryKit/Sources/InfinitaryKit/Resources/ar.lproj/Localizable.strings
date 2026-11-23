@@ -1649,7 +1649,7 @@
 "phoneComputerAddLine" = "انضم إلى حاسوب آخر واحتفظ بهذا الحاسوب.";
 "phoneComputerAddTitle" = "إضافة حاسوب آخر";
 "phoneComputerAnswers" = "يستجيب الآن";
-"phoneComputerFirstMateHere" = "يقيم نائب القبطان هنا.";
+"phoneComputerCurrentConnection" = "الاتصال الحالي";
 "phoneComputerForgetAsk" = "نسيان هذا الحاسوب؟";
 "phoneComputerForgetButton" = "نسيان هذا الحاسوب";
 "phoneComputerForgetConfirm" = "نسيان هذا الحاسوب";

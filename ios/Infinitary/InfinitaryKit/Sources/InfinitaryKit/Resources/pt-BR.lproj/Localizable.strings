@@ -1649,7 +1649,7 @@
 "phoneComputerAddLine" = "Conecte-se a mais um e mantenha este.";
 "phoneComputerAddTitle" = "Adicionar outro computador";
 "phoneComputerAnswers" = "Responde agora";
-"phoneComputerFirstMateHere" = "Seu imediato mora aqui.";
+"phoneComputerCurrentConnection" = "Conexão atual";
 "phoneComputerForgetAsk" = "Esquecer este computador?";
 "phoneComputerForgetButton" = "Esquecer este computador";
 "phoneComputerForgetConfirm" = "Esquecer este computador";

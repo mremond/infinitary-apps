@@ -143,7 +143,7 @@
   "phoneComputerAddLine": "このコンピューターはそのままで、もう1台に接続します。",
   "phoneComputerAddTitle": "別のコンピューターを追加",
   "phoneComputerAnswers": "いま応答あり",
-  "phoneComputerFirstMateHere": "一等航海士はここにいます。",
+  "phoneComputerCurrentConnection": "現在の接続",
   "phoneComputerForgetAsk": "このコンピューターの登録を解除しますか？",
   "phoneComputerForgetButton": "このコンピューターの登録を解除",
   "phoneComputerForgetConfirm": "このコンピューターの登録を解除",
