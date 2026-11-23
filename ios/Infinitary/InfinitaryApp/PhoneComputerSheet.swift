@@ -77,8 +77,8 @@ struct PhoneComputerSheet: View {
     @State private var named: ReadOnlySession?
     @State private var choosingWay = false
     @FocusState private var focusedRow: String?
-    /// The rows' own height, and the bar and edge around them as the sheet first opens. The edges are read once: they
-    /// change as the sheet is pulled up, and refitting then would drop the sheet back to its fitted height.
+    /// The rows' own height, and the bar and edge around them. The edges keep their smallest reading: the first, taken
+    /// before the sheet settles, still counts the status bar, which would leave empty space under the rows.
     @State private var rows: CGFloat = 0
     @State private var edges: CGFloat = 0
     /// The height the sheet stands at, kept while the rows refit so a sheet pulled up stays up.
@@ -103,7 +103,7 @@ struct PhoneComputerSheet: View {
                     .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rows = $0; checkTall() }
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { shown = $0; checkTall() }
-            .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top + $0.safeAreaInsets.bottom } action: { if edges == 0 { edges = $0 } }
+            .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.top + $0.safeAreaInsets.bottom } action: { if $0 > 0, edges == 0 || $0 < edges { edges = $0 } }
             .onAppear { model.lookAtOthers() }
             // Another computer showing closes a confirmation that named the one before.
             .onChange(of: session.mac.pin) { leaving = false; forgetting = false; named = nil }
@@ -194,7 +194,7 @@ struct PhoneComputerSheet: View {
             VStack(alignment: .leading, spacing: PhoneTheme.space2) {
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: PhoneTheme.space3) {
-                        identity(oneLine: true)
+                        identity(oneLine: true).layoutPriority(1)
                         Spacer(minLength: 0)
                         exitControl
                     }
