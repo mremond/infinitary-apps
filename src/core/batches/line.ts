@@ -13,7 +13,7 @@ import {
   type OpenBatch,
 } from "@shared/batches";
 import { BATCH_WAITING_WORDS } from "../forge";
-import type { Combined } from "./combine";
+import { type Combined, LEFT_OUT_WORDS } from "./combine";
 
 /**
  * The rules of a project's line and its one open batch (docs/forge.md,
@@ -75,8 +75,18 @@ export function standing(record: BatchRecord, taskId: string, head: string): Sta
         ? { state: "waiting", place: "held", hold: hold.reason, ...request }
         : { state: "waiting", place: "batch", ...request };
   }
-  if (record.line.some((entry) => entry.taskId === taskId && entry.head === head))
+  if (record.line.some((entry) => entry.taskId === taskId && entry.head === head)) {
+    // Told to rebuild while in line, with that rebuild standing: no batch carries this version,
+    // and its merge waits for the version rebuilt on that batch.
+    const told = record.rebuilds?.find((entry) => entry.taskId === taskId);
+    if (told && rebuildStands(record, { taskId, head }))
+      return {
+        state: "left-out",
+        reason: LEFT_OUT_WORDS.clashesBatch,
+        rebuild: { head: told.on, branch: told.branch },
+      };
     return { state: "waiting", place: "line" };
+  }
   const left = record.leftOut.find((entry) => entry.taskId === taskId && entry.head === head);
   if (left)
     return {
@@ -281,9 +291,12 @@ export function markFix(record: BatchRecord, taskId: string): BatchRecord {
   if (!record.line.some((entry) => entry.taskId === taskId && !entry.fix)) return record;
   return {
     ...record,
-    line: record.line.map((entry) =>
-      entry.taskId === taskId ? { ...entry, fix: true as const } : entry,
-    ),
+    // A fix is carried from the held version it builds on, never as a change rebuilt on a batch.
+    line: record.line.map((entry) => {
+      if (entry.taskId !== taskId) return entry;
+      const { onBatch: _onBatch, ...change } = entry;
+      return { ...change, fix: true as const };
+    }),
   };
 }
 

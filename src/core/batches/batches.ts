@@ -755,7 +755,7 @@ export class Batches {
     this.save(repoId, record);
     // Only a line with an ordinary change and a batch version to build on waits on git here.
     if (
-      (record.open?.members.length || record.rebuilds?.length) &&
+      ((record.open?.members.length && !record.open.hold) || record.rebuilds?.length) &&
       record.line.some((entry) => !entry.onBatch && !entry.fix && !entry.after && !entry.base)
     )
       record = await this.markRebuilt(repo, record);
@@ -776,7 +776,9 @@ export class Batches {
    * of batch versions; one that cannot be read now is read again next pass.
    */
   private async markRebuilt(repo: RepoView, record: BatchRecord): Promise<BatchRecord> {
-    const open = record.open?.members.length ? record.open.head : undefined;
+    // A held batch's version is its repair's to build on: a version built on it is a fix,
+    // carried from the held version, never a change rebuilt on the batch.
+    const open = record.open?.members.length && !record.open.hold ? record.open.head : undefined;
     const tried = this.triedAt(repo.id, record.open?.head ?? "");
     let next = record;
     for (const change of record.line) {

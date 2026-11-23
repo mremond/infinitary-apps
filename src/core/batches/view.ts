@@ -7,7 +7,8 @@ import {
   batchRepairOf,
 } from "@shared/batches";
 import type { RepoView } from "@shared/repos";
-import { finishedWithin, nextBatchAt } from "./line";
+import { LEFT_OUT_WORDS } from "./combine";
+import { finishedWithin, nextBatchAt, rebuildStands } from "./line";
 
 /** What the view reads of the app's own records for one repository. */
 export type BatchesViewSources = {
@@ -72,12 +73,15 @@ function repoView(
     place: sources.place(repo) ?? null,
     gap,
     nextBatchAt: nextBatchAt(record, gap ?? undefined) ?? null,
-    line: record.line.map((change) => ({
-      ...taskOf(change.taskId, change.title),
-      at: change.at,
-      afterKey: change.after ? keyOf(change.after) : null,
-      fix: change.fix === true,
-    })),
+    // A version whose rebuild stands waits for its rebuilt version in no batch: it reads as left out.
+    line: record.line
+      .filter((change) => !rebuildStands(record, change))
+      .map((change) => ({
+        ...taskOf(change.taskId, change.title),
+        at: change.at,
+        afterKey: change.after ? keyOf(change.after) : null,
+        fix: change.fix === true,
+      })),
     open: open
       ? {
           number: open.number ?? null,
@@ -101,11 +105,20 @@ function repoView(
           passed: open.passed?.head === open.head,
         }
       : null,
-    leftOut: record.leftOut.map((entry) => ({
-      ...taskOf(entry.taskId),
-      reason: entry.reason,
-      aheadKey: entry.ahead ? keyOf(entry.ahead) : null,
-    })),
+    leftOut: [
+      ...record.leftOut.map((entry) => ({
+        ...taskOf(entry.taskId),
+        reason: entry.reason,
+        aheadKey: entry.ahead ? keyOf(entry.ahead) : null,
+      })),
+      ...record.line
+        .filter((change) => rebuildStands(record, change))
+        .map((change) => ({
+          ...taskOf(change.taskId, change.title),
+          reason: LEFT_OUT_WORDS.clashesBatch,
+          aheadKey: null,
+        })),
+    ],
     finished: finishedWithin(record.finished ?? [], sources.now).map((batch) => ({
       number: batch.number,
       url: batch.url ?? null,

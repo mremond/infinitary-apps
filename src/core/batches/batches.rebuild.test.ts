@@ -2,6 +2,7 @@ import type { BatchChange } from "@shared/batches";
 import { describe, expect, it } from "vitest";
 import {
   EVERY_WAY,
+  failed,
   passed,
   REPO,
   type StandInPull,
@@ -41,6 +42,15 @@ const LEGEND: BatchChange = {
   at: 3_000,
 };
 
+/** A repair's own change, built on the held batch's version. */
+const FIX: BatchChange = {
+  taskId: "t-fix",
+  branch: "fm/task-fix",
+  head: "3c2b1a0918f7e6d5c4b3a2918070f6e5d4c3b2a1",
+  title: "fix(export): read dates through the parser's new form",
+  body: "- The export reads dates as the parser now writes them.",
+  at: 7_000,
+};
 const AXIS: BatchChange = {
   taskId: "t-axis",
   branch: "fm/task-axis",
@@ -184,7 +194,13 @@ describe("a change that clashes with the open batch", () => {
     expect(home.host.merges.map((merge) => merge.number)).toEqual([31]);
     // The clashing version stays out of the next batch, and nothing tells it again.
     expect(home.record().open).toBeUndefined();
-    expect(home.place(LEGEND)).toEqual({ state: "waiting", place: "line" });
+    // Its merge reads it out of every batch, waiting for the version rebuilt on that batch.
+    expect(home.place(LEGEND)).toEqual({
+      state: "left-out",
+      reason: LEFT_OUT_WORDS.clashesBatch,
+      rebuild: { head: open.head, branch: open.branch },
+    });
+    expect(home.batches.status(REPO, LEGEND.taskId, LEGEND.head)?.kind).toBe("paused");
     expect(home.heard.rebuilds).toHaveLength(1);
     expect(home.heard.taskNotes).toHaveLength(1);
 
@@ -216,5 +232,39 @@ describe("a change that clashes with the open batch", () => {
     // Only the merged change reads its place again; the told one waits, with no new note.
     expect(home.heard.settled).toEqual([["t-export"], ["t-parser"]]);
     expect(home.heard.taskNotes).toHaveLength(1);
+  });
+  // The independent review's finding: a held batch's fix approved before it is declared, built
+  // on the held version, is carried as the fix from that version, never as a change rebuilt
+  // on the batch, so a change sent back beside it stays out and no rebuild is asked.
+  it("carries a fix approved before its declaration from the held version, beside a change sent back", async () => {
+    const home = setup(EVERY_WAY, { rebuilding: true });
+    home.approve(PARSER);
+    home.approve(EXPORT);
+    await home.pass();
+    home.host.report([passed("build"), failed("unit-tests")]);
+    await home.pass();
+    const held = home.open();
+    expect(held.hold).toBeDefined();
+    home.builtOn.set(FIX.head, held.head);
+    await home.approve(FIX);
+    await home.pass();
+    expect(home.record().line.map((entry) => entry.onBatch)).toEqual([undefined]);
+
+    expect(
+      await home.batches.answer(
+        REPO,
+        {
+          action: "send-back",
+          head: held.head,
+          changes: [{ taskId: "t-export", reason: "its export test fails on the batch's version" }],
+        },
+        FIX.taskId,
+      ),
+    ).toBeUndefined();
+    await home.pass();
+    expect(home.members()).toEqual(["t-parser", "t-fix"]);
+    expect(home.open().hold).toBeUndefined();
+    expect(home.record().fixBases).toEqual({ [FIX.taskId]: held.head });
+    expect(home.heard.rebuilds).toEqual([]);
   });
 });

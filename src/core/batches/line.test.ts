@@ -667,6 +667,11 @@ describe("a change rebuilt on an open batch", () => {
     // Waiting in line at the clashing version, it stays out of every batch until replaced.
     const waiting = { ...done, leftOut: [], line: [LEGEND, AXIS_CHANGE] };
     expect(carried(waiting).map((entry) => entry.taskId)).toEqual([AXIS_CHANGE.taskId]);
+    expect(standing(waiting, LEGEND.taskId, LEGEND.head)).toEqual({
+      state: "left-out",
+      reason: LEFT_OUT_WORDS.clashesBatch,
+      rebuild: { head: BATCH_HEAD, branch: "infinitary-batch/7c41" },
+    });
     expect(carried({ ...waiting, line: [REBUILT] }).map((entry) => entry.head)).toEqual([
       REBUILT.head,
     ]);
