@@ -94,6 +94,8 @@ export type DeviceSignInsOptions = {
   protectedIds?: (providerId: string) => readonly string[];
   /** The one reach value (`reachFrom`). Absent, out of reach. */
   reachOf?: (deviceId: string) => ComputerReach;
+  /** Whether the home follows that computer's update now (`Computers.updatingOf`); absent, never. */
+  updatingOf?: (deviceId: string) => boolean;
   now?: () => number;
 };
 
@@ -140,6 +142,7 @@ export class DeviceSignIns {
         ...(device.user ? { user: device.user } : {}),
         onThisMac: device.onThisMac === true,
         reach: this.options.reachOf?.(device.id) ?? (inReach ? "in-reach" : "out-of-reach"),
+        ...(this.options.updatingOf?.(device.id) ? { updating: true as const } : {}),
         ...this.setupStatus.get(device.id),
         customApi: speaksCustomApi(this.options.work.version(device.id)?.contract ?? ""),
         keepGoing: this.takesKeepGoing(device.id),
@@ -987,6 +990,7 @@ export class DeviceSignIns {
           device.user,
           device.onThisMac,
           reachFrom(device),
+          device.updating,
           device.controlling,
           device.workSetup,
           device.heldOnLocalNetwork,

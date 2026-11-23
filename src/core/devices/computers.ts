@@ -146,6 +146,11 @@ export type ComputersOptions = {
   pauseTasks?: (deviceId: string) => Promise<void>;
   resumeTasks?: (deviceId: string) => void;
   /**
+   * Whether a computer reads updating moved (`updatingOf`): its update
+   * began or ended, or it went quiet past `UPDATE_RETURN_MS`.
+   */
+  updatingChanged?: () => void;
+  /**
    * Removes what Firstmate set up on a computer added by its address, over
    * Remote Login (`RemoteLogin.removeThere`): true once nothing is left there
    * for it to hear. Absent, a computer removed out of reach always hears it
@@ -236,6 +241,13 @@ export class Computers {
   private readonly carrying = new Map<string, string>();
   /** Computers being updated over the connection now. */
   private readonly updating = new Set<string>();
+  /**
+   * Each update whose crew paused, by device id, until it ends: when that
+   * computer or its update was last heard from (`updatingOf`), and how to
+   * cancel the read once it would go quiet. Kept only in memory, so a
+   * restart here forgets it.
+   */
+  private readonly followed = new Map<string, { heard: number; cancel: () => void }>();
   /** When the connection the row calls connected began, cleared once it is not. */
   private readonly connectedSince = new Map<string, number>();
   /** What each Mac's window last found of its work half, and when (`heardWorkSetup`). */
@@ -248,10 +260,15 @@ export class Computers {
 
   constructor(private readonly options: ComputersOptions) {
     options.pairing.subscribe(() => this.changed());
-    options.work.onWorkDevice((contact) => this.contact(contact));
+    options.work.onWorkDevice((contact) => {
+      this.heard(contact.deviceId);
+      this.contact(contact);
+    });
     options.work.onViewDevice((contact) => this.viewContact(contact));
     // Connected on any version, it is seen; its version is on the list.
     options.work.onVersion((deviceId, version) => {
+      // Its connection coming or going is heard from it, for an update followed.
+      this.heard(deviceId);
       if (version) this.heardVersion(deviceId, version);
       if (version) this.noteConnected(deviceId);
       else this.connectedSince.delete(deviceId);
@@ -349,6 +366,7 @@ export class Computers {
         ...(!inReach && !version && device.onThisMac && (seenAt ?? device.pairedAt) < booted
           ? { restartedSince: true }
           : {}),
+        ...(this.updatingOf(device.id) ? { updating: true as const } : {}),
         // Connected on another version, it found this Mac where it is now.
         ...(stranded ? { addressChanged: true } : {}),
         // A new address strands it first: that is the way back to say.
@@ -395,7 +413,10 @@ export class Computers {
       return this.viewOf(deviceId) ?? device;
     }
     if (when === "now") return this.removeNow(device);
-    const away = awayWord(this.options.reachOf?.(deviceId) === "connecting");
+    const away = awayWord(
+      this.options.reachOf?.(deviceId) === "connecting",
+      this.updatingOf(deviceId),
+    );
     throw new Error(
       `${label} is ${away}. Choose to remove it when it is back, with its work, or now.`,
     );
@@ -453,7 +474,7 @@ export class Computers {
       let paused = false;
       const pause = async () => {
         paused = true;
-        await this.options.pauseTasks?.(deviceId);
+        await this.pauseFor(deviceId);
       };
       const oneTime = !device.remoteLogin && options?.address !== undefined;
       const back = oneTime ? this.backOnThisVersion(device, true) : null;
@@ -463,7 +484,7 @@ export class Computers {
         if ("asks" in updated) return updated;
         if (back) {
           const running = await back.came();
-          this.options.emitUpdate?.({
+          this.sayUpdate({
             type: "device_update",
             deviceId,
             name: deviceLabel(device),
@@ -478,6 +499,7 @@ export class Computers {
       } finally {
         this.updating.delete(deviceId);
         back?.cancel();
+        this.unfollow(deviceId);
         if (paused) this.options.resumeTasks?.(deviceId);
       }
     }
@@ -584,7 +606,7 @@ export class Computers {
     for (const taskId of tasks.placement.moveRunsOn(gone.id, kept.id, deviceLabel(kept)))
       this.options.runsOnMoved?.(taskId);
     pairing.remove(gone.id);
-    this.options.emitUpdate?.({
+    this.sayUpdate({
       type: "device_update",
       deviceId: kept.id,
       name: deviceLabel(kept),
@@ -689,7 +711,7 @@ export class Computers {
       }
       void this.removeNow(device)
         .then(() =>
-          this.options.emitUpdate?.({
+          this.sayUpdate({
             type: "device_update",
             deviceId: to,
             name: toName,
@@ -821,7 +843,7 @@ export class Computers {
       tone: "info" | "warn" = "info",
       extra: Pick<DeviceUpdateEvent, "copy" | "run"> = {},
     ) =>
-      this.options.emitUpdate?.({
+      this.sayUpdate({
         type: "device_update",
         deviceId: device.id,
         name: label,
@@ -861,7 +883,7 @@ export class Computers {
     try {
       say("updating", remoteLoginWords.updating(device));
       // Its crew pauses before anything there stops, and carries on after.
-      await this.options.pauseTasks?.(device.id);
+      await this.pauseFor(device.id);
       let starting = false;
       const start = () => {
         if (starting) return;
@@ -956,6 +978,7 @@ export class Computers {
     } finally {
       back.cancel();
       this.updating.delete(device.id);
+      this.unfollow(device.id);
       this.options.resumeTasks?.(device.id);
     }
   }
@@ -979,7 +1002,7 @@ export class Computers {
       tone: "info" | "warn" = "info",
       extra: Pick<DeviceUpdateEvent, "copy" | "run"> = {},
     ) =>
-      this.options.emitUpdate?.({
+      this.sayUpdate({
         type: "device_update",
         deviceId: device.id,
         name: label,
@@ -1031,7 +1054,7 @@ export class Computers {
     try {
       say("updating", remoteLoginWords.updating(device));
       // Its crew pauses before anything there stops, and carries on after.
-      await this.options.pauseTasks?.(device.id);
+      await this.pauseFor(device.id);
       step("fetching");
       const everyMs = this.options.countEveryMs ?? COUNT_EVERY_MS;
       const ask = async () => {
@@ -1091,6 +1114,7 @@ export class Computers {
       clearTimeout(asking);
       back.cancel();
       this.updating.delete(device.id);
+      this.unfollow(device.id);
       this.options.resumeTasks?.(device.id);
     }
   }
@@ -1398,7 +1422,7 @@ export class Computers {
       ? [m.devicesSourceWentBack({ device: deviceLabel(device) })]
       : remoteLoginWords.wentBack(device, failed);
     for (const line of lines)
-      this.options.emitUpdate?.({
+      this.sayUpdate({
         type: "device_update",
         deviceId,
         name: deviceLabel(device),
@@ -1462,7 +1486,7 @@ export class Computers {
     this.workSetups.set(deviceId, { report, at: this.options.now() });
     // The copy its background started was gone, so it starts the app there now: said once.
     if (report.copyGone)
-      this.options.emitUpdate?.({
+      this.sayUpdate({
         type: "device_update",
         deviceId,
         name: deviceLabel(device),
@@ -1607,6 +1631,79 @@ export class Computers {
       return undefined;
     }
     return this.noteConnected(deviceId);
+  }
+
+  /**
+   * Whether the home follows a computer's update now (docs/devices.md,
+   * "Updating"): from its crew's pause until the update ends, done, refused,
+   * failed or not back, while it is in reach or was heard from - a
+   * connection coming or going, a count of its copy or a step said - within
+   * `UPDATE_RETURN_MS`, after which it goes back to the copy it ran before.
+   * Every place that names it says updating rather than out of reach.
+   */
+  updatingOf(deviceId: string): boolean {
+    const followed = this.followed.get(deviceId);
+    if (!followed) return false;
+    return (
+      this.options.work.inReach(deviceId) || this.options.now() - followed.heard < this.quietMs()
+    );
+  }
+
+  /** How long an update followed may go unheard before it reads as its computer's own reach. */
+  private quietMs(): number {
+    return this.options.updateWaitMs ?? UPDATE_RETURN_MS;
+  }
+
+  /** The update's crew pauses: from here the computer reads updating (`updatingOf`). */
+  private async pauseFor(deviceId: string): Promise<void> {
+    if (!this.followed.has(deviceId)) {
+      this.followed.set(deviceId, { heard: this.options.now(), cancel: () => {} });
+      this.heard(deviceId);
+      this.updatingMoved();
+    }
+    await this.options.pauseTasks?.(deviceId);
+  }
+
+  /**
+   * Something was heard from a computer whose update is followed: its quiet
+   * wait starts again, and once it runs out every reader reads it again.
+   */
+  private heard(deviceId: string): void {
+    const followed = this.followed.get(deviceId);
+    if (!followed) return;
+    followed.cancel();
+    followed.heard = this.options.now();
+    followed.cancel = (this.options.schedule ?? schedule)(this.quietMs(), () =>
+      this.updatingMoved(),
+    );
+  }
+
+  /** One step of an update for the feed: heard from that computer, for its quiet wait. */
+  private sayUpdate(event: DeviceUpdateEvent): void {
+    this.heard(event.deviceId);
+    this.options.emitUpdate?.(event);
+  }
+
+  /**
+   * A step of its update reached this Mac some other way, such as over
+   * Remote Login: heard from it, for its quiet wait (`updatingOf`).
+   */
+  heardFrom(deviceId: string): void {
+    this.heard(deviceId);
+  }
+
+  /** The update ended, whatever came of it: the computer reads its own reach again. */
+  private unfollow(deviceId: string): void {
+    const followed = this.followed.get(deviceId);
+    if (!followed) return;
+    followed.cancel();
+    this.followed.delete(deviceId);
+    this.updatingMoved();
+  }
+
+  private updatingMoved(): void {
+    this.options.updatingChanged?.();
+    this.changed();
   }
 
   /** Pushes the list when what it says changed. */

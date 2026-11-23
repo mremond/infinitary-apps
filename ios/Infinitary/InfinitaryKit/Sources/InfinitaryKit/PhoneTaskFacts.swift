@@ -111,13 +111,16 @@ public struct PhoneTaskFacts: Sendable {
             return Status(mark: mark, word: word, reason: reason == word ? "" : reason, outOfReach: outOfReach,
                           wait: wait, since: since, waitsOn: waitsOn)
         }
+        // Its computer being updated reads updating whatever its reach, as on the Mac (`computer-updating.md`).
+        let updating = task.place?.reach != nil && task.place?.updating == true
         let connecting = task.place?.reach == "connecting"
-        let away = task.place?.reach != nil && task.place?.reach != "in-reach" ? task.place?.name.flatMap { $0.isEmpty ? nil : $0 } : nil
-        let awayWords = connecting ? PhoneMessages.phoneTaskFactsAwayConnecting(computer: away ?? "")
+        let away = task.place?.reach != nil && (task.place?.reach != "in-reach" || updating) ? task.place?.name.flatMap { $0.isEmpty ? nil : $0 } : nil
+        let awayWords = updating ? PhoneMessages.phoneTaskFactsAwayUpdating(computer: away ?? "")
+            : connecting ? PhoneMessages.phoneTaskFactsAwayConnecting(computer: away ?? "")
             : task.place?.noNewWork == true ? PhoneMessages.phoneTaskFactsAwayNoNewWork(computer: away ?? "")
             : PhoneMessages.phoneTaskFactsAwayOutOfReach(computer: away ?? "")
-        // Connecting keeps the mark as it was: only out of reach draws it in warn.
-        func awayReading(_ mark: String, _ reason: String?) -> Status { reading(mark, reason ?? awayWords, outOfReach: !connecting) }
+        // Updating and connecting keep the mark as it was: only out of reach draws it in warn.
+        func awayReading(_ mark: String, _ reason: String?) -> Status { reading(mark, reason ?? awayWords, outOfReach: !connecting && !updating) }
         let onRequest = task.startPolicy == "on-request"
         if task.status == "done" { return reading("done", task.requiredAction?.result ?? (task.closedReason == "answered" ? PhoneMessages.phoneTaskFactsClosedAnswered() : "")) }
         if task.status == "dropped" { return reading("dropped", task.requiredAction?.result ?? (task.closedReason == "failed" ? PhoneMessages.phoneTaskFactsClosedFailed() : "")) }

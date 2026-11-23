@@ -102,7 +102,8 @@ const words: Record<TaskStatus, string> = {
  * parts is the reason beside the word, never a different word. Open,
  * working or idle work whose computer is out of reach says so: its mark in
  * `--warn`, and its reason ("Mac mini is out of reach", or "Mac mini takes no new work" while it
- * is connected on an older Firstmate; "Mac mini is connecting", with the mark as it was, while its
+ * is connected on an older Firstmate; "Mac mini is updating", with the mark as it was, while the
+ * home follows its update; "Mac mini is connecting", with the mark as it was, while its
  * connection is being made; "Catching up with Mac mini since 12:57 PM", with the mark as it was,
  * while it is connected and this Mac has not yet caught up with the task) unless a blocker, a
  * hold or its parts already give one. An interruption, a start and a ready
@@ -115,25 +116,31 @@ export function taskStatusOf(task: TaskStatusInput, now = Date.now()): TaskStatu
     reason: reason === words[mark] ? "" : reason,
   });
   const connecting = task.place?.reach === "connecting";
+  // Its computer being updated reads updating whatever its reach (`computer-updating.md`).
+  const updating = task.place?.reach !== undefined && task.place.updating === true;
   // Connected and catching up is in reach, not away from it (INF-1810 finding 7).
-  const catchingUpSince = task.place?.reach === "in-reach" ? task.place.catchingUpSince : undefined;
+  const catchingUpSince =
+    task.place?.reach === "in-reach" && !updating ? task.place.catchingUpSince : undefined;
   const away =
     task.place?.reach !== undefined &&
-    (task.place.reach !== "in-reach" || catchingUpSince !== undefined)
+    (task.place.reach !== "in-reach" || catchingUpSince !== undefined || updating)
       ? task.place.name
       : null;
-  const awayWords =
-    catchingUpSince !== undefined
+  const awayWords = updating
+    ? m.taskStatusComputerUpdating({ computer: away ?? "" })
+    : catchingUpSince !== undefined
       ? `Catching up with ${away} since ${waitRecordedTime(catchingUpSince, now)}`
       : connecting
         ? `${away} is connecting`
         : task.place?.noNewWork
           ? `${away} takes no new work`
           : `${away} is out of reach`;
-  // Connecting and catching up keep the mark as it was: only out of reach draws it in warn.
+  // Updating, connecting and catching up keep the mark as it was: only out of reach draws it in warn.
   const awayReading = (mark: TaskStatus, reason: string | null): TaskStatusReading => ({
     ...reading(mark, reason ?? awayWords),
-    ...(connecting || catchingUpSince !== undefined ? {} : { outOfReach: true as const }),
+    ...(updating || connecting || catchingUpSince !== undefined
+      ? {}
+      : { outOfReach: true as const }),
   });
   if (task.status === "done") {
     return reading(

@@ -164,6 +164,7 @@
   "nowPanelRowStart": "Démarrer",
   "nowPanelRowStarting": "démarrage",
   "nowPanelRowTryAgain": "Réessayer",
+  "nowPanelRowUpdating": "mise à jour",
   "nowPanelRowWaiting": "en attente",
   "nowPanelSummaryFailed": {
     "plural": "count",

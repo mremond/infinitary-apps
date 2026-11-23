@@ -5,6 +5,7 @@ import {
   AMBIENT_OWN_STYLES,
   AMBIENT_PAUSE,
   AMBIENT_STYLE,
+  COMPUTER_UPDATING,
   DEVICE_ADDS_BY_ADDRESS,
   SETTINGS_CURRENT,
 } from "./cardCompatibility";
@@ -84,5 +85,7 @@ export function unreadLook(hello: ViewHello): string[] {
     ...(listsChange(hello.changes, AMBIENT_OWN_STYLES) ? [] : ["ambientOwnStyles"]),
     // Not the look, but read as strictly: where devices find a Windows home.
     ...(listsChange(hello.changes, DEVICE_ADDS_BY_ADDRESS) ? [] : ["addsByAddress"]),
+    // A device's update, which an older view's strict device list cannot read.
+    ...(listsChange(hello.changes, COMPUTER_UPDATING) ? [] : ["updating"]),
   ];
 }

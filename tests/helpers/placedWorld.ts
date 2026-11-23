@@ -80,6 +80,9 @@ export const stops: (() => Promise<void> | void)[] = [];
 /** Computers a test calls out of reach only because their connection is being made. */
 export const connectingNow = new Set<string>();
 
+/** Computers a test says the home follows the update of (`Computers.updatingOf`). */
+export const updatingNow = new Set<string>();
+
 /** The home's one clock, which each test file owns and moves on (`placedWorldHooks`). */
 let clock: () => number = Date.now;
 
@@ -212,6 +215,7 @@ export function startHome(
     },
     ...(forgeFor ? { forgeFor } : {}),
     reachOf: (deviceId) => (connectingNow.has(deviceId) ? "connecting" : "out-of-reach"),
+    updatingOf: (deviceId) => updatingNow.has(deviceId),
     ...(extra.routing ? { routing: extra.routing } : {}),
     ...(extra.runsForAnotherFirstmate
       ? { runsForAnotherFirstmate: extra.runsForAnotherFirstmate }

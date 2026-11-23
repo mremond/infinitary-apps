@@ -111,6 +111,8 @@ export class AutomaticPlacement {
       takesNoWorkUntilUpdated?: (deviceId: string) => boolean;
       /** The one reach value (`reachFrom`). Absent, out of reach. */
       reachOf?: (deviceId: string) => ComputerReach;
+      /** Whether the home follows that computer's update now (`Computers.updatingOf`). */
+      updatingOf?: (deviceId: string) => boolean;
       router: Router;
       repo: (id: string) => RepoView | undefined;
       catalog: () => readonly QuotaCatalogModel[];
@@ -163,6 +165,11 @@ export class AutomaticPlacement {
       // task's room, however long since the last start (FI3-1757).
       options.resources.onSample(() => this.witness()),
     ];
+  }
+
+  /** A compared computer the home follows the update of now: its words say updating. */
+  private updating(computerId: string | null): boolean {
+    return computerId !== null && this.options.updatingOf?.(computerId) === true;
   }
 
   dispose(): void {
@@ -452,6 +459,7 @@ export class AutomaticPlacement {
               name: nameOf(row.computerId),
               rejections: row.rejections,
               ...(row.reach ? { reach: row.reach } : {}),
+              ...(this.updating(row.computerId) ? { updating: true as const } : {}),
               capacity: row.capacity,
             })),
             requirements.demand,
@@ -526,6 +534,7 @@ export class AutomaticPlacement {
               physicalComputerId: row.physicalComputerId,
               rejections: row.rejections,
               ...(row.reach ? { reach: row.reach } : {}),
+              ...(this.updating(row.computerId) ? { updating: true as const } : {}),
               missingTools: row.missingTools,
               ...(said?.system ? { system: said.system } : {}),
               ...(said?.chip ? { chip: said.chip } : {}),

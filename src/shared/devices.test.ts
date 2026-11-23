@@ -12,6 +12,8 @@ import {
   namesInWords,
   type PairingLink,
   parsePairingLink,
+  reachAfterStart,
+  STARTUP_CONNECTING_MS,
   splitDialAddress,
 } from "./devices";
 
@@ -175,5 +177,23 @@ describe("the words for a device", () => {
       "Mac mini is removed once it is back",
     );
     expect(deviceWords.removed({ ...mini, kind: "view" })).toBe("Removed Mac mini");
+  });
+});
+
+// The captain's choice B on the updating plan: for the first minute after
+// Infinitary starts on the home, a work computer not back yet reads
+// connecting, so an update round never flashes out of reach.
+describe("a computer's reach in the first minute after the home starts", () => {
+  const startedAt = 1_000_000;
+  it("reads connecting until it is heard from or the minute ends, then its own reach", () => {
+    const at = (now: number, seenAt?: number) =>
+      reachAfterStart("out-of-reach", { startedAt, now, seenAt });
+    expect(at(startedAt + 5_000)).toBe("connecting");
+    expect(at(startedAt + 5_000, startedAt - 60_000)).toBe("connecting");
+    // Heard from since the start, and gone again: a real absence.
+    expect(at(startedAt + 5_000, startedAt + 2_000)).toBe("out-of-reach");
+    expect(at(startedAt + STARTUP_CONNECTING_MS)).toBe("out-of-reach");
+    for (const reach of ["in-reach", "reconnecting", "connecting"] as const)
+      expect(reachAfterStart(reach, { startedAt, now: startedAt, seenAt: undefined })).toBe(reach);
   });
 });

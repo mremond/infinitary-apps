@@ -45,6 +45,7 @@ export function useWorkComputers(): DeviceSignIns[] | null {
 
 /** Why a computer cannot take work now, after a middle dot, or nothing. */
 function notNow(computer: DeviceSignIns): string {
+  if (computer.updating) return ` · ${awayWord(false, true)}`;
   if (!(computer.reach === "in-reach")) return ` · ${awayWord(computer.reach === "connecting")}`;
   if (computer.signIns && computer.signIns.accounts.length === 0)
     return ` · ${m.settingsRunsOnNoSignIns()}`;

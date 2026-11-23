@@ -786,6 +786,7 @@
 "devicesAppWhyOwnWindow" = "It updates only from its own window there, so update it there.";
 "devicesAppWhyPackageManager" = "A package manager installed it there, so update it there with that package manager.";
 "devicesAppWhyUnpublished" = "Infinitary %1$@ is not a published version, so install it there by hand.";
+"devicesAwayUpdating" = "updating";
 "devicesCarriedOn" = "The tasks of a computer out of reach continue on %1$@, and that entry is off your list.";
 "devicesCarryNotRemoved" = "The tasks of %1$@ moved, but it could not come off your list: %2$@";
 "devicesCarryRunsOn" = "Runs on: %2$@, where the tasks of %1$@, out of reach, continue now";
@@ -1408,6 +1409,7 @@
 "nowPanelRowStart" = "Start";
 "nowPanelRowStarting" = "starting";
 "nowPanelRowTryAgain" = "Try again";
+"nowPanelRowUpdating" = "updating";
 "nowPanelRowWaiting" = "waiting";
 "panelBackgroundExited" = "This panel's background work stopped.";
 "panelBackgroundPaused" = "This panel's background work is paused: it was made for an earlier version of the app.";
@@ -2060,6 +2062,7 @@
 "phoneTaskFactsAwayConnecting" = "%1$@ is connecting";
 "phoneTaskFactsAwayNoNewWork" = "%1$@ takes no new work";
 "phoneTaskFactsAwayOutOfReach" = "%1$@ is out of reach";
+"phoneTaskFactsAwayUpdating" = "%1$@ is updating";
 "phoneTaskFactsBlockedByAnother" = "Blocked by another task";
 "phoneTaskFactsChangeBranch" = "Branch";
 "phoneTaskFactsChangePull" = "Pull request";
@@ -3845,6 +3848,7 @@
 "taskGroupWorking" = "working";
 "taskPinPin" = "Pin";
 "taskPinUnpin" = "Unpin";
+"taskStatusComputerUpdating" = "%1$@ is updating";
 "taskTabActivity" = "Activity";
 "taskTabCards" = "Cards";
 "taskTabCrewmate" = "Crewmate";

@@ -216,11 +216,14 @@ public struct PhoneTaskList: Sendable {
     public func projectName(of task: PhoneTask) -> String { projectNames[task.projectId] ?? "" }
 
     public func trailing(of task: PhoneTask) -> Trailing {
-        let connecting = task.place?.reach == "connecting"
+        // Its computer being updated reads updating, muted as connecting is (the Mac's `rowTrailing`).
+        let updating = task.place?.reach != nil && task.place?.updating == true
+        let connecting = updating || task.place?.reach == "connecting"
         return Trailing(
-            outOfReach: task.place?.reach != nil && task.place?.reach != "in-reach",
+            outOfReach: updating || (task.place?.reach != nil && task.place?.reach != "in-reach"),
             connecting: connecting,
-            reach: connecting ? PhoneTaskRowWords.reachConnecting
+            reach: updating ? PhoneTaskRowWords.reachUpdating
+                : connecting ? PhoneTaskRowWords.reachConnecting
                 : task.place?.noNewWork == true ? PhoneTaskRowWords.reachNoNewWork : PhoneTaskRowWords.reachAway)
     }
 

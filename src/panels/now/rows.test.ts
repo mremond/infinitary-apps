@@ -701,6 +701,21 @@ describe("what a row says after its title about its computer", () => {
     expect(reach(task({ place }))).toMatchObject({ outOfReach: false, connecting: false });
   });
 
+  // The captain's ask: an updating work computer reads updating, never the scary out of reach.
+  it("says updating, in the quiet color, while its computer is being updated, whatever its reach", () => {
+    const place = { name: "Mac mini", where: "on Mac mini" };
+    for (const reach of ["out-of-reach", "in-reach", "connecting"] as const)
+      expect(rowTrailing(task({ place: { ...place, reach, updating: true } }))).toEqual({
+        outOfReach: true,
+        connecting: true,
+        reach: "updating",
+      });
+    expect(rowTrailing(task({ place: { ...place, reach: "out-of-reach" } }))).toMatchObject({
+      connecting: false,
+      reach: "out of reach",
+    });
+  });
+
   // INF-1810 finding 7: connected and catching up is not out of reach.
   it("says catching up, in the quiet color, while its connected computer is catching up", () => {
     const place = { name: "Mac mini", where: "on Mac mini", reach: "in-reach" as const };

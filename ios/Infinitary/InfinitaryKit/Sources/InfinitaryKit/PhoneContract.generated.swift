@@ -233,6 +233,7 @@ public enum PhoneTaskRowWords {
     public static let blocked = PhoneMessages.`nowPanelRowBlocked`()
     public static let held = PhoneMessages.`nowPanelRowHeld`()
     public static let reachConnecting = PhoneMessages.`nowPanelRowConnecting`()
+    public static let reachUpdating = PhoneMessages.`nowPanelRowUpdating`()
     public static let reachNoNewWork = PhoneMessages.`nowPanelRowNoNewWork`()
     public static let reachAway = PhoneMessages.`nowPanelRowAway`()
     public static let earlier = PhoneWords.sentence(PhoneMessages.`nowPanelGroupEarlier`())

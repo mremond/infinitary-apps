@@ -6205,6 +6205,10 @@
             "restartedSince": {
               "type": "boolean"
             },
+            "updating": {
+              "type": "boolean",
+              "const": true
+            },
             "addressChanged": {
               "type": "boolean"
             },
@@ -6683,6 +6687,10 @@
               },
               "restartedSince": {
                 "type": "boolean"
+              },
+              "updating": {
+                "type": "boolean",
+                "const": true
               },
               "addressChanged": {
                 "type": "boolean"
@@ -7225,6 +7233,10 @@
               },
               "restartedSince": {
                 "type": "boolean"
+              },
+              "updating": {
+                "type": "boolean",
+                "const": true
               },
               "addressChanged": {
                 "type": "boolean"
@@ -8328,6 +8340,10 @@
           "restartedSince": {
             "type": "boolean"
           },
+          "updating": {
+            "type": "boolean",
+            "const": true
+          },
           "addressChanged": {
             "type": "boolean"
           },
@@ -8772,6 +8788,10 @@
           "restartedSince": {
             "type": "boolean"
           },
+          "updating": {
+            "type": "boolean",
+            "const": true
+          },
           "addressChanged": {
             "type": "boolean"
           },
@@ -9174,6 +9194,10 @@
           },
           "restartedSince": {
             "type": "boolean"
+          },
+          "updating": {
+            "type": "boolean",
+            "const": true
           },
           "addressChanged": {
             "type": "boolean"
@@ -9819,6 +9843,10 @@
               },
               "restartedSince": {
                 "type": "boolean"
+              },
+              "updating": {
+                "type": "boolean",
+                "const": true
               },
               "addressChanged": {
                 "type": "boolean"
@@ -11270,6 +11298,10 @@
                 "reconnecting",
                 "out-of-reach"
               ]
+            },
+            "updating": {
+              "type": "boolean",
+              "const": true
             },
             "signIns": {
               "anyOf": [
@@ -40818,6 +40850,10 @@
                       "type": "boolean",
                       "const": true
                     },
+                    "updating": {
+                      "type": "boolean",
+                      "const": true
+                    },
                     "catchingUpSince": {
                       "type": "number"
                     }
@@ -42613,6 +42649,10 @@
                 ]
               },
               "noNewWork": {
+                "type": "boolean",
+                "const": true
+              },
+              "updating": {
                 "type": "boolean",
                 "const": true
               },
@@ -44787,6 +44827,10 @@
                         "reconnecting",
                         "out-of-reach"
                       ]
+                    },
+                    "updating": {
+                      "type": "boolean",
+                      "const": true
                     },
                     "missingTools": {
                       "maxItems": 65,
@@ -47747,6 +47791,10 @@
                   "type": "boolean",
                   "const": true
                 },
+                "updating": {
+                  "type": "boolean",
+                  "const": true
+                },
                 "catchingUpSince": {
                   "type": "number"
                 }
@@ -49457,6 +49505,10 @@
                   ]
                 },
                 "noNewWork": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "updating": {
                   "type": "boolean",
                   "const": true
                 },
@@ -91417,6 +91469,10 @@
                       "type": "boolean",
                       "const": true
                     },
+                    "updating": {
+                      "type": "boolean",
+                      "const": true
+                    },
                     "catchingUpSince": {
                       "type": "number"
                     }
@@ -93177,6 +93233,10 @@
                       ]
                     },
                     "noNewWork": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "updating": {
                       "type": "boolean",
                       "const": true
                     },
@@ -99453,6 +99513,10 @@
             "restartedSince": {
               "type": "boolean"
             },
+            "updating": {
+              "type": "boolean",
+              "const": true
+            },
             "addressChanged": {
               "type": "boolean"
             },
@@ -100356,6 +100420,10 @@
                 "reconnecting",
                 "out-of-reach"
               ]
+            },
+            "updating": {
+              "type": "boolean",
+              "const": true
             },
             "signIns": {
               "anyOf": [

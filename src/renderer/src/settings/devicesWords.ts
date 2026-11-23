@@ -223,7 +223,10 @@ export function removeLines(device: DeviceView): [string, ...string[]] {
     ];
   if (!device.inReach)
     return [
-      m.settingsDevicesRemoveAway({ device: label, state: awayWord(deviceConnecting(device)) }),
+      m.settingsDevicesRemoveAway({
+        device: label,
+        state: awayWord(deviceConnecting(device), device.updating),
+      }),
       projects
         ? m.settingsDevicesRemoveWaitOn({ projects, device: label })
         : m.settingsDevicesRemoveWait({ device: label }),
@@ -332,7 +335,13 @@ export function deviceStatus(
       ? { text: SEEN_WORDS.now, tone: "idle" }
       : { text: seenWords(device, now), tone: "warn" };
   const state = deviceState(device);
-  if (device.inReach || device.otherVersion || device.workSetup?.state === "starting") return state;
+  if (
+    device.inReach ||
+    device.updating ||
+    device.otherVersion ||
+    device.workSetup?.state === "starting"
+  )
+    return state;
   const reach = reachFrom(device);
   if (reach === "connecting" || reach === "reconnecting" || deviceConnecting(device)) return state;
   // Its SSH connection, where it says more than out of reach: starts at next login, could not
@@ -395,11 +404,13 @@ export function deviceSummary(device: DeviceView, signIns: DeviceSignIns | undef
 }
 
 /**
- * The mono state on a computer's right: its tasks, idle, no new work,
- * connecting, reconnecting, or out of reach. Show an active SSH retry as
+ * The mono state on a computer's right: updating, its tasks, idle, no new
+ * work, connecting, reconnecting, or out of reach. Show an active SSH retry as
  * an attempt, not a stopped connection.
  */
 export function deviceState(device: DeviceView): { text: string; tone: "busy" | "idle" | "warn" } {
+  // The home follows its update: updating, calm, whatever its reach (`computer-updating.md`).
+  if (device.updating) return { text: awayWord(false, true), tone: "idle" };
   if (device.otherVersion?.takesWork === false)
     return { text: DEVICE_ROW_WORDS.noNewWork, tone: "warn" };
   if (!device.inReach) {

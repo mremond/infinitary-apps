@@ -714,6 +714,7 @@
   "phoneTaskFactsAwayConnecting": "{computer} قيد الاتصال",
   "phoneTaskFactsAwayNoNewWork": "{computer} لا يقبل عملًا جديدًا",
   "phoneTaskFactsAwayOutOfReach": "{computer} خارج المتناول",
+  "phoneTaskFactsAwayUpdating": "{computer} قيد التحديث",
   "phoneTaskFactsBlockedByAnother": "تعيقها مهمة أخرى",
   "phoneTaskFactsChangeBranch": "فرع",
   "phoneTaskFactsChangePull": "طلب سحب",

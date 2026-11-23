@@ -733,6 +733,7 @@ export async function createServices(
     catalogModels: quotaCatalogModels,
     runsForAnotherFirstmate: (deviceId) => runsForAnotherFirstmate(sshConnections.state(deviceId)),
     reachOf,
+    updatingOf: homeDevices.updatingOf,
     // Late-bound: the board's presentation refresh is set up with the crew below.
     reachMoved: () => scheduleWorkPresentation(),
     broadcastEvent: (event) => broadcastEvent(event),
@@ -1044,6 +1045,7 @@ export async function createServices(
   const automaticPlacement: AutomaticPlacement = new AutomaticPlacement({
     takesNoWorkUntilUpdated,
     reachOf,
+    updatingOf: homeDevices.updatingOf,
     tasks,
     resources: computerResourceFeed,
     work: workDevices,

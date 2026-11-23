@@ -1128,6 +1128,23 @@ Its crew pauses for the update and carries on after, with no message from the ca
 - **When it is over.**
   Whatever came of the update, each paused crewmate carries on once that computer is back and caught up, or at once when it never stopped, with its `turn-resumed` row as the turn's first words.
 
+While its update goes on, the computer reads updating, never out of reach (`updating` on its entry, `Computers.updatingOf`; contract change `computer-updating`):
+
+- **From when to when.**
+  From its crew's pause (`Computers.pauseFor`) until the update's route ends, whatever came of it.
+  The fact lives only in this Mac's memory, so a restart of the app here forgets it.
+- **What says so.**
+  Devices reads "updating" with an idle dot, and its line keeps the update's own step even when Devices opened part way.
+  Each task there carries `place.updating`: its Tasks row reads "updating" in `--fg-3` with no warn mark, and its status says "Mac mini is updating" with the mark as it was (`docs/helper.md`, "Runs on").
+  Runs on, the sign-ins note, the device forge rows, Remove's lines and Automatic's compared computers say "updating" too, and so do the phone's task rows.
+- **How long without a word.**
+  Anything heard of the update renews it: the computer's connection, each step the feed says, and each Remote Login setup step.
+  After `UPDATE_RETURN_MS` (3 minutes) heard from nowhere, a computer still not in reach reads out of reach in `--warn`, update or no update, and reads updating again at the next word heard.
+- **The feed.**
+  The minute's "is out of reach" line waits while a computer reads updating, and counts its minute from when it stops (`PlacedSessions`).
+- **Older windows and phones.**
+  A view whose hello lacks `computer-updating` gets the list without `updating`, on the read and its push, and keeps today's words.
+
 Device update and change-address requests always answer Remote Login refusals as typed data; Devices shows the two lines in one error line above the list.
 A refusal that says the computer did not answer (`unreachable`, `out-of-reach`, `refusalIsAboutReach`) goes once that computer's row says connected again (`reachRefusalAfter`, `src/renderer/src/settings/devicesState.ts`): the row's `connectedAt` is later than the refusal, after the row had said it was not.
 For Change address the row has to reconnect at the address that was tried.
@@ -1501,6 +1518,7 @@ The tab after Usage, built to the agreed design in the design skill's `component
   The first mate's `app_state` for `device-sign-in` separates the window from work reach and carries the typed reason when known.
   It reads connecting for at most `CONNECTING_MS` (5 minutes) from when it began, read when reach is read, and then reads "reconnecting", which Devices shows as an active retry rather than a stopped connection.
   The host clock re-reads the list, so no timer flips it.
+  For the first minute after the app starts here (`STARTUP_CONNECTING_MS`), a computer not yet seen since then reads connecting in the core (`reachAfterStart`), so a task there reads "connecting" while the computers come back, and out of reach only after that minute; Devices reads each entry's own reach.
   A far end that keeps ending as moved keeps backing off on the ordinary waits and times out the same way.
   A computer never seen says "connecting using SSH…" on its line for every try, whether its first attempt failed or it dropped before its first hello, and "reconnecting using SSH…" only once it has been seen (design skill `components/devices/DevicesTab`, "Reached over your SSH").
   Devices continues to say it is connecting if the computer has never answered, even after an attempt fails or five minutes pass and retries slow.

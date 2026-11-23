@@ -22,6 +22,7 @@
   "devicesAppWhyOwnWindow": "그곳의 자체 창에서만 업데이트되니, 그곳에서 업데이트하세요.",
   "devicesAppWhyPackageManager": "그곳에서는 패키지 관리자가 설치했으니, 그 패키지 관리자로 업데이트하세요.",
   "devicesAppWhyUnpublished": "Infinitary {version}은(는) 공개된 버전이 아니니, 그곳에서 직접 설치하세요.",
+  "devicesAwayUpdating": "업데이트 중",
   "devicesCarriedOn": "연락 닿지 않는 컴퓨터의 작업이 {to}에서 이어지며, 그 항목은 목록에서 빠졌습니다.",
   "devicesCarryNotRemoved": "{from}의 작업은 옮겨졌지만 목록에서 뺄 수 없었습니다: {why}",
   "devicesCarryRunsOn": "실행 위치: {to}. 연락 닿지 않는 {from}의 작업이 이제 여기서 이어집니다",

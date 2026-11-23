@@ -157,6 +157,7 @@
   "nowPanelRowStart": "Start",
   "nowPanelRowStarting": "starting",
   "nowPanelRowTryAgain": "Try again",
+  "nowPanelRowUpdating": "updating",
   "nowPanelRowWaiting": "waiting",
   "nowPanelSummaryFailed": {
     "plural": "count",

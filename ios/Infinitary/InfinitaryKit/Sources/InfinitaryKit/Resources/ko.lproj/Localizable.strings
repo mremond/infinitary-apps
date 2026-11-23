@@ -786,6 +786,7 @@
 "devicesAppWhyOwnWindow" = "그곳의 자체 창에서만 업데이트되니, 그곳에서 업데이트하세요.";
 "devicesAppWhyPackageManager" = "그곳에서는 패키지 관리자가 설치했으니, 그 패키지 관리자로 업데이트하세요.";
 "devicesAppWhyUnpublished" = "Infinitary %1$@은(는) 공개된 버전이 아니니, 그곳에서 직접 설치하세요.";
+"devicesAwayUpdating" = "업데이트 중";
 "devicesCarriedOn" = "연락 닿지 않는 컴퓨터의 작업이 %1$@에서 이어지며, 그 항목은 목록에서 빠졌습니다.";
 "devicesCarryNotRemoved" = "%1$@의 작업은 옮겨졌지만 목록에서 뺄 수 없었습니다: %2$@";
 "devicesCarryRunsOn" = "실행 위치: %2$@. 연락 닿지 않는 %1$@의 작업이 이제 여기서 이어집니다";
@@ -1408,6 +1409,7 @@
 "nowPanelRowStart" = "시작";
 "nowPanelRowStarting" = "시작 중";
 "nowPanelRowTryAgain" = "다시 시도";
+"nowPanelRowUpdating" = "업데이트 중";
 "nowPanelRowWaiting" = "대기";
 "panelBackgroundExited" = "이 패널의 백그라운드 작업이 멈췄어요.";
 "panelBackgroundPaused" = "이 패널의 백그라운드 작업이 일시 정지됐어요: 앱의 이전 버전용으로 만들어졌어요.";
@@ -2060,6 +2062,7 @@
 "phoneTaskFactsAwayConnecting" = "%1$@ 연결하는 중";
 "phoneTaskFactsAwayNoNewWork" = "%1$@에서 새 작업을 받지 않음";
 "phoneTaskFactsAwayOutOfReach" = "%1$@에 연락 닿지 않음";
+"phoneTaskFactsAwayUpdating" = "%1$@ 업데이트 중";
 "phoneTaskFactsBlockedByAnother" = "다른 작업에 막혀 있음";
 "phoneTaskFactsChangeBranch" = "분기";
 "phoneTaskFactsChangePull" = "끌어오기 요청";
@@ -3847,6 +3850,7 @@
 "taskGroupWorking" = "작업 중";
 "taskPinPin" = "고정";
 "taskPinUnpin" = "고정 해제";
+"taskStatusComputerUpdating" = "%1$@ 업데이트 중";
 "taskTabActivity" = "활동";
 "taskTabCards" = "카드";
 "taskTabCrewmate" = "선원";

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { chipWords, HERE, SYSTEM_WORDS } from "./deviceNames";
 import {
+  awayWord,
   type ComputerReach,
   computerReachSchema,
   type DeviceSystem,
@@ -193,6 +194,8 @@ export const placementSnapshotSchema = z.object({
         rejections: z.array(placementRejectionSchema).max(32),
         /** The core's one reach reading when it was compared; absent for this Mac and on a historical row. Out of reach reads connecting while it was connecting. */
         reach: computerReachSchema.optional(),
+        /** It was being updated when it was compared (`DeviceView.updating`); absent otherwise. */
+        updating: z.literal(true).optional(),
         missingTools: z.array(z.string().max(80)).max(RESOLVED_TOOL_LIMIT),
         /** What its fresh reading said it runs; absent when unread and on a historical row. */
         system: deviceSystemSchema.optional(),
@@ -283,6 +286,8 @@ export type PlacementWaitRow = {
   rejections: readonly PlacementRejection[];
   /** The core's one reach reading; absent for this Mac. Out of reach reads connecting while it is connecting. */
   reach?: ComputerReach | undefined;
+  /** It is being updated (`DeviceView.updating`): out of reach reads updating. */
+  updating?: true | undefined;
   /** Its own room before pending starts are taken off; null when unknown. */
   capacity: PlacementDemand | null;
 };
@@ -355,7 +360,7 @@ export function placementWait(
   }
   const why = rows
     .filter((row) => row.rejections.length > 0)
-    .map((row) => `${row.name}: ${rejectionWords(row.rejections, row.reach === "connecting")}.`);
+    .map((row) => `${row.name}: ${rejectionWords(row.rejections, row)}.`);
   return why.length > 0
     ? {
         kind: "other",
@@ -403,17 +408,22 @@ const REJECTION_WORDS: Record<PlacementRejection, string> = {
   "memory-busy": "not enough spare memory",
 };
 
-/** A computer's rejections in words; out of reach reads connecting while its connection was being made. */
+/**
+ * A computer's rejections in words; out of reach reads updating while it was
+ * being updated, and connecting while its connection was being made (`awayWord`).
+ */
 function rejectionWords(
   rejections: readonly PlacementRejection[],
-  connecting: boolean,
+  away: { reach?: ComputerReach | undefined; updating?: true | undefined },
   said: Partial<Record<PlacementRejection, string>> = {},
 ): string {
   return rejections
     .map(
       (reason) =>
         said[reason] ??
-        (reason === "out-of-reach" && connecting ? "connecting" : REJECTION_WORDS[reason]),
+        (reason === "out-of-reach" && (away.updating || away.reach === "connecting")
+          ? awayWord(away.reach === "connecting", away.updating)
+          : REJECTION_WORDS[reason]),
     )
     .join("; ");
 }
@@ -461,11 +471,7 @@ export function placementCandidateLines(snapshot: PlacementSnapshot): string[] {
       const verdict =
         candidate.computerId === snapshot.computerId
           ? "chosen"
-          : rejectionWords(
-              candidate.rejections,
-              candidate.reach === "connecting",
-              inheritedWords(snapshot, candidate),
-            ) ||
+          : rejectionWords(candidate.rejections, candidate, inheritedWords(snapshot, candidate)) ||
             (snapshot.basis
               ? "compatible; the basis computer was preferred"
               : "compatible, with less room to start");

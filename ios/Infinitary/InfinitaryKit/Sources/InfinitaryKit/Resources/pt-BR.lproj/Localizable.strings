@@ -786,6 +786,7 @@
 "devicesAppWhyOwnWindow" = "Ele só se atualiza pela própria janela lá, então atualize-o lá.";
 "devicesAppWhyPackageManager" = "Um gerenciador de pacotes o instalou lá, então atualize-o lá com esse gerenciador de pacotes.";
 "devicesAppWhyUnpublished" = "O Infinitary %1$@ não é uma versão publicada, então instale-o lá manualmente.";
+"devicesAwayUpdating" = "atualizando";
 "devicesCarriedOn" = "As tarefas de um computador fora de alcance continuam em %1$@, e essa entrada saiu da sua lista.";
 "devicesCarryNotRemoved" = "As tarefas de %1$@ foram movidas, mas ele não pôde sair da sua lista: %2$@";
 "devicesCarryRunsOn" = "Roda em: %2$@, onde as tarefas de %1$@, fora de alcance, continuam agora";
@@ -1408,6 +1409,7 @@
 "nowPanelRowStart" = "Iniciar";
 "nowPanelRowStarting" = "iniciando";
 "nowPanelRowTryAgain" = "Tentar de novo";
+"nowPanelRowUpdating" = "atualizando";
 "nowPanelRowWaiting" = "aguardando";
 "panelBackgroundExited" = "O trabalho em segundo plano deste painel parou.";
 "panelBackgroundPaused" = "O trabalho em segundo plano deste painel está pausado: ele foi feito para uma versão anterior do app.";
@@ -2060,6 +2062,7 @@
 "phoneTaskFactsAwayConnecting" = "%1$@ está se conectando";
 "phoneTaskFactsAwayNoNewWork" = "%1$@ não aceita trabalho novo";
 "phoneTaskFactsAwayOutOfReach" = "%1$@ está fora de alcance";
+"phoneTaskFactsAwayUpdating" = "%1$@ está atualizando";
 "phoneTaskFactsBlockedByAnother" = "Bloqueada por outra tarefa";
 "phoneTaskFactsChangeBranch" = "Branch";
 "phoneTaskFactsChangePull" = "Solicitação de pull";
@@ -3845,6 +3848,7 @@
 "taskGroupWorking" = "trabalhando";
 "taskPinPin" = "Fixar";
 "taskPinUnpin" = "Desafixar";
+"taskStatusComputerUpdating" = "%1$@ está atualizando";
 "taskTabActivity" = "Atividade";
 "taskTabCards" = "Cartões";
 "taskTabCrewmate" = "Tripulante";

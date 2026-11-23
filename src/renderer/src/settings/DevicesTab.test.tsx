@@ -971,6 +971,17 @@ describe("Settings -> Devices", () => {
     expect(render({ devices: [{ ...remote, ssh: { state: "stopped" } }] })).toContain(
       'data-device-dot="" data-tone="warn"',
     );
+    // The captain's ask: one the home is updating reads updating, calm, never
+    // out of reach - even when Devices opened mid-update - and its row follows
+    // the update's step as one clicked here does.
+    const updating = { ...MINI, updating: true } as const;
+    expect(deviceState(updating)).toEqual({ text: "updating", tone: "idle" });
+    expect(deviceStatus(updating, NOW)).toEqual({ text: "updating", tone: "idle" });
+    expect(removeLines(updating)[0]).toBe("Remove Mac mini? It is updating.");
+    const followed = render({ devices: [updating] });
+    expect(followed).toContain('data-device-dot="" data-tone="idle"');
+    expect(followed).toContain(remoteLoginWords.updatingRow(updating));
+    expect(followed).not.toContain("out of reach");
   });
 
   it("says when a computer in reach has another version of Firstmate, and offers Update", () => {

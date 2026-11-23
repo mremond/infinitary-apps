@@ -262,6 +262,29 @@ describe("one task status", () => {
     );
   });
 
+  // The captain's ask: an updating work computer should not read "out of reach",
+  // which is scary; only one truly out of reach should (`computer-updating.md`).
+  it("says a task on a computer being updated is updating, with no warn mark, then out of reach once the update ends", () => {
+    const place = { name: "Mac mini", where: "on Mac mini" };
+    for (const reach of ["out-of-reach", "in-reach"] as const) {
+      const updating = read({
+        status: "active",
+        activity: "running",
+        place: { ...place, reach, updating: true },
+      });
+      expect(updating).toMatchObject({ mark: "working", reason: "Mac mini is updating" });
+      expect(updating.outOfReach).toBeUndefined();
+    }
+    // An older computer being updated reads updating too, not "takes no new work".
+    expect(
+      read({ place: { ...place, reach: "out-of-reach", noNewWork: true, updating: true } }).reason,
+    ).toBe("Mac mini is updating");
+    // The update over and the computer not back: out of reach, in warn.
+    expect(
+      read({ status: "active", activity: "running", place: { ...place, reach: "out-of-reach" } }),
+    ).toMatchObject({ reason: "Mac mini is out of reach", outOfReach: true });
+  });
+
   // INF-1810 finding 7: a restart's catching up is in reach, not out of it.
   it("says a task whose connected computer it is catching up with is catching up since then, with no warn mark", () => {
     const since = new Date(2026, 10, 7, 12, 57).getTime();

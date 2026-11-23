@@ -209,6 +209,8 @@ public struct PhoneTask: Decodable, Identifiable, Sendable {
         public let name: String?
         public let reach: String?
         public let noNewWork: Bool?
+        /// Its computer is being updated (the Mac's `TaskPlace.updating`): it reads updating, never out of reach.
+        public let updating: Bool?
     }
     public struct Intent: Decodable, Sendable { public let userWords: String }
     public struct Plan: Decodable, Sendable {

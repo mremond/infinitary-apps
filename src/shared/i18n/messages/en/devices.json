@@ -22,6 +22,7 @@
   "devicesAppWhyOwnWindow": "It updates only from its own window there, so update it there.",
   "devicesAppWhyPackageManager": "A package manager installed it there, so update it there with that package manager.",
   "devicesAppWhyUnpublished": "Infinitary {version} is not a published version, so install it there by hand.",
+  "devicesAwayUpdating": "updating",
   "devicesCarriedOn": "The tasks of a computer out of reach continue on {to}, and that entry is off your list.",
   "devicesCarryNotRemoved": "The tasks of {from} moved, but it could not come off your list: {why}",
   "devicesCarryRunsOn": "Runs on: {to}, where the tasks of {from}, out of reach, continue now",

@@ -614,6 +614,7 @@
   "phoneTaskFactsAwayConnecting": "{computer} 연결하는 중",
   "phoneTaskFactsAwayNoNewWork": "{computer}에서 새 작업을 받지 않음",
   "phoneTaskFactsAwayOutOfReach": "{computer}에 연락 닿지 않음",
+  "phoneTaskFactsAwayUpdating": "{computer} 업데이트 중",
   "phoneTaskFactsBlockedByAnother": "다른 작업에 막혀 있음",
   "phoneTaskFactsChangeBranch": "분기",
   "phoneTaskFactsChangePull": "끌어오기 요청",

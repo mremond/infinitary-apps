@@ -46,6 +46,8 @@ export type DeviceForgeRow = {
   inReach: boolean;
   /** Out of reach only because its connection is being made. */
   connecting: boolean;
+  /** The home follows its computer's update (`DeviceSignIns.updating`): it reads updating. */
+  updating?: true;
   /** Its sign-in there, or null when it has none. */
   signIn: ComputerForges["signIns"][number] | null;
   /** That computer has GitHub CLI, so its GitHub sign-in may use GitHub CLI's (docs/forge.md, "A computer's own sign-in"). */
@@ -66,6 +68,7 @@ export function deviceForgeRows(devices: DeviceSignIns[]): DeviceForgeRow[] {
       place: signInPlace(device),
       inReach: device.reach === "in-reach",
       connecting: device.reach === "connecting",
+      ...(device.updating ? { updating: true as const } : {}),
       signIn: forges.signIns.find((entry) => entry.host === host.host) ?? null,
       githubCli:
         forges.githubCli === true && (host.server?.kind ?? kindByName(host.host)) === "github",
@@ -82,7 +85,7 @@ export function deviceForgeRowView(row: DeviceForgeRow): {
   line: string;
   reauth: boolean;
 } {
-  const away = row.inReach ? "" : ` · ${awayWord(row.connecting)}`;
+  const away = row.inReach && !row.updating ? "" : ` · ${awayWord(row.connecting, row.updating)}`;
   if (!row.signIn)
     return {
       tone: "idle",

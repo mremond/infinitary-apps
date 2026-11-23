@@ -164,6 +164,7 @@
   "nowPanelRowStart": "Iniciar",
   "nowPanelRowStarting": "iniciando",
   "nowPanelRowTryAgain": "Volver a intentar",
+  "nowPanelRowUpdating": "actualizándose",
   "nowPanelRowWaiting": "esperando",
   "nowPanelSummaryFailed": {
     "plural": "count",

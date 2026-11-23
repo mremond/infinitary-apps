@@ -47,6 +47,9 @@ export const ROW_REACH_WORDS = {
   get connecting() {
     return m.nowPanelRowConnecting();
   },
+  get updating() {
+    return m.nowPanelRowUpdating();
+  },
   get noNewWork() {
     return m.nowPanelRowNoNewWork();
   },

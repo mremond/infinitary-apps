@@ -786,6 +786,7 @@
 "devicesAppWhyOwnWindow" = "لا يُحدَّث إلا من نافذته هناك، لذا حدِّثه هناك.";
 "devicesAppWhyPackageManager" = "ثبّته مدير حزم هناك، لذا حدِّثه هناك بمدير الحزم ذاك.";
 "devicesAppWhyUnpublished" = "Infinitary %1$@ ليس إصدارًا منشورًا، لذا ثبِّته هناك يدويًا.";
+"devicesAwayUpdating" = "قيد التحديث";
 "devicesCarriedOn" = "تكمل مهام حاسوب خارج المتناول على %1$@، وخرج ذلك الإدخال من قائمتك.";
 "devicesCarryNotRemoved" = "نُقلت مهام %1$@، لكن تعذّر إخراجه من قائمتك: %2$@";
 "devicesCarryRunsOn" = "يعمل على: %2$@، حيث تكمل الآن مهام %1$@، الذي هو خارج المتناول";
@@ -1408,6 +1409,7 @@
 "nowPanelRowStart" = "بدء";
 "nowPanelRowStarting" = "جارٍ البدء";
 "nowPanelRowTryAgain" = "إعادة المحاولة";
+"nowPanelRowUpdating" = "قيد التحديث";
 "nowPanelRowWaiting" = "تنتظر";
 "panelBackgroundExited" = "توقف العمل الخلفي لهذه اللوحة.";
 "panelBackgroundPaused" = "العمل الخلفي لهذه اللوحة متوقف مؤقتًا: صُنعت لإصدار أقدم من التطبيق.";
@@ -2060,6 +2062,7 @@
 "phoneTaskFactsAwayConnecting" = "%1$@ قيد الاتصال";
 "phoneTaskFactsAwayNoNewWork" = "%1$@ لا يقبل عملًا جديدًا";
 "phoneTaskFactsAwayOutOfReach" = "%1$@ خارج المتناول";
+"phoneTaskFactsAwayUpdating" = "%1$@ قيد التحديث";
 "phoneTaskFactsBlockedByAnother" = "تعيقها مهمة أخرى";
 "phoneTaskFactsChangeBranch" = "فرع";
 "phoneTaskFactsChangePull" = "طلب سحب";
@@ -3845,6 +3848,7 @@
 "taskGroupWorking" = "قيد العمل";
 "taskPinPin" = "تثبيت";
 "taskPinUnpin" = "إلغاء التثبيت";
+"taskStatusComputerUpdating" = "%1$@ قيد التحديث";
 "taskTabActivity" = "النشاط";
 "taskTabCards" = "البطاقات";
 "taskTabCrewmate" = "فرد الطاقم";

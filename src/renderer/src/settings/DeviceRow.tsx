@@ -246,7 +246,9 @@ export function DeviceRow({
                 : "warn"
               : device.inReach && other?.takesWork !== false
                 ? "ok"
-                : deviceConnecting(device) || device.ssh?.state === "reconnecting"
+                : device.updating ||
+                    deviceConnecting(device) ||
+                    device.ssh?.state === "reconnecting"
                   ? "idle"
                   : "warn"
           }

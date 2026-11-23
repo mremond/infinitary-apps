@@ -573,6 +573,8 @@ export const deviceSignInsSchema = z.object({
   user: z.string().optional(),
   onThisMac: z.boolean(),
   reach: computerReachSchema,
+  /** It is being updated (`DeviceView.updating`): its words say updating rather than out of reach. */
+  updating: z.literal(true).optional(),
   /** What it last said, or null before it said anything since this home started. */
   signIns: computerSignInsSchema.nullable(),
   /** When it last said it, in ms since the epoch. */

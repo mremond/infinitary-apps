@@ -154,12 +154,12 @@ export function projectNameOf(board: Pick<PanelTaskBoard, "projects">, task: Pan
 
 /**
  * What a row says after its title about its computer: nothing while it can
- * take work; otherwise why not - out of reach, connecting, taking no new
+ * take work; otherwise why not - updating, out of reach, connecting, taking no new
  * work, or connected and still catching up with the task. The row names
  * neither its project nor its computer: the summary and the record do.
  */
 export type RowTrailing = {
-  /** The row says its reach word: out of reach, connecting or catching up. */
+  /** The row says its reach word: updating, out of reach, connecting or catching up. */
   outOfReach: boolean;
   connecting: boolean;
   /** Its computer is connected and this Mac is still catching up with the task; absent otherwise. */
@@ -169,21 +169,29 @@ export type RowTrailing = {
 
 /** The words a row ends with: what a row's paint reads, so a row paints again only when the task changed. */
 export function rowTrailing(task: PanelTaskRow): RowTrailing {
-  const connecting = task.place?.reach === "connecting";
+  // Its computer being updated reads updating, muted as connecting is (`computer-updating.md`).
+  const updating = task.place?.reach !== undefined && task.place.updating === true;
+  const connecting = updating || task.place?.reach === "connecting";
   // Connected and catching up is in reach: the row says catching up, never out of reach.
-  const catchingUp = task.place?.reach === "in-reach" && task.place.catchingUpSince !== undefined;
+  const catchingUp =
+    !updating && task.place?.reach === "in-reach" && task.place.catchingUpSince !== undefined;
   return {
-    // The row says why its computer cannot take work now: out of reach, connecting or catching up.
-    outOfReach: catchingUp || (task.place?.reach !== undefined && task.place.reach !== "in-reach"),
+    // The row says why its computer cannot take work now: updating, out of reach, connecting or catching up.
+    outOfReach:
+      updating ||
+      catchingUp ||
+      (task.place?.reach !== undefined && task.place.reach !== "in-reach"),
     connecting,
     ...(catchingUp ? { catchingUp: true as const } : {}),
-    reach: catchingUp
-      ? ROW_CATCHING_UP
-      : connecting
-        ? ROW_REACH_WORDS.connecting
-        : task.place?.noNewWork
-          ? ROW_REACH_WORDS.noNewWork
-          : ROW_REACH_WORDS.away,
+    reach: updating
+      ? ROW_REACH_WORDS.updating
+      : catchingUp
+        ? ROW_CATCHING_UP
+        : connecting
+          ? ROW_REACH_WORDS.connecting
+          : task.place?.noNewWork
+            ? ROW_REACH_WORDS.noNewWork
+            : ROW_REACH_WORDS.away,
   };
 }
 

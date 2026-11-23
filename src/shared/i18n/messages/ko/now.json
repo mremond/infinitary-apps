@@ -150,6 +150,7 @@
   "nowPanelRowStart": "시작",
   "nowPanelRowStarting": "시작 중",
   "nowPanelRowTryAgain": "다시 시도",
+  "nowPanelRowUpdating": "업데이트 중",
   "nowPanelRowWaiting": "대기",
   "nowPanelSummaryFailed": {
     "plural": "count",

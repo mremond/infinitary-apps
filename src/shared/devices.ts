@@ -578,9 +578,36 @@ export function deviceConnecting(device: {
   return reachFrom(device) === "connecting";
 }
 
-/** What a computer not in reach reads as: connecting while its connection is being made (`deviceConnecting`), out of reach otherwise. */
-export function awayWord(connecting: boolean | undefined): string {
+/**
+ * What a computer not in reach reads as, the one home of its three words:
+ * updating while the home follows its update (`updating`,
+ * `computer-updating.md`), connecting while its connection is being made
+ * (`deviceConnecting`), out of reach otherwise.
+ */
+export function awayWord(connecting: boolean | undefined, updating?: boolean | undefined): string {
+  if (updating) return m.devicesAwayUpdating();
   return connecting ? "connecting" : "out of reach";
+}
+
+/**
+ * How long after Infinitary starts on the home a computer that runs work,
+ * not heard from since, reads connecting rather than out of reach: each one
+ * dials the home again every few seconds (docs/devices.md, "Updating").
+ */
+export const STARTUP_CONNECTING_MS = 60_000;
+
+/**
+ * The reach a reader takes in the first minute after the home started
+ * (`STARTUP_CONNECTING_MS`): out of reach reads connecting for a computer
+ * not heard from since that start, so an update round that restarts the
+ * home never flashes out of reach. Every other reading is kept.
+ */
+export function reachAfterStart(
+  reach: ComputerReach,
+  { startedAt, now, seenAt }: { startedAt: number; now: number; seenAt: number | undefined },
+): ComputerReach {
+  if (reach !== "out-of-reach" || now - startedAt >= STARTUP_CONNECTING_MS) return reach;
+  return seenAt !== undefined && seenAt >= startedAt ? reach : "connecting";
 }
 
 /** One device on the home's list, as every reader sees it: never its secret. */
@@ -651,6 +678,14 @@ export const deviceViewSchema = z.strictObject({
   controlling: z.boolean().optional(),
   /** Another user on this Mac, out of reach since this Mac restarted: nobody has logged in as it since. */
   restartedSince: z.boolean().optional(),
+  /**
+   * The home follows its update now (docs/devices.md, "Updating"): from its
+   * crew's pause until the update ends, while it was heard from in the last
+   * `UPDATE_RETURN_MS`. Every place that names it says updating rather than
+   * out of reach. A view that does not list `computer-updating` is sent the
+   * list without it.
+   */
+  updating: z.literal(true).optional(),
   /**
    * Out of reach, and this Mac's address changed since it was last in
    * reach: it still looks for this Mac where it found it then, until it

@@ -184,11 +184,9 @@ export type PlacedSessionsOptions = {
    * Absent, none does.
    */
   runsForAnotherFirstmate?: (deviceId: string) => boolean;
-  /**
-   * The one reach value (`reachFrom`): the minute's line waits while it is
-   * connecting, and an open refused meanwhile says connecting.
-   */
+  /** Reach (`reachFrom`) and a followed update (`Computers.updatingOf`): the minute's line waits on either. */
   reachOf?: (deviceId: string) => ComputerReach;
+  updatingOf?: (deviceId: string) => boolean;
   /**
    * Where what a task's browser on a computer tells this Mac goes
    * (docs/task-browser.md, "On another computer"): its fact, its pictures
@@ -880,9 +878,10 @@ export class PlacedSessions implements PlacedWork, CrewMachines {
   tick(now: number): void {
     for (const deviceId of this.devicesWithWork()) {
       if (this.options.devices.inReach(deviceId)) continue;
-      // Still connecting is not an absence yet: the line is held until it is out of reach.
+      // Still connecting is not an absence yet, and an update's minute counts from its end.
       if (this.options.reachOf?.(deviceId) === "connecting") continue;
       const device = this.device(deviceId);
+      if (this.options.updatingOf?.(deviceId) && !device.saidGone) device.goneSince = now;
       if (device.saidGone || now - device.goneSince < OUT_OF_REACH_LINE_MS) continue;
       device.saidGone = true;
       const name = this.nameOf(deviceId);

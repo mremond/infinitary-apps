@@ -293,6 +293,11 @@ export const taskPlaceSchema = z.object({
   /** Connected on an older app, so it takes no new work until updated. */
   noNewWork: z.literal(true).optional(),
   /**
+   * Its computer is being updated (`DeviceView.updating`): the task reads
+   * updating, with its mark as it was, whatever its reach.
+   */
+  updating: z.literal(true).optional(),
+  /**
    * In reach and still catching up with this task, since this time (epoch
    * ms): its computer came back, or its conversation is opening on this Mac.
    * Absent once caught up, and while the computer is out of reach.

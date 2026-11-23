@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "id": "computer-updating-not-out-of-reach",
+      "kind": "improvement",
+      "area": "devices",
+      "title": "A work computer being updated reads updating, not out of reach",
+      "body": "While Infinitary updates one of your work computers, its tasks, Devices, Runs on and your phone now say it is updating, without the warning color. It reads out of reach only when it stays silent for three minutes. For the first minute after Infinitary starts, a computer that has not come back yet reads connecting.",
+      "noPicture": "The change shows during an update of a second computer, which the hermetic picture launcher cannot stage; a release review takes one if this becomes a highlight.",
+      "provenance": { "origin": "change" }
+    }
+  ]
+}

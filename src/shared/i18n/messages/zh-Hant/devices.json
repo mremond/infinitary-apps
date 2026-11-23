@@ -22,6 +22,7 @@
   "devicesAppWhyOwnWindow": "它只能在那裡自己的視窗中更新，請在那裡更新。",
   "devicesAppWhyPackageManager": "它在那裡由套件管理工具安裝，請在那裡用該套件管理工具更新。",
   "devicesAppWhyUnpublished": "Infinitary {version} 不是已發布的版本，請在那裡手動安裝。",
+  "devicesAwayUpdating": "正在更新",
   "devicesCarriedOn": "一台連絡不上的電腦的任務在{to}上繼續，那個項目已從你的清單中移除。",
   "devicesCarryNotRemoved": "{from}的任務已移走，但無法把它從你的清單中移除：{why}",
   "devicesCarryRunsOn": "執行於：{to}，連絡不上的{from}的任務現在在這裡繼續",

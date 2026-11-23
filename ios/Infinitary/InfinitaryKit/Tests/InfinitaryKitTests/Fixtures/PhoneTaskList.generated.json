@@ -468,6 +468,49 @@
             }
           },
           {
+            "id": "t-2931",
+            "key": "INF-2931",
+            "projectId": "p-har",
+            "parentId": null,
+            "kind": "work",
+            "title": "Ring the harbour bell",
+            "goal": "Ring the harbour bell",
+            "priority": 3,
+            "status": "open",
+            "activity": null,
+            "closedReason": null,
+            "startPolicy": "when-ready",
+            "flags": {
+              "blocked": false,
+              "held": false,
+              "needsYou": false,
+              "ready": false
+            },
+            "blockedBy": [],
+            "blocks": [],
+            "children": {
+              "total": 0,
+              "closed": 0
+            },
+            "assignee": null,
+            "model": null,
+            "tier": null,
+            "repo": null,
+            "delivery": null,
+            "outcomeSummary": null,
+            "waitingCardId": null,
+            "createdAt": 1793980260000,
+            "updatedAt": 1793984340000,
+            "startedAt": null,
+            "closedAt": null,
+            "place": {
+              "where": "on Studio",
+              "name": "Studio",
+              "reach": "in-reach",
+              "updating": true
+            }
+          },
+          {
             "id": "t-2907",
             "key": "INF-2907",
             "projectId": "p-inf",
@@ -1379,7 +1422,7 @@
         {
           "section": "queued",
           "folds": false,
-          "count": 2,
+          "count": 3,
           "rows": [
             {
               "key": "INF-2906",
@@ -1405,6 +1448,19 @@
               },
               "mark": "queued",
               "reason": "Studio is connecting",
+              "home": "queued"
+            },
+            {
+              "key": "INF-2931",
+              "depth": 0,
+              "word": "",
+              "trailing": {
+                "outOfReach": true,
+                "connecting": true,
+                "reach": "updating"
+              },
+              "mark": "queued",
+              "reason": "Studio is updating",
               "home": "queued"
             }
           ]
@@ -1983,6 +2039,49 @@
               "where": "on Studio",
               "name": "Studio",
               "reach": "connecting"
+            }
+          },
+          {
+            "id": "t-2931",
+            "key": "INF-2931",
+            "projectId": "p-har",
+            "parentId": null,
+            "kind": "work",
+            "title": "Ring the harbour bell",
+            "goal": "Ring the harbour bell",
+            "priority": 3,
+            "status": "open",
+            "activity": null,
+            "closedReason": null,
+            "startPolicy": "when-ready",
+            "flags": {
+              "blocked": false,
+              "held": false,
+              "needsYou": false,
+              "ready": false
+            },
+            "blockedBy": [],
+            "blocks": [],
+            "children": {
+              "total": 0,
+              "closed": 0
+            },
+            "assignee": null,
+            "model": null,
+            "tier": null,
+            "repo": null,
+            "delivery": null,
+            "outcomeSummary": null,
+            "waitingCardId": null,
+            "createdAt": 1793980260000,
+            "updatedAt": 1793984340000,
+            "startedAt": null,
+            "closedAt": null,
+            "place": {
+              "where": "on Studio",
+              "name": "Studio",
+              "reach": "in-reach",
+              "updating": true
             }
           },
           {
@@ -2893,7 +2992,7 @@
         {
           "section": "queued",
           "folds": false,
-          "count": 2,
+          "count": 3,
           "rows": [
             {
               "key": "INF-2906",
@@ -2919,6 +3018,19 @@
               },
               "mark": "queued",
               "reason": "Studio is connecting",
+              "home": "queued"
+            },
+            {
+              "key": "INF-2931",
+              "depth": 0,
+              "word": "",
+              "trailing": {
+                "outOfReach": true,
+                "connecting": true,
+                "reach": "updating"
+              },
+              "mark": "queued",
+              "reason": "Studio is updating",
               "home": "queued"
             }
           ]
@@ -3497,6 +3609,49 @@
               "where": "on Studio",
               "name": "Studio",
               "reach": "connecting"
+            }
+          },
+          {
+            "id": "t-2931",
+            "key": "INF-2931",
+            "projectId": "p-har",
+            "parentId": null,
+            "kind": "work",
+            "title": "Ring the harbour bell",
+            "goal": "Ring the harbour bell",
+            "priority": 3,
+            "status": "open",
+            "activity": null,
+            "closedReason": null,
+            "startPolicy": "when-ready",
+            "flags": {
+              "blocked": false,
+              "held": false,
+              "needsYou": false,
+              "ready": false
+            },
+            "blockedBy": [],
+            "blocks": [],
+            "children": {
+              "total": 0,
+              "closed": 0
+            },
+            "assignee": null,
+            "model": null,
+            "tier": null,
+            "repo": null,
+            "delivery": null,
+            "outcomeSummary": null,
+            "waitingCardId": null,
+            "createdAt": 1793980260000,
+            "updatedAt": 1793984340000,
+            "startedAt": null,
+            "closedAt": null,
+            "place": {
+              "where": "on Studio",
+              "name": "Studio",
+              "reach": "in-reach",
+              "updating": true
             }
           },
           {
@@ -4355,6 +4510,26 @@
               "mark": "waiting",
               "reason": "A decision card is ready",
               "home": "waiting"
+            }
+          ]
+        },
+        {
+          "section": "queued",
+          "folds": false,
+          "count": 1,
+          "rows": [
+            {
+              "key": "INF-2931",
+              "depth": 0,
+              "word": "",
+              "trailing": {
+                "outOfReach": true,
+                "connecting": true,
+                "reach": "updating"
+              },
+              "mark": "queued",
+              "reason": "Studio is updating",
+              "home": "queued"
             }
           ]
         },

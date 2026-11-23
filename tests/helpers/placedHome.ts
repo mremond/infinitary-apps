@@ -227,6 +227,8 @@ export function startPlacedHome(options: {
   runsForAnotherFirstmate?: (deviceId: string) => boolean;
   /** The one reach value. Absent, out of reach. */
   reachOf?: (deviceId: string) => ComputerReach;
+  /** Whether the home follows that computer's update now (`Computers.updatingOf`). Absent, never. */
+  updatingOf?: (deviceId: string) => boolean;
   /**
    * What a task's conversation runs on here, for a task that moves home,
    * which keeps its working copy in this Mac's real workspace; absent,
@@ -354,6 +356,7 @@ export function startPlacedHome(options: {
       ? { runsForAnotherFirstmate: options.runsForAnotherFirstmate }
       : {}),
     ...(options.reachOf ? { reachOf: options.reachOf } : {}),
+    ...(options.updatingOf ? { updatingOf: options.updatingOf } : {}),
     ...(options.browsers ? { browsers: options.browsers } : {}),
     broadcastEvent: (event) => events.push(event),
     now,
@@ -528,6 +531,7 @@ export function startPlacedHome(options: {
     recallUpdateCard: (deviceId) => updateCards.push(deviceId),
     ...(knowledge ? { knowledge } : {}),
     ...(options.reachOf ? { reachOf: options.reachOf } : {}),
+    ...(options.updatingOf ? { updatingOf: options.updatingOf } : {}),
     ...(files ? { files } : {}),
     ...(options.programProcess ? { programProcess: options.programProcess } : {}),
     ...(composed

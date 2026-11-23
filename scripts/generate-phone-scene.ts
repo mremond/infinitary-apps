@@ -253,6 +253,10 @@ try {
       ["background work", { workPosture: { state: "active", reason: "job" } }],
       ["working on a computer connecting", { executionDeviceId: "dev-mini", place: { name: "Mac mini", where: "on Mac mini", reach: "connecting" } }],
       ["working on a computer out of reach", { executionDeviceId: "dev-mini", place: { name: "Mac mini", where: "on Mac mini", reach: "reconnecting" } }],
+      // The captain's ask: a computer being updated reads updating, never out of reach, whatever its reach.
+      ["working on a computer being updated", { executionDeviceId: "dev-mini", place: { name: "Mac mini", where: "on Mac mini", reach: "out-of-reach", updating: true } }],
+      ["idle with an older computer being updated", { activity: "idle", workPosture: { state: "idle", reason: "inactive" }, executionDeviceId: "dev-mini",
+        place: { name: "Mac mini", where: "on Mac mini", reach: "in-reach", noNewWork: true, updating: true } }],
       ["interrupted", { activity: "interrupted", workPosture: undefined }],
       ["idle on one task", { activity: "idle", workPosture: { state: "idle", reason: "dependency" }, blockedBy: ["INF-1880"], blockedSince: { "INF-1880": now - 25 * min } }],
       ["idle on two tasks", { activity: "idle", workPosture: { state: "idle", reason: "dependency" }, blockedBy: ["INF-1880", "INF-1881"] }],
@@ -364,6 +368,7 @@ try {
         queueWait: { line: "Waiting for a free crewmate · since Nov 6, 8:40 AM", since: now - 20 * min } }),
       row(2906, "Count the buoys", { priority: 1, startAttempt: { phase: "preparing" } }),
       row(2917, "Relight the lamp", { priority: 3, projectId: "p-har", place: { where: "on Studio", name: "Studio", reach: "connecting" } }),
+      row(2931, "Ring the harbour bell", { priority: 3, projectId: "p-har", place: { where: "on Studio", name: "Studio", reach: "in-reach", updating: true } }),
       row(2907, "Mend the harbour nets", { startPolicy: "on-request", foundOn: "INF-2901", filingNew: true }),
       row(2908, "Paint the jetty", { startPolicy: "on-request", startNotice: { reason: "No crewmate could start" } }),
       row(2909, "Clear the slipway", { startPolicy: "on-request", ...flags(false, true), pinnedAt: now - 40 * min }),

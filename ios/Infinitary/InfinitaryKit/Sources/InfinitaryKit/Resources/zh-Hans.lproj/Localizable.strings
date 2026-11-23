@@ -786,6 +786,7 @@
 "devicesAppWhyOwnWindow" = "它只能在那里自己的窗口中更新，请在那里更新。";
 "devicesAppWhyPackageManager" = "它在那里由软件包管理器安装，请在那里用该软件包管理器更新。";
 "devicesAppWhyUnpublished" = "Infinitary %1$@ 不是已发布的版本，请在那里手动安装。";
+"devicesAwayUpdating" = "正在更新";
 "devicesCarriedOn" = "一台无法联系的电脑的任务在%1$@上继续，那个条目已从你的列表中移除。";
 "devicesCarryNotRemoved" = "%1$@的任务已移走，但无法把它从你的列表中移除：%2$@";
 "devicesCarryRunsOn" = "运行于：%2$@，无法联系的%1$@的任务现在在这里继续";
@@ -1408,6 +1409,7 @@
 "nowPanelRowStart" = "开始";
 "nowPanelRowStarting" = "正在开始";
 "nowPanelRowTryAgain" = "重试";
+"nowPanelRowUpdating" = "正在更新";
 "nowPanelRowWaiting" = "等待中";
 "panelBackgroundExited" = "这个面板的后台工作已停止。";
 "panelBackgroundPaused" = "这个面板的后台工作已暂停：它是为较早版本的应用制作的。";
@@ -2060,6 +2062,7 @@
 "phoneTaskFactsAwayConnecting" = "%1$@ 正在连接";
 "phoneTaskFactsAwayNoNewWork" = "%1$@ 不接受新工作";
 "phoneTaskFactsAwayOutOfReach" = "%1$@ 无法联系";
+"phoneTaskFactsAwayUpdating" = "%1$@ 正在更新";
 "phoneTaskFactsBlockedByAnother" = "被另一个任务阻挡";
 "phoneTaskFactsChangeBranch" = "分支";
 "phoneTaskFactsChangePull" = "拉取请求";
@@ -3845,6 +3848,7 @@
 "taskGroupWorking" = "处理中";
 "taskPinPin" = "固定";
 "taskPinUnpin" = "取消固定";
+"taskStatusComputerUpdating" = "%1$@ 正在更新";
 "taskTabActivity" = "动态";
 "taskTabCards" = "卡片";
 "taskTabCrewmate" = "船员";

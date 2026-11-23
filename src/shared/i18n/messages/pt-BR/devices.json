@@ -22,6 +22,7 @@
   "devicesAppWhyOwnWindow": "Ele só se atualiza pela própria janela lá, então atualize-o lá.",
   "devicesAppWhyPackageManager": "Um gerenciador de pacotes o instalou lá, então atualize-o lá com esse gerenciador de pacotes.",
   "devicesAppWhyUnpublished": "O Infinitary {version} não é uma versão publicada, então instale-o lá manualmente.",
+  "devicesAwayUpdating": "atualizando",
   "devicesCarriedOn": "As tarefas de um computador fora de alcance continuam em {to}, e essa entrada saiu da sua lista.",
   "devicesCarryNotRemoved": "As tarefas de {from} foram movidas, mas ele não pôde sair da sua lista: {why}",
   "devicesCarryRunsOn": "Roda em: {to}, onde as tarefas de {from}, fora de alcance, continuam agora",

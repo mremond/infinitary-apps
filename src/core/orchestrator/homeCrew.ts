@@ -146,7 +146,7 @@ export function startHomeCrew({
   placed: PlacedSessions;
   takesNoWorkUntilUpdated: HomeDevices["takesNoWorkUntilUpdated"];
   reachOf: HomeDevices["reachOf"];
-  homeDevices: Pick<HomeDevices, "recallUpdateCard">;
+  homeDevices: Pick<HomeDevices, "recallUpdateCard" | "updatingOf">;
   crewBinder: SessionBinder;
   vault: AccountVault;
   classifier: DecisionKindClassifier;
@@ -223,6 +223,7 @@ export function startHomeCrew({
     machines: placed,
     takesNoWorkUntilUpdated,
     reachOf,
+    updatingOf: homeDevices.updatingOf,
     // A task began waiting for an update: its card comes back, even after Not now.
     recallUpdateCard: homeDevices.recallUpdateCard,
     bind: async (accountId, providerId) => {

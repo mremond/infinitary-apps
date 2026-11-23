@@ -22,6 +22,7 @@
   "devicesAppWhyOwnWindow": "لا يُحدَّث إلا من نافذته هناك، لذا حدِّثه هناك.",
   "devicesAppWhyPackageManager": "ثبّته مدير حزم هناك، لذا حدِّثه هناك بمدير الحزم ذاك.",
   "devicesAppWhyUnpublished": "Infinitary {version} ليس إصدارًا منشورًا، لذا ثبِّته هناك يدويًا.",
+  "devicesAwayUpdating": "قيد التحديث",
   "devicesCarriedOn": "تكمل مهام حاسوب خارج المتناول على {to}، وخرج ذلك الإدخال من قائمتك.",
   "devicesCarryNotRemoved": "نُقلت مهام {from}، لكن تعذّر إخراجه من قائمتك: {why}",
   "devicesCarryRunsOn": "يعمل على: {to}، حيث تكمل الآن مهام {from}، الذي هو خارج المتناول",

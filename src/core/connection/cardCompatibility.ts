@@ -25,6 +25,11 @@ const SETTINGS_READ = "settings.current";
 /** Where devices find a home says when it cannot add a computer by its address (`device-adds-by-address.md`). */
 export const DEVICE_ADDS_BY_ADDRESS = contractChange("device-adds-by-address");
 
+/** A computer the home follows the update of reads updating (`computer-updating.md`). */
+export const COMPUTER_UPDATING = contractChange("computer-updating");
+/** What an older view's strict device list cannot read, in its unread list. */
+const DEVICE_UPDATING = "updating";
+
 /** The answers and push of where devices find a home, which an older desktop reads strictly. */
 const ADDRESS_CHANNELS = new Set(["inf:devices:addresses", "inf:devices:address:set"]);
 
@@ -135,18 +140,34 @@ export function threadLinesFor(
  * of the look it is pushed or answered when its hello does not list that
  * name; a view keeps its own look and never needs the home's. Where
  * devices find a home is read as strictly, so a Windows home's
- * `addsByAddress` (`device-adds-by-address`) is left out the same way.
+ * `addsByAddress` (`device-adds-by-address`) is left out the same way, and
+ * so is a device's `updating` (`computer-updating`).
  */
 export function lookFor(channel: string, value: unknown, unread: readonly string[]): unknown {
   if (unread.length === 0 || !value || typeof value !== "object") return value;
-  if (channel === "inf:settings:appearance:get" || ADDRESS_CHANNELS.has(channel))
-    return without(value, unread);
+  if (ADDRESS_CHANNELS.has(channel)) return without(value, unread);
+  if (channel.startsWith("inf:devices") && unread.includes(DEVICE_UPDATING))
+    return withoutUpdating(value);
+  if (channel === "inf:settings:appearance:get") return without(value, unread);
   if (channel === "inf:plugins:personal:list" || channel === "inf:plugins:personal") {
     return unread.includes(SETTINGS_READ) ? panelsWithoutSettingsRead(value) : value;
   }
   if (channel !== "inf:shell:preferences") return value;
   const look = value as Record<string, unknown>;
   return { ...look, appearance: without(look.appearance, unread) };
+}
+
+/**
+ * A device, or each one of a list, without `updating`: an older desktop
+ * reads a device strictly, and keeps saying out of reach.
+ */
+function withoutUpdating(value: object): unknown {
+  const drop = (device: unknown) => {
+    if (!device || typeof device !== "object" || !(DEVICE_UPDATING in device)) return device;
+    const { updating: _updating, ...rest } = device as Record<string, unknown>;
+    return rest;
+  };
+  return Array.isArray(value) ? value.map(drop) : drop(value);
 }
 
 /** A panel snapshot without the panels (and drafts) that read settings. */
@@ -259,6 +280,7 @@ function lookPushFor(entry: JournalEntry, spelling: Spelling, unread: readonly s
   const looks =
     entry.channel === "inf:shell:preferences" ||
     entry.channel === "inf:plugins:personal" ||
+    entry.channel.startsWith("inf:devices") ||
     ADDRESS_CHANNELS.has(entry.channel);
   if (unread.length === 0 || !looks) return spelled;
   const frame = JSON.parse(spelled);

@@ -634,6 +634,7 @@
   "phoneTaskFactsAwayConnecting": "{computer} verbindet sich",
   "phoneTaskFactsAwayNoNewWork": "{computer} nimmt keine neue Arbeit an",
   "phoneTaskFactsAwayOutOfReach": "{computer} ist außer Reichweite",
+  "phoneTaskFactsAwayUpdating": "{computer} wird aktualisiert",
   "phoneTaskFactsBlockedByAnother": "Von einer anderen Aufgabe blockiert",
   "phoneTaskFactsChangeBranch": "Branch",
   "phoneTaskFactsChangePull": "Pull Request",

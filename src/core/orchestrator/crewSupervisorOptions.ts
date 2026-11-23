@@ -262,6 +262,11 @@ export type CrewSupervisorOptions = {
   takesNoWorkUntilUpdated?: (deviceId: string) => boolean;
   /** The one reach value (`reachFrom`). Absent, out of reach. */
   reachOf?: (deviceId: string) => ComputerReach;
+  /**
+   * Whether the home follows that computer's update now
+   * (`Computers.updatingOf`): its open tasks read updating, not out of reach.
+   */
+  updatingOf?: (deviceId: string) => boolean;
   /** A task began waiting for that computer's update: its Update card returns, even after Not now. */
   recallUpdateCard?: (deviceId: string) => void;
   /**

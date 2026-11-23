@@ -858,11 +858,18 @@ function HomeDevicesTab() {
 }
 
 export function DevicesTabView(
-  props: DevicesTabViewProps & {
+  given: DevicesTabViewProps & {
     selection?: string | null;
     onSelect?: (id: string | null) => void;
   },
 ) {
+  // One the home follows the update of reads as one updating at a click here,
+  // even when Devices opened mid-update (`computer-updating.md`).
+  const followed = given.devices
+    .filter((device) => device.updating && !given.updating.includes(device.id))
+    .map((device) => device.id);
+  const props =
+    followed.length > 0 ? { ...given, updating: [...given.updating, ...followed] } : given;
   const { devices, addresses, busy, problem } = props;
   const firewall = homeFirewallOf(addresses);
   const here = useHereAs();

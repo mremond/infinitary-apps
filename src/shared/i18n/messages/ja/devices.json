@@ -22,6 +22,7 @@
   "devicesAppWhyOwnWindow": "そこにある自身のウインドウからしかアップデートできないため、そこでアップデートしてください。",
   "devicesAppWhyPackageManager": "そこではパッケージマネージャーがインストールしたため、そのパッケージマネージャーでアップデートしてください。",
   "devicesAppWhyUnpublished": "Infinitary {version} は公開されたバージョンではないため、そこで手動でインストールしてください。",
+  "devicesAwayUpdating": "更新中",
   "devicesCarriedOn": "連絡がつかないコンピューターのタスクが{to}で続き、その項目はリストから外れました。",
   "devicesCarryNotRemoved": "{from}のタスクは移りましたが、リストから外せませんでした：{why}",
   "devicesCarryRunsOn": "実行先：{to}。連絡がつかない{from}のタスクはここで続きます",

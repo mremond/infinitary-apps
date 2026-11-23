@@ -614,6 +614,7 @@
   "phoneTaskFactsAwayConnecting": "{computer} に接続中",
   "phoneTaskFactsAwayNoNewWork": "{computer} は新しい作業を受け付けていません",
   "phoneTaskFactsAwayOutOfReach": "{computer} と連絡がつきません",
+  "phoneTaskFactsAwayUpdating": "{computer} は更新中",
   "phoneTaskFactsBlockedByAnother": "別のタスク待ち",
   "phoneTaskFactsChangeBranch": "ブランチ",
   "phoneTaskFactsChangePull": "プルリクエスト",

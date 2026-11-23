@@ -614,6 +614,7 @@
   "phoneTaskFactsAwayConnecting": "{computer} 正在连接",
   "phoneTaskFactsAwayNoNewWork": "{computer} 不接受新工作",
   "phoneTaskFactsAwayOutOfReach": "{computer} 无法联系",
+  "phoneTaskFactsAwayUpdating": "{computer} 正在更新",
   "phoneTaskFactsBlockedByAnother": "被另一个任务阻挡",
   "phoneTaskFactsChangeBranch": "分支",
   "phoneTaskFactsChangePull": "拉取请求",

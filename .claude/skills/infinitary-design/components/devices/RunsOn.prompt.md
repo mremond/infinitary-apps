@@ -11,7 +11,7 @@ Automatic's description is "Choose a compatible computer with room for each new 
 A started task stays there."
 Automatic uses the same select, Tab reach, arrow keys and focus ring; there is no extra command or task editor.
 Open, it lists "Automatic", "This computer", then the group "Your computers" with each computer by name, then the group "As another user" with "Running as Builder".
-An option for a device that cannot take work now names why after a middle dot: "MacBook Air · no sign-ins yet", "Mac mini · out of reach" ("Mac mini · connecting" while its connection is being made; Subscriptions' device sign-ins and the device forge rows say it the same way).
+An option for a device that cannot take work now names why after a middle dot: "MacBook Air · no sign-ins yet", "Mac mini · out of reach" ("Mac mini · connecting" while its connection is being made, "Mac mini · updating" while Infinitary there is updated; Subscriptions' device sign-ins and the device forge rows say it the same way).
 A project kept on this computer only shows "This computer" as text, with the description "Kept on this computer only, so its tasks run there."
 On a computer that controls the first mate, "this computer" in both names the first mate's computer.
 The personal workspace stays on this computer too, locked like its other rows.
@@ -69,6 +69,8 @@ Feed lines, never cards:
 
 While its device is out of reach a task's Tasks mark keeps its shape in `warn`, its Tasks row ends "out of reach", naming no computer, its status reason reads "Mac mini is out of reach" on its summary and its record; for a computer connected on an older Infinitary both read "takes no new work" and "Mac mini takes no new work" instead, and the first mate neither nudges it nor calls it stuck (`../now/NowPanel.prompt.md`).
 A device that is connected while the app is still catching up with a task - after either side restarted - is in reach, never out of reach: the task's mark stays as it was, its Tasks row ends "catching up" in `--fg-3`, and its status reason, which the row's summary shows, reads "Catching up with Mac mini since 12:57 PM"; its crewmate stays on the orbit.
+While Infinitary there is updated, the mark keeps its color, its Tasks row ends "updating" in `--fg-3`, and its status reason reads "Mac mini is updating"; after three minutes with no word of the update it reads out of reach.
+For the first minute after the app starts, a computer not yet back reads "connecting".
 Never the words away, offline, disconnected, assigned, placed, helper or runner (`copy/Vocabulary.prompt.md`).
 
 **Automatic explanations.**

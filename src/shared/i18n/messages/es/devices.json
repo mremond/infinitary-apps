@@ -22,6 +22,7 @@
   "devicesAppWhyOwnWindow": "Solo se actualiza desde su propia ventana allí, así que actualízala allí.",
   "devicesAppWhyPackageManager": "Un gestor de paquetes la instaló allí, así que actualízala allí con ese gestor de paquetes.",
   "devicesAppWhyUnpublished": "Infinitary {version} no es una versión publicada, así que instálala allí a mano.",
+  "devicesAwayUpdating": "actualizándose",
   "devicesCarriedOn": "Las tareas de una computadora fuera de alcance continúan en {to}, y esa entrada salió de tu lista.",
   "devicesCarryNotRemoved": "Las tareas de {from} se movieron, pero no pudo salir de tu lista: {why}",
   "devicesCarryRunsOn": "Se ejecuta en: {to}, donde continúan ahora las tareas de {from}, fuera de alcance",

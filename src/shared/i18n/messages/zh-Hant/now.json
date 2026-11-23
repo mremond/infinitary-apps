@@ -150,6 +150,7 @@
   "nowPanelRowStart": "開始",
   "nowPanelRowStarting": "啟動中",
   "nowPanelRowTryAgain": "再試一次",
+  "nowPanelRowUpdating": "正在更新",
   "nowPanelRowWaiting": "等待中",
   "nowPanelSummaryFailed": {
     "plural": "count",

@@ -27,6 +27,7 @@ import { remoteLoginWords } from "@shared/remoteLogin";
 import type { UpdateDownload } from "@shared/work";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { claimedPort } from "../../../tests/helpers/claimedPort";
+import { deferred } from "../../../tests/helpers/deferred";
 import { macRelease } from "../../../tests/helpers/macRelease";
 import { scratchDir } from "../../../tests/helpers/scratchDirs";
 import { forwardSocket } from "../../../tests/helpers/socketForward";
@@ -848,6 +849,63 @@ describe("a computer that runs work on another version of Firstmate", () => {
     expect(at.said).toEqual([]);
     expect(at.kept()).toBe("the copy it kept");
     expect(running.state().contact).toBe("in-reach");
+  });
+
+  // The captain's ask: a work computer being updated reads updating, never out of reach.
+  it("reads updating from its crew's pause until the update ends, then its own reach", async () => {
+    const at = await world({ kept: true });
+    const before = at.start({ appVersion: "0.1.20" });
+    await expect.poll(() => at.view()?.otherVersion?.updateBy).toBe("connection");
+    expect(at.view()).not.toHaveProperty("updating");
+    const updating = at.computers.update(at.deviceId);
+    await expect.poll(() => at.view()?.updating).toBe(true);
+    expect(await before.ended).toBe("updated");
+    await expect.poll(() => at.view()?.inReach).toBe(false);
+    expect(at.view()?.updating).toBe(true);
+    at.start({ appVersion: HOME_APP });
+    await updating;
+    expect(at.view()).not.toHaveProperty("updating");
+    expect(at.pushed.some((list) => list.some((device) => device.updating))).toBe(true);
+  });
+
+  it("reads out of reach once nothing is heard from an update for its wait, and updating again once a step is heard", async () => {
+    const [held, paused] = [deferred<void>(), deferred<void>()];
+    const at = await world({
+      kept: true,
+      remoteLogin: "sam@mini.local",
+      waitMs: 300,
+      updateByAddress: async (_deviceId, asked) => {
+        await asked?.pause?.();
+        paused.resolve();
+        return held.promise.then(() => at.view() as DeviceView);
+      },
+    });
+    const updating = at.computers.update(at.deviceId);
+    await paused.promise;
+    expect(at.view()?.updating).toBe(true);
+    await expect.poll(() => at.view()?.updating).toBeUndefined();
+    at.computers.heardFrom(at.deviceId);
+    expect(at.view()?.updating).toBe(true);
+    held.resolve();
+    await updating;
+    expect(at.view()).not.toHaveProperty("updating");
+  });
+
+  it("reads its own reach once its update failed, and never updating when refused before its crew paused", async () => {
+    const at = await world({
+      kept: true,
+      remoteLogin: "sam@mini.local",
+      updateByAddress: async (_deviceId, asked) => {
+        await asked?.pause?.();
+        throw new RemoteLoginRefusedError("failed", ["It failed.", "Nothing changed."], "failed");
+      },
+    });
+    await expect(at.computers.update(at.deviceId)).rejects.toThrow("failed");
+    expect(at.view()).not.toHaveProperty("updating");
+    expect(at.pushed.some((list) => list.some((device) => device.updating))).toBe(true);
+    const refused = await world({ kept: true });
+    await expect(refused.computers.update(refused.deviceId)).rejects.toThrow();
+    expect(refused.pushed.some((list) => list.some((device) => device.updating))).toBe(false);
   });
 
   it("refuses what it cannot update, in two lines here and in the feed, and changes nothing there", async () => {

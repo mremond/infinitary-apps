@@ -5500,6 +5500,33 @@ ${events}` : prompt;
     }
     return `Your first mate acts only on events that meet this. While the event screen is on in Settings, an event that plainly does not meet this skips your first mate and is still listed in this automation's history.`;
   }
+  function devicesAwayUpdating() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `قيد التحديث`;
+      case "de":
+        return `wird aktualisiert`;
+      case "es":
+        return `actualizándose`;
+      case "fr":
+        return `mise à jour`;
+      case "ja":
+        return `更新中`;
+      case "ko":
+        return `업데이트 중`;
+      case "pt-BR":
+        return `atualizando`;
+      case "zh-Hans":
+        return `正在更新`;
+      case "zh-Hant":
+        return `正在更新`;
+      case "en-XA":
+        return `[ûþðáţîñĝ ~~~]`;
+      case "ar-XB":
+        return `‮updating‬`;
+    }
+    return `updating`;
+  }
   function settingsAccountsCount(input) {
     const count = formatNumber(input.count);
     switch (currentLanguage()) {
@@ -13221,7 +13248,8 @@ ${events}` : prompt;
     "reconnecting",
     "out-of-reach"
   ]);
-  function awayWord(connecting) {
+  function awayWord(connecting, updating) {
+    if (updating) return devicesAwayUpdating();
     return connecting ? "connecting" : "out of reach";
   }
   const deviceViewSchema = strictObject({
@@ -13291,6 +13319,14 @@ ${events}` : prompt;
     controlling: boolean().optional(),
     /** Another user on this Mac, out of reach since this Mac restarted: nobody has logged in as it since. */
     restartedSince: boolean().optional(),
+    /**
+     * The home follows its update now (docs/devices.md, "Updating"): from its
+     * crew's pause until the update ends, while it was heard from in the last
+     * `UPDATE_RETURN_MS`. Every place that names it says updating rather than
+     * out of reach. A view that does not list `computer-updating` is sent the
+     * list without it.
+     */
+    updating: literal(true).optional(),
     /**
      * Out of reach, and this Mac's address changed since it was last in
      * reach: it still looks for this Mac where it found it then, until it
@@ -14829,6 +14865,8 @@ ${events}` : prompt;
     user: string().optional(),
     onThisMac: boolean(),
     reach: computerReachSchema,
+    /** It is being updated (`DeviceView.updating`): its words say updating rather than out of reach. */
+    updating: literal(true).optional(),
     /** What it last said, or null before it said anything since this home started. */
     signIns: computerSignInsSchema.nullable(),
     /** When it last said it, in ms since the epoch. */
@@ -14994,6 +15032,8 @@ ${events}` : prompt;
         rejections: array(placementRejectionSchema).max(32),
         /** The core's one reach reading when it was compared; absent for this Mac and on a historical row. Out of reach reads connecting while it was connecting. */
         reach: computerReachSchema.optional(),
+        /** It was being updated when it was compared (`DeviceView.updating`); absent otherwise. */
+        updating: literal(true).optional(),
         missingTools: array(string().max(80)).max(RESOLVED_TOOL_LIMIT),
         /** What its fresh reading said it runs; absent when unread and on a historical row. */
         system: deviceSystemSchema.optional(),
@@ -16684,8 +16724,8 @@ ${events}` : prompt;
     }
   };
   function awayNote(device) {
-    if (device.reach === "in-reach") return null;
-    const away = awayWord(device.reach === "connecting");
+    if (device.reach === "in-reach" && !device.updating) return null;
+    const away = awayWord(device.reach === "connecting", device.updating);
     if (!device.asOf) return away;
     const time2 = formatTime(device.asOf, { hour: "2-digit", minute: "2-digit" });
     return `${away} · ${settingsDevicesSignInsAsOf({ time: time2 })}`;

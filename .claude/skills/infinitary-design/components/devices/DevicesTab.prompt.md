@@ -39,6 +39,7 @@ A Windows PC that joined from its window controls and runs work as a Mac does, a
 On another version, its line ends "Install the newer Infinitary on that computer.", since no update reaches a Windows PC yet, and it has no Match button.
 On the right one mono status - "1 task" in `--accent`, "idle", "connecting" while its SSH connection is being made, or "out of reach since 14:02" in `--warn` - then the row's ⋯ (below, "The row").
 The dot is `ok` while the device answers, `idle` while its connection is being made (its status reads "connecting"), and `warn` while it is out of reach.
+While Infinitary there is updated, its status reads "updating" and its dot is `idle`, never out of reach, for up to three minutes heard from nowhere; its line keeps the update's step, even when Devices opened part way.
 A mono line too long for the row wraps between its parts; only a part wider than the whole line, such as a long address, wraps inside itself.
 Out of reach, the status reads "out of reach since 14:02"; a user who has not logged in since a restart reads "not logged in since this computer restarted" (`RunsOn.prompt.md` has their feed lines).
 A phone or a Mac that only controls reads "seen just now" while it answers.

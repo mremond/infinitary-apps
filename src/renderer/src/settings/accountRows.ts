@@ -402,13 +402,16 @@ export const DEVICE_SIGN_INS_WORDS = {
 };
 
 /**
- * Under a computer's label while it is not in reach: out of reach, or
- * connecting while its connection is being made, and when it last said what
+ * Under a computer's label while it is not in reach: out of reach,
+ * connecting while its connection is being made, or updating while the
+ * home follows its update (even in reach), and when it last said what
  * it is signed in to. Null while it is in reach.
  */
-export function awayNote(device: Pick<DeviceSignIns, "reach" | "asOf">): string | null {
-  if (device.reach === "in-reach") return null;
-  const away = awayWord(device.reach === "connecting");
+export function awayNote(
+  device: Pick<DeviceSignIns, "reach" | "asOf" | "updating">,
+): string | null {
+  if (device.reach === "in-reach" && !device.updating) return null;
+  const away = awayWord(device.reach === "connecting", device.updating);
   if (!device.asOf) return away;
   const time = formatTime(device.asOf, { hour: "2-digit", minute: "2-digit" });
   return `${away} · ${m.settingsDevicesSignInsAsOf({ time })}`;

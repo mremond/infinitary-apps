@@ -185,6 +185,7 @@
   "nowPanelRowStart": "بدء",
   "nowPanelRowStarting": "جارٍ البدء",
   "nowPanelRowTryAgain": "إعادة المحاولة",
+  "nowPanelRowUpdating": "قيد التحديث",
   "nowPanelRowWaiting": "تنتظر",
   "nowPanelSummaryFailed": {
     "plural": "count",

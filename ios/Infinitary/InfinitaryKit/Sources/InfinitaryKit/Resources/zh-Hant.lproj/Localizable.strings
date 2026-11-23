@@ -786,6 +786,7 @@
 "devicesAppWhyOwnWindow" = "它只能在那裡自己的視窗中更新，請在那裡更新。";
 "devicesAppWhyPackageManager" = "它在那裡由套件管理工具安裝，請在那裡用該套件管理工具更新。";
 "devicesAppWhyUnpublished" = "Infinitary %1$@ 不是已發布的版本，請在那裡手動安裝。";
+"devicesAwayUpdating" = "正在更新";
 "devicesCarriedOn" = "一台連絡不上的電腦的任務在%1$@上繼續，那個項目已從你的清單中移除。";
 "devicesCarryNotRemoved" = "%1$@的任務已移走，但無法把它從你的清單中移除：%2$@";
 "devicesCarryRunsOn" = "執行於：%2$@，連絡不上的%1$@的任務現在在這裡繼續";
@@ -1408,6 +1409,7 @@
 "nowPanelRowStart" = "開始";
 "nowPanelRowStarting" = "啟動中";
 "nowPanelRowTryAgain" = "再試一次";
+"nowPanelRowUpdating" = "正在更新";
 "nowPanelRowWaiting" = "等待中";
 "panelBackgroundExited" = "這個面板的背景工作已停止。";
 "panelBackgroundPaused" = "這個面板的背景工作已暫停：它是為較舊版本的 Infinitary 製作的。";
@@ -2060,6 +2062,7 @@
 "phoneTaskFactsAwayConnecting" = "%1$@ 正在連線";
 "phoneTaskFactsAwayNoNewWork" = "%1$@ 不接受新工作";
 "phoneTaskFactsAwayOutOfReach" = "%1$@ 連絡不上";
+"phoneTaskFactsAwayUpdating" = "%1$@ 正在更新";
 "phoneTaskFactsBlockedByAnother" = "被另一項任務擋住";
 "phoneTaskFactsChangeBranch" = "分支";
 "phoneTaskFactsChangePull" = "Pull request";
@@ -3845,6 +3848,7 @@
 "taskGroupWorking" = "進行中";
 "taskPinPin" = "釘選";
 "taskPinUnpin" = "取消釘選";
+"taskStatusComputerUpdating" = "%1$@ 正在更新";
 "taskTabActivity" = "動態";
 "taskTabCards" = "卡片";
 "taskTabCrewmate" = "船員";

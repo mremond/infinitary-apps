@@ -16,6 +16,7 @@ import {
   placedWorldHooks,
   said,
   stops,
+  updatingNow,
   world,
 } from "../../../tests/helpers/placedWorld";
 import {
@@ -165,8 +166,21 @@ describe("a task that runs on a computer that runs work", () => {
     home.placed.tick(now() + 61_000);
     expect(lines().filter((line) => line.includes("out of reach"))).toEqual([]);
     connectingNow.clear();
+    // While the home follows its update, its task reads updating with no warn
+    // mark, the line is held, and its minute counts from the update's end
+    // (the captain's ask: an update should not read as out of reach).
+    updatingNow.add(at.deviceId);
+    expect(home.supervisor.placement.taskPlace(dropped)).toMatchObject({
+      reach: "out-of-reach",
+      updating: true,
+    });
     home.placed.tick(now() + 61_000);
+    home.placed.tick(now() + 90_000);
+    updatingNow.clear();
     home.placed.tick(now() + 120_000);
+    expect(lines().filter((line) => line.includes("out of reach"))).toEqual([]);
+    expect(home.supervisor.placement.taskPlace(dropped)).not.toHaveProperty("updating");
+    home.placed.tick(now() + 151_000);
     expect(lines().filter((line) => line.includes("out of reach"))).toEqual([
       "Mac mini is out of reach. Its work on website catches up here when it is back.",
     ]);
