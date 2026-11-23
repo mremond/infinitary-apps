@@ -1137,9 +1137,9 @@ Every route of `Computers.update` - over Remote Login, over the connection and M
   The task's Activity says it paused, and the feed says once that it paused while Infinitary there is updated and carries on once that computer is back.
   No interrupt is recorded, so a kept merge approval stands, and idle, paused or other computers' tasks are not touched.
 - **Settings -> Devices.**
-  While it saves, the row reads "Updating Infinitary on Mac mini…" and one strip, "Saving work on Mac mini. Waiting for Fix login to finish what is running.", beside a small secondary "Update later", reached with Tab (`updateWork`, `saving`).
-  Update later (`inf:devices:update-later`, `Computers.updateLater`) lets the update go before anything there is replaced: the feed says "Mac mini was not updated, since you chose Update later. Its work carries on.", the computer lets its save go, a turn it had not stopped yet goes on as if never asked, and a turn it stopped carries on as below.
-  After the update, until each turn it stopped has started again, the row adds "Mac mini is resuming work the update paused." (`updateWork`, `resuming`; `CrewUpdates.resumingOn`).
+  While it saves, the row reads "Updating Infinitary on Mac mini…" and one strip says it is saving work there and names each task it waits for, beside a small secondary "Update later", reached with Tab (`updateWork`, `saving`).
+  Update later (`inf:devices:update-later`, `Computers.updateLater`) lets the update go before anything there is replaced: the feed says once that the computer was not updated and its work carries on, the computer lets its save go, a turn it had not stopped yet goes on as if never asked, and a turn it stopped carries on as below.
+  After the update, until each turn it stopped has started again, the row adds that the computer is resuming work the update paused (`updateWork`, `resuming`; `CrewUpdates.resumingOn`).
 - **While it is updated.**
   Its crew is held as for a computer out of reach (`outOfReach`): nothing is handed to it, a steer waits on its lane, a task set to start there waits, and the idle ladder reads it as moving.
   A turn's end there is a pause: the words it was serving are acknowledged when it stopped clean, and go again, due at once with no attempt spent, when the update cut it off there or stopped it before its model took it (`unstarted`); its last words are never its report, and a report it gave stands, withdrawing its `turn-resumed` row.

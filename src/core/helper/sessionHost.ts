@@ -16,9 +16,6 @@ import {
   type PlacedState,
   placedEventsAnswerSchema,
   requestRepeatsSafely,
-  UPDATE_RETURN_MS,
-  WORK_RELEASE_ORDER,
-  WORK_SAVE_ORDER,
   type WorkOrderChannel,
   type WorkOrderRequest,
   type WorkOrderResponse,
@@ -29,6 +26,7 @@ import {
   placedSecretTakeAnswerSchema,
   placedSecretUseAnswerSchema,
 } from "@shared/workSecrets";
+import { UPDATE_RETURN_MS, WORK_RELEASE_ORDER, WORK_SAVE_ORDER } from "@shared/workUpdate";
 import type { CrewmateBrowser } from "../browser/taskBrowsers";
 import { contractChange, listsChange } from "../connection/contractChanges";
 import { WorkRequestAbortedError } from "../devices/homeLink";
@@ -1418,6 +1416,7 @@ export class SessionHost {
       const own = save;
       own.timer = setTimeout(() => {
         if (this.updateSave !== own) return;
+        // i18n-exempt: this computer's own log.
         this.log("its home did not update it after saving its work, so it carries on");
         void this.releaseUpdate();
       }, this.options.updateReturnMs ?? UPDATE_RETURN_MS);
@@ -1449,6 +1448,7 @@ export class SessionHost {
       held.task,
       stopping
         .catch((caught: unknown) => {
+          // i18n-exempt: this computer's own log.
           this.log(`could not stop ${held.task} safely: ${messageOf(caught)}`);
           return "stopped" as const;
         })

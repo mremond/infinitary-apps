@@ -30142,6 +30142,200 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     return `Update the app on ${device}`;
   }
+  function devicesUpdateLater() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `التحديث لاحقًا`;
+      case "de":
+        return `Später aktualisieren`;
+      case "es":
+        return `Actualizar más tarde`;
+      case "fr":
+        return `Mettre à jour plus tard`;
+      case "ja":
+        return `後でアップデート`;
+      case "ko":
+        return `나중에 업데이트`;
+      case "pt-BR":
+        return `Atualizar mais tarde`;
+      case "zh-Hans":
+        return `稍后更新`;
+      case "zh-Hant":
+        return `稍後更新`;
+      case "en-XA":
+        return `[Ûþðáţé ļáţéŕ ~~~~]`;
+      case "ar-XB":
+        return `‮Update later‬`;
+    }
+    return `Update later`;
+  }
+  function devicesUpdateLaterFailed() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `تعذّر إلغاء التحديث.`;
+      case "de":
+        return `Das Update konnte nicht abgebrochen werden.`;
+      case "es":
+        return `No se pudo dejar la actualización para más tarde.`;
+      case "fr":
+        return `Impossible de reporter la mise à jour.`;
+      case "ja":
+        return `アップデートを見送れませんでした。`;
+      case "ko":
+        return `업데이트를 미룰 수 없습니다.`;
+      case "pt-BR":
+        return `Não foi possível deixar a atualização para depois.`;
+      case "zh-Hans":
+        return `无法推迟此次更新。`;
+      case "zh-Hant":
+        return `無法延後此次更新。`;
+      case "en-XA":
+        return `[Çöûļð ñöţ ļéţ ţĥé ûþðáţé ĝö. ~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Could not let the update go.‬`;
+    }
+    return `Could not let the update go.`;
+  }
+  function devicesUpdateLaterNamed(input2) {
+    const device = input2.device;
+    switch (currentLanguage()) {
+      case "ar":
+        return `تحديث ${device} لاحقًا`;
+      case "de":
+        return `${device} später aktualisieren`;
+      case "es":
+        return `Actualizar ${device} más tarde`;
+      case "fr":
+        return `Mettre à jour ${device} plus tard`;
+      case "ja":
+        return `${device} を後でアップデート`;
+      case "ko":
+        return `${device}을(를) 나중에 업데이트`;
+      case "pt-BR":
+        return `Atualizar ${device} mais tarde`;
+      case "zh-Hans":
+        return `稍后更新 ${device}`;
+      case "zh-Hant":
+        return `稍後更新 ${device}`;
+      case "en-XA":
+        return `[Ûþðáţé ${device} ļáţéŕ ~~~~~]`;
+      case "ar-XB":
+        return `‮Update ‬${device}‮ later‬`;
+    }
+    return `Update ${device} later`;
+  }
+  function devicesUpdateLetGo(input2) {
+    const device = input2.device;
+    switch (currentLanguage()) {
+      case "ar":
+        return `لم يُحدَّث ${device}، لأنك اخترت التحديث لاحقًا. يستمر عمله.`;
+      case "de":
+        return `${device} wurde nicht aktualisiert, weil du „Später aktualisieren“ gewählt hast. Die Arbeit dort läuft weiter.`;
+      case "es":
+        return `${device} no se actualizó porque elegiste Actualizar más tarde. Su trabajo continúa.`;
+      case "fr":
+        return `${device} n’a pas été mis à jour, car vous avez choisi Mettre à jour plus tard. Son travail continue.`;
+      case "ja":
+        return `「後でアップデート」を選んだため、${device} はアップデートされませんでした。作業はそのまま続きます。`;
+      case "ko":
+        return `나중에 업데이트를 선택해서 ${device}은 업데이트되지 않았어요. 작업은 계속돼요.`;
+      case "pt-BR":
+        return `${device} não foi atualizado porque você escolheu Atualizar mais tarde. O trabalho nele continua.`;
+      case "zh-Hans":
+        return `你选择了稍后更新，因此 ${device} 没有更新。它的工作会继续。`;
+      case "zh-Hant":
+        return `你選擇了稍後更新，因此 ${device} 沒有更新。它的工作會繼續。`;
+      case "en-XA":
+        return `[${device} ŵáš ñöţ ûþðáţéð, šîñçé ýöû çĥöšé Ûþðáţé ļáţéŕ. Îţš ŵöŕķ çáŕŕîéš öñ. ~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `${device}‮ was not updated, since you chose Update later. Its work carries on.‬`;
+    }
+    return `${device} was not updated, since you chose Update later. Its work carries on.`;
+  }
+  function devicesUpdateResuming(input2) {
+    const device = input2.device;
+    switch (currentLanguage()) {
+      case "ar":
+        return `يستأنف ${device} العمل الذي أوقفه التحديث مؤقتًا.`;
+      case "de":
+        return `${device} setzt die Arbeit fort, die das Update pausiert hat.`;
+      case "es":
+        return `${device} está reanudando el trabajo que pausó la actualización.`;
+      case "fr":
+        return `${device} reprend le travail que la mise à jour a mis en pause.`;
+      case "ja":
+        return `${device} はアップデートで一時停止した作業を再開しています。`;
+      case "ko":
+        return `${device}이 업데이트로 멈춘 작업을 다시 시작하고 있어요.`;
+      case "pt-BR":
+        return `${device} está retomando o trabalho que a atualização pausou.`;
+      case "zh-Hans":
+        return `${device} 正在恢复更新暂停的工作。`;
+      case "zh-Hant":
+        return `${device} 正在恢復更新暫停的工作。`;
+      case "en-XA":
+        return `[${device} îš ŕéšûɱîñĝ ŵöŕķ ţĥé ûþðáţé þáûšéð. ~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `${device}‮ is resuming work the update paused.‬`;
+    }
+    return `${device} is resuming work the update paused.`;
+  }
+  function devicesUpdateSaving(input2) {
+    const device = input2.device;
+    switch (currentLanguage()) {
+      case "ar":
+        return `جارٍ حفظ العمل على ${device}.`;
+      case "de":
+        return `Arbeit auf ${device} wird gesichert.`;
+      case "es":
+        return `Guardando el trabajo en ${device}.`;
+      case "fr":
+        return `Enregistrement du travail sur ${device}.`;
+      case "ja":
+        return `${device} で作業を保存しています。`;
+      case "ko":
+        return `${device}에서 작업을 저장하고 있어요.`;
+      case "pt-BR":
+        return `Salvando o trabalho em ${device}.`;
+      case "zh-Hans":
+        return `正在 ${device} 上保存工作。`;
+      case "zh-Hant":
+        return `正在 ${device} 上儲存工作。`;
+      case "en-XA":
+        return `[Šáṽîñĝ ŵöŕķ öñ ${device}. ~~~~~~]`;
+      case "ar-XB":
+        return `‮Saving work on ‬${device}‮.‬`;
+    }
+    return `Saving work on ${device}.`;
+  }
+  function devicesUpdateWaitingFor(input2) {
+    const tasks = input2.tasks;
+    switch (currentLanguage()) {
+      case "ar":
+        return `في انتظار أن تُنهي ${tasks} ما يعمل الآن.`;
+      case "de":
+        return `Warte darauf, dass ${tasks} beendet, was gerade läuft.`;
+      case "es":
+        return `Esperando a que ${tasks} termine lo que está ejecutando.`;
+      case "fr":
+        return `En attente que ${tasks} termine ce qui est en cours.`;
+      case "ja":
+        return `${tasks} が実行中の処理を終えるのを待っています。`;
+      case "ko":
+        return `${tasks}이 실행 중인 일을 마치기를 기다리고 있어요.`;
+      case "pt-BR":
+        return `Esperando ${tasks} terminar o que está rodando.`;
+      case "zh-Hans":
+        return `正在等待 ${tasks} 完成正在运行的内容。`;
+      case "zh-Hant":
+        return `正在等待 ${tasks} 完成正在執行的內容。`;
+      case "en-XA":
+        return `[Ŵáîţîñĝ ƒöŕ ${tasks} ţö ƒîñîšĥ ŵĥáţ îš ŕûññîñĝ. ~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Waiting for ‬${tasks}‮ to finish what is running.‬`;
+    }
+    return `Waiting for ${tasks} to finish what is running.`;
+  }
   function devicesWorkCopyGone(input2) {
     const device = input2.device;
     switch (currentLanguage()) {
@@ -97126,6 +97320,13 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     devicesSourceWentBack,
     devicesUpdateApp,
     devicesUpdateAppNamed,
+    devicesUpdateLater,
+    devicesUpdateLaterFailed,
+    devicesUpdateLaterNamed,
+    devicesUpdateLetGo,
+    devicesUpdateResuming,
+    devicesUpdateSaving,
+    devicesUpdateWaitingFor,
     devicesWorkCopyGone,
     devicesWorkSavedByNewer,
     dialogAdd,
@@ -100243,6 +100444,13 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "devicesSourceWentBack": ["device"],
     "devicesUpdateApp": [],
     "devicesUpdateAppNamed": ["device"],
+    "devicesUpdateLater": [],
+    "devicesUpdateLaterFailed": [],
+    "devicesUpdateLaterNamed": ["device"],
+    "devicesUpdateLetGo": ["device"],
+    "devicesUpdateResuming": ["device"],
+    "devicesUpdateSaving": ["device"],
+    "devicesUpdateWaitingFor": ["tasks"],
     "devicesWorkCopyGone": ["device"],
     "devicesWorkSavedByNewer": [],
     "dialogAdd": [],
@@ -114022,6 +114230,88 @@ ${startersHtml()}`;
     this: saidPart("placeThisComputer"),
     here: saidPart("placeHere")
   });
+  const updateChannelSchema = _enum(["stable", "alpha"]);
+  const updateWorkSchema = object({
+    state: _enum(["saving", "resuming"]),
+    /**
+     * Saving: each task whose running work the update waits for, by its
+     * title. Resuming: each task whose work has not started again.
+     */
+    tasks: array(string())
+  });
+  object({
+    currentVersion: string(),
+    /** The subscription the status was read for. */
+    channel: updateChannelSchema,
+    latestVersion: string().nullable(),
+    updateAvailable: boolean(),
+    releaseUrl: string().nullable(),
+    /**
+     * The command that installs the offered version by hand, shown selectable
+     * in the panel: the installed channel's cask upgrade on a Mac, the package
+     * manager's on Arch or NixOS, or the system installer's when installing
+     * from the app could not finish. Empty when there is none.
+     */
+    upgradeCommand: string(),
+    /**
+     * Present when the app installs the offered version itself (a deb, an rpm
+     * or an AppImage on Linux; docs/alpha.md "Updates on Linux").
+     */
+    install: object({
+      /** The system asks for the person's password before it installs. */
+      asksPassword: boolean(),
+      /** A Mac update downloads, verifies and restarts only after consent. */
+      restarts: boolean().optional()
+    }).optional(),
+    /** The local app owns a persistent choice, independently of the installed version. */
+    channelChoice: boolean().optional(),
+    phase: _enum(["idle", "checking", "downloading", "installing", "ready", "error"]).optional(),
+    percent: number().min(0).max(100).optional(),
+    problem: string().optional(),
+    notice: string().optional(),
+    /**
+     * When the release source last answered a check, in milliseconds since the
+     * epoch: the up-to-date line says how long ago (docs/alpha.md "Update
+     * channels"). Absent before a first answer, and from an older core.
+     */
+    checkedAt: number().optional(),
+    /** The crew's work around this update, while there is any to save or resume. */
+    work: updateWorkSchema.optional(),
+    /**
+     * A copy run from source by `pnpm dev`'s starter (docs/alpha.md, "Updates
+     * from source"): the branch it follows where the project lives, how many
+     * commits that branch has that this copy lacks, and, when it has some,
+     * why the copy cannot move forward to them. Its versions are short
+     * commits. Absent for an installed copy, and from an older core.
+     */
+    source: object({
+      branch: string(),
+      behind: number().int().min(0),
+      held: _enum(["edited", "ahead"]).optional()
+    }).optional(),
+    /**
+     * The paired phone or Mac, by its name, that started the update under way
+     * (`home-update.md`): the notice says so, beside Update later.
+     */
+    askedFrom: string().optional()
+  });
+  union([
+    object({ ok: literal(true) }),
+    object({
+      ok: literal(false),
+      /** What happened and what to do, in the panel's own words. */
+      problem: string(),
+      /**
+       * The person chose Update later while work was saved: nothing went
+       * wrong, the update waits and the work carries on.
+       */
+      later: literal(true).optional()
+    })
+  ]);
+  object({
+    startAtLogin: boolean(),
+    showInDock: boolean()
+  });
   const workSetupReasonSchema = _enum([
     "other-home",
     "other-entry",
@@ -114218,6 +114508,13 @@ ${startersHtml()}`;
     controlling: boolean().optional(),
     /** Another user on this Mac, out of reach since this Mac restarted: nobody has logged in as it since. */
     restartedSince: boolean().optional(),
+    /**
+     * What its crew's work is doing around its update (docs/devices.md,
+     * "Saving work before an update"): `saving` before anything there stops,
+     * naming the tasks it waits for, while Update later can let the update
+     * go; `resuming` after it, until each turn it stopped has started again.
+     */
+    updateWork: updateWorkSchema.optional(),
     /**
      * Out of reach, and this Mac's address changed since it was last in
      * reach: it still looks for this Mac where it found it then, until it

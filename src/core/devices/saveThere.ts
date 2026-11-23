@@ -1,4 +1,5 @@
-import { UPDATE_RETURN_MS, WORK_RELEASE_ORDER, WORK_SAVE_ORDER, workOrders } from "@shared/work";
+import { workOrders } from "@shared/work";
+import { UPDATE_RETURN_MS, WORK_RELEASE_ORDER, WORK_SAVE_ORDER } from "@shared/workUpdate";
 import { WORK_UPDATE_SAVING } from "../connection/cardCompatibility";
 import { DeviceOutOfReachError } from "../connection/connection";
 import { listsChange } from "../connection/contractChanges";

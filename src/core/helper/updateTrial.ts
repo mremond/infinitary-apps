@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
-import { UPDATE_RETURN_MS } from "@shared/work";
+import { UPDATE_RETURN_MS } from "@shared/workUpdate";
 import { z } from "zod";
 import { writePrivate } from "../devices/identity";
 import { shellWord } from "../devices/shellWord";

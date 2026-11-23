@@ -1,5 +1,5 @@
 import { PROTOCOL_VERSION } from "@shared/ipc";
-import { WORK_SAVE_ORDER } from "@shared/work";
+import { WORK_SAVE_ORDER } from "@shared/workUpdate";
 import { describe, expect, it } from "vitest";
 import { DeviceOutOfReachError } from "../connection/connection";
 import type { WorkDeviceContact } from "../connection/connectionTypes";

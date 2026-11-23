@@ -46,7 +46,6 @@ import {
   SOURCE_BUILDS_CHANGE,
   type SourceBuildStep,
   sourceOrders,
-  UPDATE_RETURN_MS,
   type UpdateDownload,
   updateOrders,
   WORK_DOWNLOAD_ORDER,
@@ -63,6 +62,7 @@ import {
   WORK_SETUP_ONLY,
   type WorkSetupReport,
 } from "@shared/workSetup";
+import { UPDATE_RETURN_MS } from "@shared/workUpdate";
 import {
   DeviceOutOfReachError,
   type ViewDeviceContact,
@@ -240,6 +240,7 @@ const COMMIT = /^[a-f0-9]{40,64}$/;
 /** Update later let a computer's update go while its crew's work was saved: nothing there was replaced. */
 class UpdateLetGo extends Error {
   constructor() {
+    // i18n-exempt: an internal signal the update route catches, never shown; its feed line is the catalog's.
     super("The update was let go before anything was replaced.");
     this.name = "UpdateLetGo";
   }

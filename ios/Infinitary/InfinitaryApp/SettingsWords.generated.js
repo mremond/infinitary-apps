@@ -13092,6 +13092,88 @@ ${events}` : prompt;
      */
     retries: literal(true).optional()
   });
+  const updateChannelSchema = _enum(["stable", "alpha"]);
+  const updateWorkSchema = object({
+    state: _enum(["saving", "resuming"]),
+    /**
+     * Saving: each task whose running work the update waits for, by its
+     * title. Resuming: each task whose work has not started again.
+     */
+    tasks: array(string())
+  });
+  object({
+    currentVersion: string(),
+    /** The subscription the status was read for. */
+    channel: updateChannelSchema,
+    latestVersion: string().nullable(),
+    updateAvailable: boolean(),
+    releaseUrl: string().nullable(),
+    /**
+     * The command that installs the offered version by hand, shown selectable
+     * in the panel: the installed channel's cask upgrade on a Mac, the package
+     * manager's on Arch or NixOS, or the system installer's when installing
+     * from the app could not finish. Empty when there is none.
+     */
+    upgradeCommand: string(),
+    /**
+     * Present when the app installs the offered version itself (a deb, an rpm
+     * or an AppImage on Linux; docs/alpha.md "Updates on Linux").
+     */
+    install: object({
+      /** The system asks for the person's password before it installs. */
+      asksPassword: boolean(),
+      /** A Mac update downloads, verifies and restarts only after consent. */
+      restarts: boolean().optional()
+    }).optional(),
+    /** The local app owns a persistent choice, independently of the installed version. */
+    channelChoice: boolean().optional(),
+    phase: _enum(["idle", "checking", "downloading", "installing", "ready", "error"]).optional(),
+    percent: number().min(0).max(100).optional(),
+    problem: string().optional(),
+    notice: string().optional(),
+    /**
+     * When the release source last answered a check, in milliseconds since the
+     * epoch: the up-to-date line says how long ago (docs/alpha.md "Update
+     * channels"). Absent before a first answer, and from an older core.
+     */
+    checkedAt: number().optional(),
+    /** The crew's work around this update, while there is any to save or resume. */
+    work: updateWorkSchema.optional(),
+    /**
+     * A copy run from source by `pnpm dev`'s starter (docs/alpha.md, "Updates
+     * from source"): the branch it follows where the project lives, how many
+     * commits that branch has that this copy lacks, and, when it has some,
+     * why the copy cannot move forward to them. Its versions are short
+     * commits. Absent for an installed copy, and from an older core.
+     */
+    source: object({
+      branch: string(),
+      behind: number().int().min(0),
+      held: _enum(["edited", "ahead"]).optional()
+    }).optional(),
+    /**
+     * The paired phone or Mac, by its name, that started the update under way
+     * (`home-update.md`): the notice says so, beside Update later.
+     */
+    askedFrom: string().optional()
+  });
+  union([
+    object({ ok: literal(true) }),
+    object({
+      ok: literal(false),
+      /** What happened and what to do, in the panel's own words. */
+      problem: string(),
+      /**
+       * The person chose Update later while work was saved: nothing went
+       * wrong, the update waits and the work carries on.
+       */
+      later: literal(true).optional()
+    })
+  ]);
+  object({
+    startAtLogin: boolean(),
+    showInDock: boolean()
+  });
   const workSetupReasonSchema = _enum([
     "other-home",
     "other-entry",
@@ -13291,6 +13373,13 @@ ${events}` : prompt;
     controlling: boolean().optional(),
     /** Another user on this Mac, out of reach since this Mac restarted: nobody has logged in as it since. */
     restartedSince: boolean().optional(),
+    /**
+     * What its crew's work is doing around its update (docs/devices.md,
+     * "Saving work before an update"): `saving` before anything there stops,
+     * naming the tasks it waits for, while Update later can let the update
+     * go; `resuming` after it, until each turn it stopped has started again.
+     */
+    updateWork: updateWorkSchema.optional(),
     /**
      * Out of reach, and this Mac's address changed since it was last in
      * reach: it still looks for this Mac where it found it then, until it

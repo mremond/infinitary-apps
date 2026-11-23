@@ -333,15 +333,7 @@ export class CrewUpdates {
       facts: { kind: "turn-resumed", stopped: "update", computer: update.computer },
     });
     task.turn.hold({ computer: update.computer, row });
-    this.host.restarts.observe(task.id);
-    this.host.restarts.recordRestartOutcome(
-      task.id,
-      "waiting",
-      `Infinitary on ${update.computer} is being updated`,
-    );
-    this.options.tasks.note(task.id, `paused while Infinitary on ${update.computer} is updated`, {
-      news: true,
-    });
+    this.notePaused(task, update.computer);
     update.turns.set(task.id, { task, row });
     void this.host.untilTurnOver(task).then(() => update.report());
   }
@@ -430,6 +422,17 @@ export class CrewUpdates {
       facts: { kind: "turn-resumed", stopped: "update", computer },
     });
     task.turn.hold({ computer, row });
+    this.notePaused(task, computer);
+    try {
+      await task.session.abort();
+    } catch (caught) {
+      // Its end comes with the update instead, and is read as the pause.
+      console.warn("[crew] a paused turn could not be stopped:", caught);
+    }
+  }
+
+  /** A task paused for its computer's update: its restart record waits, and its timeline says why. */
+  private notePaused(task: TaskRuntime, computer: string): void {
     this.host.restarts.observe(task.id);
     this.host.restarts.recordRestartOutcome(
       task.id,
@@ -439,12 +442,6 @@ export class CrewUpdates {
     this.options.tasks.note(task.id, `paused while Infinitary on ${computer} is updated`, {
       news: true,
     });
-    try {
-      await task.session.abort();
-    } catch (caught) {
-      // Its end comes with the update instead, and is read as the pause.
-      console.warn("[crew] a paused turn could not be stopped:", caught);
-    }
   }
 
   /**
