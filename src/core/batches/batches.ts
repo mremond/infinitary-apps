@@ -49,6 +49,7 @@ import { gitFailure } from "../workspace/git";
 import { composedName } from "../workspace/naming";
 import type { RepoRegistry } from "../workspace/repoRegistry";
 import {
+  batchVersionIn,
   type Combined,
   type CombineInput,
   clashesWithBatch,
@@ -321,6 +322,8 @@ export type BatchesOptions = {
   combine?: (input: CombineInput) => Promise<Combined>;
   /** Whether a change in line clashes with the open batch's version; injectable for a test. */
   clashes?: typeof clashesWithBatch;
+  /** Which open batch version a change's branch builds on; injectable for a test. */
+  builtOnVersion?: typeof batchVersionIn;
   push?: typeof pushBatch;
   landed?: typeof landedCommits;
   /** A new batch branch's name; injectable for a test. */
@@ -436,28 +439,11 @@ export class Batches {
    * Put an approved change in line and start a pass. A change a repair
    * declared the held batch's fix is marked so, whichever came first.
    */
-  async enqueue(
-    repoId: string,
-    change: BatchChange,
-    /**
-     * The base the version's accepted repair was declared on: a version of
-     * the open batch it was rebuilt on goes in line behind that batch's
-     * changes (docs/forge.md, "A change rebuilt on an open batch").
-     */
-    rebuiltOn?: string,
-  ): Promise<void> {
+  async enqueue(repoId: string, change: BatchChange): Promise<void> {
     await this.write(repoId, (record) => {
       // Still a fix after its batch was closed and put back in line, until a batch merges or ends.
       const fix = (record.fixes ?? []).includes(change.taskId);
-      const onBatch =
-        rebuiltOn && !fix && !change.after
-          ? builtOnBatch(record, change.taskId, rebuiltOn)
-          : undefined;
-      return enqueue(record, {
-        ...change,
-        ...(fix ? { fix: true as const } : {}),
-        ...(onBatch ? { onBatch } : {}),
-      });
+      return enqueue(record, fix ? { ...change, fix: true } : change);
     });
     void this.pass(repoId);
   }
@@ -757,11 +743,62 @@ export class Batches {
       this.options.note(BATCH_WORDS.fixClosed(repo.name, this.label(repo, record.open)));
     record = this.withCurrentApprovals(repo, record);
     this.save(repoId, record);
+    // Only a line with an ordinary change and a batch version to build on waits on git here.
+    if (
+      (record.open?.members.length || record.rebuilds?.length) &&
+      record.line.some((entry) => !entry.onBatch && !entry.fix && !entry.after && !entry.base)
+    )
+      record = await this.markRebuilt(repo, record);
     if (record.open) record = await this.follow(repo, record);
     if (forms(record, repo.batchGap, this.options.now()))
       record = await this.recombine(repo, record, "none");
     await this.tryLine(repo);
     this.clashesEnded(repoId);
+  }
+
+  /**
+   * Each ordinary change in line whose branch builds on an open batch
+   * version, the one its crewmate was told to rebuild on or the open batch's
+   * version now, read from git's history whatever repair was declared, is
+   * marked as built on it (`onBatch`, docs/forge.md, "A change rebuilt on an
+   * open batch"), so it goes behind that batch's changes and is carried as
+   * its own difference from that version. Each version is read once per set
+   * of batch versions; one that cannot be read now is read again next pass.
+   */
+  private async markRebuilt(repo: RepoView, record: BatchRecord): Promise<BatchRecord> {
+    const open = record.open?.members.length ? record.open.head : undefined;
+    const tried = this.tried.get(repo.id) ?? new Set<string>();
+    this.tried.set(repo.id, tried);
+    let next = record;
+    for (const change of record.line) {
+      if (change.onBatch || change.fix || change.after || change.base) continue;
+      if ((record.fixes ?? []).includes(change.taskId)) continue;
+      const told = record.rebuilds?.find((entry) => entry.taskId === change.taskId)?.on;
+      const versions = [...new Set([told, open].filter((version) => version !== undefined))];
+      if (versions.length === 0) continue;
+      const key = `built:${change.taskId}:${change.head}:${versions.join(",")}`;
+      if (tried.has(key)) continue;
+      const on = await (this.options.builtOnVersion ?? batchVersionIn)({
+        repoDir: repo.path,
+        ...(repo.origin ? { remote: repo.origin } : {}),
+        branch: change.branch,
+        head: change.head,
+        versions,
+      }).catch(() => null);
+      if (on === null) continue;
+      tried.add(key);
+      const onBatch = on ? builtOnBatch(next, change.taskId, on) : undefined;
+      if (!onBatch) continue;
+      next = {
+        ...next,
+        line: next.line.map((entry) =>
+          entry.taskId === change.taskId && entry.head === change.head
+            ? { ...entry, onBatch }
+            : entry,
+        ),
+      };
+    }
+    return next === record || !this.stillAt(repo) ? record : this.save(repo.id, next);
   }
 
   /**
@@ -780,9 +817,16 @@ export class Batches {
     const tried = this.tried.get(repo.id) ?? new Set<string>();
     this.tried.set(repo.id, tried);
     for (const change of record.line) {
-      // A fix, a part built on another's version, a stacked change and one already rebuilt
-      // on a batch each have their own place; the combine judges them.
-      if (change.fix || change.after || change.base || change.onBatch) continue;
+      // A version rebuilt on a batch whose changes no longer stand in the open batch at their
+      // versions, nor merged at them, is told once to rebuild on the open batch as it is now.
+      if (change.onBatch && !change.fix) {
+        if (!this.batchStands(record, change.onBatch) && !rebuildTold(record, change))
+          this.tellRebuild(repo.id, change, LEFT_OUT_WORDS.batchChanged(change.onBatch.head));
+        continue;
+      }
+      // A fix, a part built on another's version and a stacked change each have their own
+      // place; the combine judges them.
+      if (change.fix || change.after || change.base) continue;
       const key = `${change.taskId}:${change.head}:${open.head}`;
       if (tried.has(key) || rebuildTold(record, change)) continue;
       const clashes = await (this.options.clashes ?? clashesWithBatch)({
@@ -797,6 +841,39 @@ export class Batches {
       if (!clashes || !this.stillAt(repo)) continue;
       this.tellRebuild(repo.id, change, LEFT_OUT_WORDS.clashesBatch);
     }
+  }
+
+  /**
+   * Whether every change a rebuilt version was built on still stands where
+   * the combine carries it: in the open batch at that version, or merged at it.
+   */
+  private batchStands(record: BatchRecord, onBatch: NonNullable<BatchChange["onBatch"]>): boolean {
+    return onBatch.members.every(
+      (carried) =>
+        record.open?.members.some(
+          (member) => member.taskId === carried.taskId && member.head === carried.head,
+        ) ||
+        record.receipts.some(
+          (receipt) => receipt.taskId === carried.taskId && receipt.head === carried.head,
+        ),
+    );
+  }
+
+  /**
+   * The left-out changes whose crewmate was told to rebuild on the batch on
+   * `branch`, which just ended, merged or not: their merge reads their place
+   * again, which no longer asks them to rebuild on it.
+   */
+  private toldOn(record: BatchRecord, branch: string): string[] {
+    return record.leftOut
+      .filter((entry) => entry.rebuild?.branch === branch)
+      .map((entry) => entry.taskId);
+  }
+
+  /** Settle the left-out changes told to rebuild on the batch on `branch`, which ended unmerged. */
+  private settleTold(record: BatchRecord, branch: string): void {
+    const told = this.toldOn(record, branch);
+    if (told.length) this.options.settle(told);
   }
 
   /**
@@ -910,7 +987,9 @@ export class Batches {
     if (pull.state === "closed") {
       // Closed where the project lives without a merge: the changes go back in line.
       await forge.deleteBranch?.(open.branch).catch(() => {});
-      return this.save(repo.id, reopened(record, this.options.now()));
+      const saved = this.save(repo.id, reopened(record, this.options.now()));
+      this.settleTold(saved, open.branch);
+      return saved;
     }
     // A comment reading that fails is read again on a later pass; the batch goes on.
     await this.options.comments?.({ repo, open, pull, forge }).catch((caught: unknown) => {
@@ -1141,7 +1220,9 @@ export class Batches {
     }
     if (pull.state !== "closed") return BATCH_WORDS.stillOpen(this.label(repo, open), forge.place);
     await forge.deleteBranch?.(open.branch).catch(() => {});
-    await this.recombine(repo, this.save(repo.id, reopened(record)), "line");
+    const saved = this.save(repo.id, reopened(record));
+    this.settleTold(saved, open.branch);
+    await this.recombine(repo, saved, "line");
     return undefined;
   }
 
@@ -1289,10 +1370,10 @@ export class Batches {
     await forge.deleteBranch?.(open.branch).catch(() => {});
     // A change left out of this batch whose crewmate was told to rebuild on it reads its place
     // again: with the batch merged, its left-out reason stands alone.
-    const told = saved.leftOut
-      .filter((entry) => entry.rebuild?.branch === open.branch)
-      .map((entry) => entry.taskId);
-    this.options.settle([...open.members.map((member) => member.taskId), ...told]);
+    this.options.settle([
+      ...open.members.map((member) => member.taskId),
+      ...this.toldOn(saved, open.branch),
+    ]);
     return saved;
   }
 
@@ -1308,7 +1389,9 @@ export class Batches {
         url: open.url ?? null,
       });
     await forge.deleteBranch?.(open.branch).catch(() => {});
-    return this.save(repo.id, abandoned(unfixed(record, []), this.options.now()));
+    const saved = this.save(repo.id, abandoned(unfixed(record, []), this.options.now()));
+    this.settleTold(saved, open.branch);
+    return saved;
   }
 
   /**

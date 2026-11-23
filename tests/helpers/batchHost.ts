@@ -166,8 +166,10 @@ export function standInGit(
   forge: BatchHostForge,
   /** Tasks whose change no longer combines. */
   conflicting: ReadonlySet<string> = new Set(),
-): Required<Pick<BatchesOptions, "combine" | "push" | "landed" | "branchName">> {
+): Required<Pick<BatchesOptions, "combine" | "push" | "landed" | "branchName" | "builtOnVersion">> {
   return {
+    // No change here is rebuilt on an open batch's version.
+    builtOnVersion: async () => undefined,
     combine: async (input: CombineInput): Promise<Combined> => {
       let head = BATCH_BASE;
       const members: BatchMember[] = [];

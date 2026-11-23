@@ -1,6 +1,12 @@
 import type { BatchChange } from "@shared/batches";
 import { describe, expect, it } from "vitest";
-import { EVERY_WAY, passed, setup } from "../../../tests/helpers/batchesHarness";
+import {
+  EVERY_WAY,
+  passed,
+  REPO,
+  type StandInPull,
+  setup,
+} from "../../../tests/helpers/batchesHarness";
 import { BATCH_WORDS } from "./batches";
 import { LEFT_OUT_WORDS } from "./combine";
 
@@ -65,7 +71,8 @@ describe("a change that clashes with the open batch", () => {
     home.approve(LEGEND);
     home.clashing.delete("t-export");
     const rebuilt = { ...EXPORT, head: "c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7", at: 6_000 };
-    await home.approveRebuilt(rebuilt, open.head);
+    home.builtOn.set(rebuilt.head, open.head);
+    await home.approve(rebuilt);
     await home.pass();
     expect(home.place(rebuilt)).toEqual({ state: "waiting", place: "line" });
     expect(home.record().line.map((entry) => entry.taskId)).toEqual(["t-legend", "t-export"]);
@@ -103,5 +110,49 @@ describe("a change that clashes with the open batch", () => {
     ]);
     // It keeps its place in line: the next batch's combine judges the version it has then.
     expect(home.place(LEGEND)).toEqual({ state: "waiting", place: "line" });
+  });
+  // The independent review's findings on this change: a version rebuilt on a batch hears
+  // again when a change that batch carried leaves it, and a told change's merge reads its
+  // place again whenever that batch ends, merged or not.
+  it("tells a rebuilt version once to rebuild again when a change its batch version carried leaves the batch", async () => {
+    const home = setup(EVERY_WAY, { rebuilding: true });
+    home.approve(PARSER);
+    home.approve(EXPORT);
+    await home.pass();
+    const first = home.open();
+    // Built on the batch's version, whatever repair was declared: git's history says so.
+    home.builtOn.set(LEGEND.head, first.head);
+    await home.approve(LEGEND);
+    await home.pass();
+    expect(home.record().line.map((entry) => entry.onBatch?.head)).toEqual([first.head]);
+    expect(home.heard.rebuilds).toEqual([]);
+
+    home.approvals.delete("t-export");
+    await home.batches.withdraw(REPO, "t-export");
+    await home.pass();
+    await home.pass();
+    const now = home.open();
+    expect(home.members()).toEqual(["t-parser"]);
+    const reason = LEFT_OUT_WORDS.batchChanged(first.head);
+    expect(home.heard.rebuilds).toEqual([
+      { taskId: "t-legend", head: LEGEND.head, on: now.head, reason },
+    ]);
+    expect(home.heard.taskNotes).toEqual([
+      { taskId: "t-legend", text: BATCH_WORDS.rebuild(reason, now.head) },
+    ]);
+  });
+
+  it("reads a told change's place again when its batch is closed unmerged", async () => {
+    const home = setup(EVERY_WAY, { rebuilding: true });
+    home.clashing.set("t-export", "t-parser");
+    home.approve(PARSER);
+    home.approve(EXPORT);
+    await home.pass();
+    expect(home.heard.settled).toEqual([["t-export"]]);
+    (home.host.pulls.get(31) as StandInPull).state = "closed";
+    await home.pass();
+    expect(home.heard.settled[1]).toEqual(["t-export"]);
+    expect(home.place(EXPORT)).toMatchObject({ state: "left-out" });
+    expect(home.place(EXPORT)).not.toHaveProperty("rebuild");
   });
 });

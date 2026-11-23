@@ -838,29 +838,20 @@ export class ChangeMerge {
           text: `Cannot merge: ${withdrawn}${withdrawn.endsWith(".") ? "" : "."}`,
           stop: "withdrawn",
         };
-      // A repair declared on a version of the open batch goes in line behind that batch.
-      const keptNow = standingAuthorization(this.options.tasks.get(taskId)?.delivery);
-      const rebuiltOn = keptNow?.lineage.findLast(
-        (step) => step.toHead === change.headSha,
-      )?.newBase;
-      await batches.enqueue(
-        repo.id,
-        {
-          taskId,
-          branch: change.branch,
-          head: change.headSha,
-          title: commit.title,
-          body: commit.body,
-          // The line keeps the order of the approvals, not of the runs that carry them here.
-          at: guard.approvedAt ?? this.context.now(),
-          ...(change.number !== undefined ? { number: change.number } : {}),
-          ...(stacked ? { base: stacked } : {}),
-          ...(builtOn ? { base: builtOn.branch, after: builtOn.task.id } : {}),
-          // The held version this approval verified the fix on goes with its repair as it enters the line.
-          ...(heldBase ? { heldBase } : {}),
-        },
-        rebuiltOn,
-      );
+      await batches.enqueue(repo.id, {
+        taskId,
+        branch: change.branch,
+        head: change.headSha,
+        title: commit.title,
+        body: commit.body,
+        // The line keeps the order of the approvals, not of the runs that carry them here.
+        at: guard.approvedAt ?? this.context.now(),
+        ...(change.number !== undefined ? { number: change.number } : {}),
+        ...(stacked ? { base: stacked } : {}),
+        ...(builtOn ? { base: builtOn.branch, after: builtOn.task.id } : {}),
+        // The held version this approval verified the fix on goes with its repair as it enters the line.
+        ...(heldBase ? { heldBase } : {}),
+      });
       // The reading now carries the change's place in the batch, so the
       // check watch follows it and wakes its crewmate if the batch fails it.
       await this.checks.run(taskId).catch(() => {});

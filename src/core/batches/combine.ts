@@ -14,6 +14,7 @@ const BASE_REF = "refs/infinitary/batch/base";
 const CHANGE_REF = "refs/infinitary/batch/change";
 const HEAD_REF = "refs/infinitary/batch/head";
 const STACK_REF = "refs/infinitary/batch/stack";
+const BUILT_REF = "refs/infinitary/batch/built-on";
 
 /** Git's exit code for a merge it could not finish cleanly. */
 const CONFLICT = 1;
@@ -329,6 +330,48 @@ export async function clashesWithBatch(input: {
   if (fetched !== input.head || !(await sharesHistory(input.repoDir, input.batch, input.head)))
     return undefined;
   return (await mergedTree(input.repoDir, input.batch, input.head)) === null;
+}
+
+/**
+ * The first of `versions`, open batch versions, that a change's branch at
+ * `head` builds on (docs/forge.md, "A change rebuilt on an open batch"),
+ * read from git's history whatever repair was declared: undefined when it
+ * builds on none it can read; null when its branch could not be read at
+ * `head`, so a later pass reads again. A head this clone does not hold yet
+ * is fetched from its branch first.
+ */
+export async function batchVersionIn(input: {
+  repoDir: string;
+  branch: string;
+  head: string;
+  versions: readonly string[];
+  remote?: string;
+  timeoutMs?: number;
+}): Promise<string | undefined | null> {
+  if (!(await readable(input.repoDir, input.head))) {
+    const fetched = await git(
+      input.repoDir,
+      [
+        "fetch",
+        "--quiet",
+        "--no-tags",
+        input.remote ?? "origin",
+        `+refs/heads/${input.branch}:${BUILT_REF}`,
+      ],
+      network(input.timeoutMs),
+    )
+      .then(() => git(input.repoDir, ["rev-parse", "--verify", `${BUILT_REF}^{commit}`]))
+      .catch(unread);
+    if (fetched !== input.head) return null;
+  }
+  for (const version of input.versions)
+    if (
+      version !== input.head &&
+      (await readable(input.repoDir, version)) &&
+      (await contains(input.repoDir, input.head, version))
+    )
+      return version;
+  return undefined;
 }
 
 /** A missing merge base is an expected Git result, unlike an unreadable commit. */

@@ -9,7 +9,14 @@ import {
 } from "@shared/batches";
 import { describe, expect, it, vi } from "vitest";
 import { scratchDir } from "../../../tests/helpers/scratchDirs";
-import { clashesWithBatch, combine, LEFT_OUT_WORDS, landedCommits, pushBatch } from "./combine";
+import {
+  batchVersionIn,
+  clashesWithBatch,
+  combine,
+  LEFT_OUT_WORDS,
+  landedCommits,
+  pushBatch,
+} from "./combine";
 import { carried, combined, declared, enqueue, heldVersions, release, withdraw } from "./line";
 
 // This file chains real git and is not about the utility-QoS clamp, so what
@@ -1226,6 +1233,23 @@ describe("a change rebuilt on an open batch's version", () => {
     run(at.work, "commit", "-m", "docs: add a readme");
     run(at.work, "push", "origin", "HEAD:refs/heads/main");
   }
+
+  // The independent review's finding: a rebuilt version is known from git's history, so one
+  // whose repair came back to the captain still goes behind the batch it was built on.
+  it("reads which open batch version a change's branch builds on, fetching a branch this clone does not hold yet", async () => {
+    const at = host();
+    const { first, rebuilt, count } = await openBatch(at);
+    const ask = (entry: BatchChange) =>
+      batchVersionIn({
+        repoDir: at.home,
+        branch: entry.branch,
+        head: entry.head,
+        versions: ["0".repeat(40), first.head],
+      });
+    expect(await ask(rebuilt)).toBe(first.head);
+    expect(await ask(count)).toBeUndefined();
+    expect(await ask({ ...rebuilt, head: "1".repeat(40) })).toBeNull();
+  });
 
   it("tells a change waiting in line that clashes with the open batch's version, and not one that combines", async () => {
     const at = host();

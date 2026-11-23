@@ -410,7 +410,7 @@ export function setup(
   const unmergedBases = new Map<string, string>();
   /** The versions whose branch still carries the work they were built on. */
   const carryingBase = new Set<string>();
-  /** A fix's version and the held batch version its branch builds on, as git reads its history. */
+  /** A version and the held or open batch version its branch builds on, as git reads its history. */
   const builtOn = new Map<string, string>();
   /** Versions waiting in line whose branch no longer combines with the open batch's version, as `merge-tree` reads it. */
   const clashingOpen = new Set<string>();
@@ -481,6 +481,9 @@ export function setup(
       note: (fact) => heard.notes.push(fact),
       checksRead: (repoId) => heard.checksRead.push(repoId),
       taskNote: (taskId, text) => heard.taskNotes.push({ taskId, text }),
+      // As git reads it (combine.test.ts): the open batch version a change's branch builds on.
+      builtOnVersion: async (input) =>
+        input.versions.find((version) => builtOn.get(input.head) === version),
       ...(opts.rebuilding
         ? {
             rebuild: ({ change, reason, told }) =>
@@ -601,12 +604,6 @@ export function setup(
       approvals.set(change.taskId, change.head);
       approvedOrigins.set(change.taskId, repos.get(REPO)?.origin ?? null);
       return batches.enqueue(REPO, change);
-    },
-    /** The captain's approval kept, a repair declared on `on` puts the version in line. */
-    approveRebuilt(change: BatchChange, on: string): Promise<void> {
-      approvals.set(change.taskId, change.head);
-      approvedOrigins.set(change.taskId, repos.get(REPO)?.origin ?? null);
-      return batches.enqueue(REPO, change, on);
     },
     /** The captain turns on a naming runbook of their own, or turns naming off. */
     nameBy(rule: NamingRule | null) {

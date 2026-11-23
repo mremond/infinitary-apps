@@ -504,9 +504,6 @@ describe("a change built on another change's approved version", () => {
   });
 });
 
-// The independent review's finding on this change, a bug being fixed, with the captain's
-// answer to it: a change whose story is revised at its approved version stays in its batch,
-// which only takes the story's title and words.
 describe("a change rebuilt on an open batch", () => {
   // Intent: INF-6147's accepted plan, piece 1, from the captain's ask that batches stop paying
   // again and again to bring a large change up to date that never gets in: a change that
@@ -660,6 +657,9 @@ describe("a change rebuilt on an open batch", () => {
   });
 });
 
+// The independent review's finding on this change, a bug being fixed, with the captain's
+// answer to it: a change whose story is revised at its approved version stays in its batch,
+// which only takes the story's title and words.
 describe("a story revised at the approved version", () => {
   const RETITLED = {
     taskId: PARSER.taskId,
