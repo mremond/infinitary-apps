@@ -166,7 +166,7 @@ One module owns the walk (`src/core/tasks/askThreads.ts`, `AskThreads`): the thr
 - **The update.**
   The update to one thread per message keeps each message open at it from losing work its merged thread held.
   The migration lists each followed, unended message with the message whose thread it was in (`ask_thread_carries`); one step at the next start (`AskEnding.carryThreads`, before the boot's answer check) reads that merged thread once as it stood and attaches the message to its still-running work as `host:carried`, or marks an attachment it already had there, such as the host's fallback, as carried (`threadCarried` on its `ask` event), ties it to the tasks of the cards that thread waited on or was answered from, carries its response requests, the other messages' card, reply and reaction facts and its spent crewmate ask, and marks it carried in the same write.
-  A carried attachment counts as acted on and is never quoted as where work came from; the step raises no retry, notice or crewmate ask, and runs once.
+  A carried attachment counts as acted on; one the step added (`host:carried`) is never quoted as where work came from, and one it marked keeps the quote it had; the step raises no retry, notice or crewmate ask, and runs once.
 - **A card that can answer it.**
   A card about its work that its author marked `answering`, a merge card's merge, the app's merge line on a story note, or a card the first mate showed for the message; it counts only when it was shown since the message.
 - **Accepted.**

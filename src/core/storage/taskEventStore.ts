@@ -299,7 +299,8 @@ export class TaskEventStore {
   /**
    * Ask attribution needs the attached task, its typed via and whether the
    * message is only tied to the task (`tie`, with the response requests it
-   * asked there), not its whole timeline.
+   * asked there) and whether the update to one thread per message kept it
+   * as the message's work (`carried`), not its whole timeline.
    */
   askAttributions(askIds: readonly string[]): {
     taskId: string;
