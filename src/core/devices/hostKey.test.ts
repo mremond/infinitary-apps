@@ -16,7 +16,11 @@ afterEach(() => {
 
 /** A port on this computer's loopback where something takes the connection and closes it, sending no SSH key. */
 async function notSsh(): Promise<number> {
-  const server = createServer((socket) => socket.end("HTTP/1.1 400 Bad Request\r\n\r\n"));
+  const server = createServer((socket) => {
+    // The read closes its end once it has its answer, which can reset this side mid-write.
+    socket.on("error", () => {});
+    socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
+  });
   servers.push(server);
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const at = server.address();
