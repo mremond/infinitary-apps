@@ -271,7 +271,7 @@ async function buildRecord() {
           cardStore.upsert(card(cardId, id, `Closed work ${index} is done`));
           cardStore.appendMessage({ cardId, who: "captain", text: "Looks good." });
           cardStore.resolve(cardId, "merge");
-          tasks.capture.markAnswered([askId], cardId);
+          tasks.capture.markAnswered(askId, cardId);
           tasks.close(id, { status: "done", reason: "merged", actor: "host" });
         }
       }),

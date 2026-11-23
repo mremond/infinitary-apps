@@ -664,10 +664,10 @@ describe("FirstmateAgent answer delivery", () => {
     await finish(f);
   });
 
-  // INF-2667 review of INF-2664: a newer message that joins the chain after
+  // INF-2667 review of INF-2664: a newer message about the same work after
   // the notice was taken back has a retry of its own; the old notice, with the
-  // old words, never stands in for it.
-  it("gives a newer message that joins after a withdrawn notice its own retry (INF-2664)", async () => {
+  // old words, never stands in for it. Since INF-6115 it keeps its own thread.
+  it("gives a newer message about the same work after a withdrawn notice its own retry (INF-2664)", async () => {
     const f = setup({
       silent: true,
       seedTasks: [{ id: "t58", title: "Check if PR 58 merged", status: "idle" }],
@@ -704,12 +704,12 @@ describe("FirstmateAgent answer delivery", () => {
       ?.run({ text: "PR 58 merged.", summary: "PR 58 merged." });
     expect(noticeOf(f)).toBeUndefined();
 
-    // A newer message about that work joins the message's chain.
+    // A newer message about that work keeps its own thread on it.
     await f.agent.converse({ text: "and did its checks pass?", taskId: work?.id ?? "" });
     await vi.waitFor(() => expect(f.tasks.capture.listAsks()).toHaveLength(2));
     const newer = f.tasks.capture.listAsks()[1];
     await finish(f);
-    expect(f.tasks.capture.getAsk(newer?.id ?? "")?.continues).toBe(ask?.id);
+    expect(f.tasks.capture.getAsk(newer?.id ?? "")?.continues).toBeNull();
 
     // The approved minus rule keeps this decision available to the newer message.
     const answerId = f.supervisor.cards.openCardsFor(work?.id ?? "")[0]?.id ?? "";
@@ -722,6 +722,8 @@ describe("FirstmateAgent answer delivery", () => {
     expect(noticeOf(f)).toBeUndefined();
     // The author removes the unanswered offer, so the newer message now needs
     // its own retry, with its own words; the older notice is not substituted.
+    // The older message, its retry spent, gets its own notice back with its
+    // own words (INF-6115: each message ends on its own).
     f.supervisor.closeCard(
       answerId,
       { kind: "crewmate", taskId: work?.id ?? "" },
@@ -735,8 +737,10 @@ describe("FirstmateAgent answer delivery", () => {
       .allFor(FIRSTMATE_RECIPIENT)
       .flatMap((row) => (row.facts?.kind === "answer-missing" ? [row.facts.askId] : []));
     expect(wakes).toEqual([newer?.id]);
-    expect(noticeOf(f)).toBeUndefined();
-    expect(f.tasks.capture.getAsk(ask?.id ?? "")?.delivery).toBe("covered");
+    expect(noticeOf(f)?.id).toBe(f.tasks.capture.getAsk(ask?.id ?? "")?.noticeCardId);
+    expect(noticeOf(f)?.body).toContain("is PR 58 merged?");
+    expect(noticeOf(f)?.body).not.toContain("and did its checks pass?");
+    expect(f.tasks.capture.getAsk(ask?.id ?? "")?.delivery).toBe("unresolved");
   });
 
   // INF-2664, found running the app: a decision card files its own task, which
@@ -765,8 +769,8 @@ describe("FirstmateAgent answer delivery", () => {
   });
 
   // INF-2667 review of INF-2664: close_card names only the messages that
-  // waited on the card it closed, never a chain whose newer message the card
-  // came before.
+  // waited on the card it closed, never a newer message the card came before;
+  // since INF-6115 the older message waits on it in a thread of its own.
   it("names in close_card's answer only the messages waiting on that card (INF-2664)", async () => {
     const f = setup({ silent: true });
     await f.agent.converse("is PR 58 merged?");
@@ -774,20 +778,24 @@ describe("FirstmateAgent answer delivery", () => {
     const shown = await toolsOf(f.specs).get("emit_card")?.execute("c1", note("merged", "Merged"));
     const card = shown?.content[0]?.text?.match(/\((card-fm-[^)]+)\)/)?.[1] ?? "";
     await finish(f);
-    // A newer message about the card's work joins the chain; the card came before it.
+    // A newer message about the card's work; the card came before it.
     const work = f.tasks.capture.getAsk(first?.id ?? "")?.taskId ?? "";
     await f.agent.converse({ text: "and did its checks pass?", taskId: work });
     await drained(f.session, 2);
     await finish(f);
     const newer = f.tasks.capture.listAsks()[1];
-    expect(f.tasks.capture.getAsk(newer?.id ?? "")?.continues).toBe(first?.id);
-    const chain = f.supervisor.askEnding.chain(first?.id ?? "");
-    expect(chain && f.supervisor.askEnding.state(chain).kind).not.toBe("waiting");
+    expect(f.tasks.capture.getAsk(newer?.id ?? "")?.continues).toBeNull();
+    const thread = f.supervisor.askEnding.thread(newer?.id ?? "");
+    expect(thread && f.supervisor.askEnding.state(thread).kind).not.toBe("waiting");
     notifyProse(f.db, f.agent, "[fm-op] a crewmate reported on PR 58", "agent");
     await vi.waitFor(() => expect(f.session.prompts.length).toBeGreaterThanOrEqual(3));
     const closed = await toolsOf(f.specs).get("close_card")?.execute("x1", { card_id: card });
     expect(closed?.content[0]?.text).toContain("Closed card");
-    expect(closed?.content[0]?.text).not.toContain("now has no answering card up");
+    // The first message waited on the card in its own thread (INF-6115).
+    expect(closed?.content[0]?.text).toContain(
+      `The captain's message ${first?.id} ("is PR 58 merged?") now has no answering card up`,
+    );
+    expect(closed?.content[0]?.text).not.toContain(newer?.id ?? "");
     await finish(f);
   });
 
@@ -912,7 +920,7 @@ describe("FirstmateAgent answer delivery", () => {
     ]);
     const ask = f.tasks.capture.listAsks()[0];
     f.tasks.close(task?.id ?? "", { status: "done", reason: "answered", actor: "host" });
-    f.tasks.capture.markAnswered([ask?.id ?? ""], null);
+    f.tasks.capture.markAnswered(ask?.id ?? "", null);
     expect(open()).toBeUndefined();
   });
 
@@ -1141,9 +1149,9 @@ describe("FirstmateAgent answer delivery", () => {
     f.supervisor.cardActions.act(cardId, "confirm");
     await tick();
     const ask = f.tasks.capture.listAsks()[0];
-    const chain = f.supervisor.askEnding.chain(ask?.id ?? "");
+    const thread = f.supervisor.askEnding.thread(ask?.id ?? "");
     // The message ended on the card the first mate answered it under.
-    expect(chain && f.supervisor.askEnding.state(chain)).toEqual({ kind: "answered", cardId });
+    expect(thread && f.supervisor.askEnding.state(thread)).toEqual({ kind: "answered", cardId });
   });
 
   // INF-5202, the incident on the first mate's own note: the captain asked

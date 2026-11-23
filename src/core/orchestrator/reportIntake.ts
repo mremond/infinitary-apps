@@ -386,7 +386,7 @@ export class ReportIntake {
     // The crewmate step (INF-1610): the last running work of a captain's
     // message reports finished with no card answering it, so its crewmate
     // is asked once for that card; a second finished report is its reason.
-    if (declaration?.finished && this.host.askEnding.crewmateStep(task.id)) {
+    if (declaration?.finished && this.host.askEnding.crewmateStep(task.id).length > 0) {
       throw new Error(CREWMATE_ANSWER_ASK);
     }
     const heldSummary = summary?.replace(/\s+/g, " ").trim();

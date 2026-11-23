@@ -576,7 +576,9 @@ export function firstmateTaskTools(host: FirstmateTaskToolsHost): TaskToolsDeleg
     },
     startNow: async (input) => {
       const record = resolve(input.task);
-      host.asks.attach(record.id, "update_task", true, "tie");
+      // Starting queued work never makes the message its origin: the task
+      // stays in the thread that filed it (INF-6115).
+      host.asks.attach(record.id, "update_task", false, "tie");
       // INF-6091 finding 1: the first mate's own open card still asks.
       const held = cardHeldStartRefusal(record, cardHold(record.id));
       if (held) return held;

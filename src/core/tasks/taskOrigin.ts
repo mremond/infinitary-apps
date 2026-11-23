@@ -1,4 +1,5 @@
 import { type AskRecord, askReceipt } from "../storage/askStore";
+import { isHostRaisedShape } from "../storage/changeProjection";
 import type { TaskEvent } from "../storage/taskEventStore";
 import type { TaskRecord } from "../storage/taskRecords";
 
@@ -93,8 +94,12 @@ export type OriginReader = {
   askReach(askId: string): number;
 };
 
-/** The tools whose effect on a task is never where its work came from. */
-const NEVER_QUOTED = new Set(["tool:settle_task", "tool:interrupt_crewmate"]);
+/**
+ * The attachments that are never where a task's work came from: a settle or
+ * an interruption, and the work the update to one thread per message carried
+ * (INF-6115, `CARRIED_VIA` in `askThreads.ts`).
+ */
+const NEVER_QUOTED = new Set(["tool:settle_task", "tool:interrupt_crewmate", "host:carried"]);
 
 /**
  * Whether an `ask` event filed or started its task. A newer event says so
@@ -112,17 +117,31 @@ function startedBy(event: TaskEvent): boolean {
 
 type Found =
   | { kind: "asked"; at: number; ask: AskRecord }
-  | { kind: "relayed"; text: string; at: number }
+  | { kind: "relayed"; text: string; at: number; taskId: string }
   | { kind: "saved"; at: number; origin: SavedOrigin };
+
+/** What a task's own origin needs read: the task, its origin events and the messages they name. */
+export type OwnOriginReader = Pick<OriginReader, "get" | "events" | "ask">;
 
 /**
  * A task's own origin: the oldest message that filed or started it, or the
  * oldest origin saved on it, whichever came first. A report origin is a
  * route, not a source: the walk follows it to the reporting task. One that
  * keeps the captain's words its report passed on is a source: those words,
- * typed on the reporting task (INF-3202).
+ * typed on the reporting task (INF-3202). The host's own delivery child (a
+ * review, a repair assessment) has none: it is always part of its builder,
+ * whatever turn filed it (INF-6115).
  */
-function ownOrigin(reader: OriginReader, id: string): Found | undefined {
+function ownOrigin(reader: OwnOriginReader, id: string): Found | undefined {
+  const found = savedOrAsked(reader, id);
+  // Read the task's shape only when it holds an origin, so a walk over parts
+  // with none reads no task row (INF-2278).
+  if (found && isHostRaisedShape(reader.get(id)?.shape)) return undefined;
+  return found;
+}
+
+/** The oldest message that started a task or origin saved on it. */
+function savedOrAsked(reader: OwnOriginReader, id: string): Found | undefined {
   for (const event of reader.events(id)) {
     if (event.kind === "ask" && event.ref && startedBy(event)) {
       const ask = reader.ask(event.ref);
@@ -130,9 +149,44 @@ function ownOrigin(reader: OriginReader, id: string): Found | undefined {
     }
     const saved = savedOriginOf(event);
     if (saved?.kind === "report" && saved.words)
-      return { kind: "relayed", text: saved.words.text, at: saved.words.at };
+      return {
+        kind: "relayed",
+        text: saved.words.text,
+        at: saved.words.at,
+        taskId: saved.taskId,
+      };
     if (saved && saved.kind !== "report") return { kind: "saved", at: event.at, origin: saved };
   }
+  return undefined;
+}
+
+/**
+ * The origin that decides which captain's message a task's work belongs to
+ * (INF-6115, docs/task-capture.md "How a message ends"): the message that
+ * filed or started it (`asked`), an automation run, the card whose choice
+ * filed it (`card`), or the task whose report passed the captain's words on
+ * (`report`). A click and passed-on words continue the thread of the card
+ * or report they were made on; a message or an automation is a thread's
+ * own start. Undefined when the task has no origin of its own, so it
+ * inherits one through the link it was filed with. The You asked line
+ * reads the same origin (`originAbout`).
+ */
+export type ThreadOrigin =
+  | { kind: "asked"; askId: string }
+  | { kind: "automation" }
+  | { kind: "card"; cardId: string }
+  | { kind: "report"; taskId: string };
+
+export function threadOrigin(reader: OwnOriginReader, id: string): ThreadOrigin | undefined {
+  const found = ownOrigin(reader, id);
+  if (!found) return undefined;
+  if (found.kind === "asked") return { kind: "asked", askId: found.ask.id };
+  if (found.kind === "relayed") return { kind: "report", taskId: found.taskId };
+  const origin = found.origin;
+  if (origin.kind === "automation") return { kind: "automation" };
+  // A click saved without its card names no thread to continue.
+  if (origin.kind === "chose" && typeof origin.cardId === "string")
+    return { kind: "card", cardId: origin.cardId };
   return undefined;
 }
 

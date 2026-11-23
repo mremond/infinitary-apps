@@ -12,7 +12,7 @@ import {
   noticeCardId,
   refusalOf,
 } from "./answerDelivery";
-import type { AskChain, AskEnding } from "./askEnding";
+import type { AskEnding, AskThread } from "./askEnding";
 import { answerMissingWake } from "./captainWakes";
 
 /**
@@ -34,7 +34,7 @@ export type AnswerDeliveryHost = {
   cardTitle: (cardId: string) => string | undefined;
   /** The newest captain message under a card, which the retry names. Absent, it names none. */
   captainMessage?: (cardId: string) => number | undefined;
-  /** How each message ends (`AskEnding`): its chain, its work and its answer. */
+  /** How each message ends (`AskEnding`): its thread, its work and its answer. */
   ending: AskEnding;
   /**
    * Judge nothing: no verdict, no retry, no notice. The replay harness and
@@ -242,7 +242,7 @@ export class AnswerDeliveryCheck {
    * One message, judged when a turn that read it ends. A message saved
    * before the app followed messages to their answer keeps the older
    * rule: covered by any action. A followed one is judged by how its
-   * chain stands (docs/task-capture.md "How a message ends"): answered,
+   * thread stands (docs/task-capture.md "How a message ends"): answered,
    * work still running or an answering card up covers it; an answer the
    * captain accepted is made final; with none of these, the first mate
    * is asked once, and after that the one notice goes up.
@@ -258,16 +258,16 @@ export class AnswerDeliveryCheck {
       return;
     }
     if (!JUDGEABLE_DELIVERY.includes(ask.delivery)) return;
-    const chain = this.host.ending.chain(id);
-    if (!chain) return;
-    const state = this.host.ending.state(chain);
+    const thread = this.host.ending.thread(id);
+    if (!thread) return;
+    const state = this.host.ending.state(thread);
     if (state.kind === "unanswered") return;
     if (state.kind === "missing") {
-      if (ask.delivery === "retrying") this.notify(id, chain);
-      else this.retry(id, chain);
+      if (ask.delivery === "retrying") this.notify(id);
+      else this.retry(id, thread);
       return;
     }
-    if (state.kind === "accepted") this.finalize(chain, state.cardId);
+    if (state.kind === "accepted") this.finalize(thread, state.cardId);
     this.host.tasks.capture.setAskDelivery(id, "covered");
   }
 
@@ -282,15 +282,12 @@ export class AnswerDeliveryCheck {
   sweep(): void {
     if (this.host.observe) return;
     this.withdrawNotices();
-    for (const chain of this.host.ending.openChains()) {
+    for (const thread of this.host.ending.openThreads()) {
       try {
-        if (chain.members.some((member) => member.delivery !== "covered")) continue;
-        const state = this.host.ending.state(chain);
-        if (state.kind === "accepted") this.finalize(chain, state.cardId);
-        else if (state.kind === "missing") {
-          const newest = chain.members.at(-1) ?? chain.root;
-          this.retry(newest.id, chain);
-        }
+        if (thread.ask.delivery !== "covered") continue;
+        const state = this.host.ending.state(thread);
+        if (state.kind === "accepted") this.finalize(thread, state.cardId);
+        else if (state.kind === "missing") this.retry(thread.ask.id, thread);
       } catch (caught) {
         console.warn("[firstmate] answer delivery could not read a message's ending:", caught);
       }
@@ -300,9 +297,8 @@ export class AnswerDeliveryCheck {
   /**
    * A notice up for a message whose work now shows an answering card on the
    * stage, offered after the notice, is taken back (INF-2664): a card still
-   * held for its author's close-out waits until it is released. Every message of
-   * its chain waits on that card again, as one that never had a notice
-   * would. The notice keeps its id on the message, so if that card closes
+   * held for its author's close-out waits until it is released. The message
+   * waits on that card again, as one that never had a notice would. The notice keeps its id on the message, so if that card closes
    * with no answer the same notice comes back, with no second reminder.
    */
   withdrawNotices(): void {
@@ -313,13 +309,11 @@ export class AnswerDeliveryCheck {
         const ask = this.host.tasks.capture.getAsk(notice.askId);
         if (!ask?.followed || ask.delivery !== "unresolved") continue;
         if (ask.noticeCardId !== noticeCardId(ask.id)) continue;
-        const chain = this.host.ending.chain(ask.id);
-        const card = chain ? this.host.ending.waitingCard(chain) : undefined;
-        if (!chain || !card || !onStage(card)) continue;
+        const thread = this.host.ending.thread(ask.id);
+        const card = thread ? this.host.ending.waitingCard(thread) : undefined;
+        if (!thread || !card || !onStage(card)) continue;
         if (this.host.ending.offeredAt(card) < notice.shownAt) continue;
-        const unresolved = chain.members.filter((member) => member.delivery === "unresolved");
-        for (const member of unresolved)
-          this.host.tasks.capture.setAskDelivery(member.id, "covered");
+        this.host.tasks.capture.setAskDelivery(ask.id, "covered");
         withdraw(noticeCardId(ask.id));
       } catch (caught) {
         console.warn("[firstmate] answer delivery could not take back a notice:", caught);
@@ -332,10 +326,10 @@ export class AnswerDeliveryCheck {
     return this.host.inbox.allFor(FIRSTMATE_RECIPIENT).length === 0;
   }
 
-  /** The accepted answer is final, for every message of the chain. */
-  private finalize(chain: AskChain, cardId: string | null): void {
+  /** The accepted answer is final. */
+  private finalize(thread: AskThread, cardId: string | null): void {
     if (!this.laneEmpty()) return;
-    this.host.tasks.capture.markAnswered(chain.ids, cardId);
+    this.host.tasks.capture.markAnswered(thread.ask.id, cardId);
   }
 
   /**
@@ -353,13 +347,12 @@ export class AnswerDeliveryCheck {
    * replay's `asks_without_action` row, and the `answer-repair:<askId>`
    * name `inbox_once` keeps for every retry queued.
    */
-  private retry(id: string, chain?: AskChain): void {
+  private retry(id: string, thread?: AskThread): void {
     const ask = this.host.tasks.capture.getAsk(id);
     if (!ask) return;
-    // A message whose notice was taken back already had its retry: the notice
-    // returns. A newer message that joined after has its own retry.
+    // A message whose notice was taken back already had its retry: the notice returns.
     if (ask.noticeCardId) {
-      this.notify(id, chain);
+      this.notify(id);
       return;
     }
     const refusal = refusalOf(ask.deliveryFacts.entries);
@@ -368,8 +361,8 @@ export class AnswerDeliveryCheck {
     const aboutTitle = aboutId ? this.host.cardTitle(aboutId) : undefined;
     const aboutMessage = aboutId ? this.host.captainMessage?.(aboutId) : undefined;
     // Work a crewmate ran for it ended: the first mate is asked for the answer it found.
-    const ran = chain
-      ? this.host.ending.ownWork(chain).filter((task) => task.startedAt !== null)
+    const ran = thread
+      ? this.host.ending.ownWork(thread).filter((task) => task.startedAt !== null)
       : [];
     const queued = this.host.inbox.enqueueWake(
       FIRSTMATE_RECIPIENT,
@@ -398,7 +391,7 @@ export class AnswerDeliveryCheck {
     );
     // The once-name already spent on an earlier retry: the notice follows.
     if (queued === null) {
-      this.notify(id, chain);
+      this.notify(id);
       return;
     }
     this.host.tasks.capture.setAskDelivery(id, "retrying");
@@ -406,17 +399,14 @@ export class AnswerDeliveryCheck {
 
   /**
    * The one notice, raised under a fixed id and marked on the message so it
-   * is never raised twice at once; every message of its chain ends
-   * unanswered with it. One taken back comes back under the same id.
+   * is never raised twice at once; the message ends unanswered with it. One
+   * taken back comes back under the same id.
    */
-  private notify(id: string, chain?: AskChain): void {
+  private notify(id: string): void {
     const ask = this.host.tasks.capture.getAsk(id);
     if (!ask || ask.delivery === "unresolved") return;
     this.host.raiseNotice(noticeCard(id, askReceipt(ask), ask.deliveryFacts.entries));
     this.host.tasks.capture.markAskUnresolved(id, noticeCardId(id));
-    for (const other of chain?.ids ?? []) {
-      if (other !== id) this.host.tasks.capture.setAskDelivery(other, "unresolved");
-    }
   }
 
   /**

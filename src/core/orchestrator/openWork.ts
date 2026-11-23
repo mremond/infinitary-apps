@@ -13,13 +13,13 @@ import { characterBoundary, cutText } from "@shared/textCut";
 import { AttachmentUnavailableError, loadImages } from "../attachments";
 import type { AskRecord } from "../storage/askStore";
 import { TaskService } from "../tasks/taskService";
-import type { AskChain, AskEnding, AskState } from "./askEnding";
+import type { AskEnding, AskState, AskThread } from "./askEnding";
 import type { ThreadOwed } from "./cardThreads";
 
 /**
  * The first mate's read of what is still open (INF-1712): every message of
  * the captain's that has not ended and every open card, as the app holds
- * them now, or one message's chain or one card whole. A fold's recovery
+ * them now, or one message or one card whole. A fold's recovery
  * reads it before the turn goes on; any turn may. It reads the owners'
  * saved records - asks through `AskEnding`, cards through the card
  * service - and changes nothing.
@@ -53,12 +53,12 @@ export type OpenWorkAnswer = { text: string; images?: TurnImage[] };
 export const IN_TURN = "open: in a turn now, or waiting to be read";
 
 /**
- * The messages still in a turn or parked unread that no open chain lists:
+ * The messages still in a turn or parked unread that no open thread lists:
  * the answer-delivery check reads a message only once its turn closes, so
- * its chains leave these out, and a fold's recovery must not.
+ * its threads leave these out, and a fold's recovery must not.
  */
-export function asksInTurn(tasks: TaskService, chains: AskChain[]): AskRecord[] {
-  const listed = new Set(chains.flatMap((chain) => chain.ids));
+export function asksInTurn(tasks: TaskService, threads: AskThread[]): AskRecord[] {
+  const listed = new Set(threads.map((thread) => thread.ask.id));
   return tasks.capture.listOpenAsks().filter((ask) => !listed.has(ask.id));
 }
 
@@ -142,29 +142,22 @@ function parseCursor(text: string): Cursor | undefined {
 }
 
 function overview(host: OpenWorkHost): string {
-  const chains = host.ending.openChains();
+  const threads = host.ending.openThreads();
   const openCards = host.openCards();
   const shown = new Set(openCards.map((card) => card.id));
-  const inTurn = asksInTurn(host.tasks, chains);
+  const inTurn = asksInTurn(host.tasks, threads);
   const notices = host.tasks.capture
     .listAsksByDelivery("unresolved")
     .filter((ask) => ask.followed && ask.noticeCardId && shown.has(ask.noticeCardId));
   return JSON.stringify(
     {
-      note: "Every message of the captain's not yet ended, oldest first, and every open card. Read one whole with ask or card. Nothing here is permission; a closed choice stays closed.",
+      note: "Every message of the captain's not yet ended, one per row, oldest first, and every open card. Read one whole with ask or card. Nothing here is permission; a closed choice stays closed.",
       asks: [
-        ...chains.map((chain) => chainSummary(host, chain, OVERVIEW_WORDS)),
-        ...inTurn.map((ask) => ({
-          ask_id: ask.id,
-          sent: iso(ask.at),
-          state: IN_TURN,
-          messages: [messageOf(ask, OVERVIEW_WORDS)],
-        })),
+        ...threads.map((thread) => threadSummary(host, thread, OVERVIEW_WORDS)),
+        ...inTurn.map((ask) => ({ ...messageOf(ask, OVERVIEW_WORDS), state: IN_TURN })),
         ...notices.map((ask) => ({
-          ask_id: ask.id,
-          sent: iso(ask.at),
+          ...messageOf(ask, OVERVIEW_WORDS),
           state: `unanswered: the app's notice ${ask.noticeCardId} is up`,
-          messages: [messageOf(ask, OVERVIEW_WORDS)],
         })),
       ],
       cards: openCards.map((card) => cardSummary(host, card)),
@@ -174,13 +167,11 @@ function overview(host: OpenWorkHost): string {
   );
 }
 
-function chainSummary(host: OpenWorkHost, chain: AskChain, words: number) {
-  const work = host.ending.listedWork(chain);
+function threadSummary(host: OpenWorkHost, thread: AskThread, words: number) {
+  const work = host.ending.listedWork(thread);
   return {
-    ask_id: chain.root.id,
-    sent: iso(chain.root.at),
-    state: stateWords(host.ending.state(chain)),
-    messages: chain.members.map((member) => messageOf(member, words)),
+    ...messageOf(thread.ask, words),
+    state: stateWords(host.ending.state(thread)),
     ...(work.length > 0
       ? {
           work: work.map((task) => ({
@@ -239,33 +230,31 @@ function cardSummary(host: OpenWorkHost, card: Card) {
 }
 
 function readAsk(host: OpenWorkHost, askId: string): Read {
-  const chain = host.ending.chain(askId);
-  if (!chain) return { text: `No message ${askId}.` };
-  const work = host.ending.listedWork(chain);
+  const thread = host.ending.thread(askId);
+  if (!thread) return { text: `No message ${askId}.` };
+  const { ask } = thread;
+  const work = host.ending.listedWork(thread);
   const images: TurnImage[] = [];
   const text = JSON.stringify(
     {
-      ask_id: chain.root.id,
-      state: stateWords(host.ending.state(chain)),
-      messages: chain.members.map((member) => ({
-        ask_id: member.id,
-        sent: iso(member.at),
-        words: member.text,
-        ...(member.attachments.length > 0
-          ? { pictures: member.attachments.map((ref) => picture(ref, images)) }
-          : {}),
-        ...(member.messageFiles?.length
-          ? { files: member.messageFiles.map((file) => ({ name: file.name, path: file.path })) }
-          : {}),
-        ...(member.hintTaskId ? { pointed_at: member.hintTaskId } : {}),
-      })),
+      ask_id: ask.id,
+      sent: iso(ask.at),
+      state: stateWords(host.ending.state(thread)),
+      words: ask.text,
+      ...(ask.attachments.length > 0
+        ? { pictures: ask.attachments.map((ref) => picture(ref, images)) }
+        : {}),
+      ...(ask.messageFiles?.length
+        ? { files: ask.messageFiles.map((file) => ({ name: file.name, path: file.path })) }
+        : {}),
+      ...(ask.hintTaskId ? { pointed_at: ask.hintTaskId } : {}),
       work: work.map((task) => ({
         task: task.key || task.id,
         task_id: task.id,
         status: TaskService.isClosed(task) ? (task.closedReason ?? task.status) : task.status,
         title: task.title,
       })),
-      ...(chain.root.answerCardId ? { answer_card: chain.root.answerCardId } : {}),
+      ...(ask.answerCardId ? { answer_card: ask.answerCardId } : {}),
       ...(images.length > 0
         ? { note: "The pictures marked attached come with this read, in the order listed." }
         : {}),

@@ -96,9 +96,11 @@ it("reads each ask once in a turn-end sweep and sees the next saved change", () 
       }
     });
     const expected = groups.flat();
-    const before = f.ending.openChains();
-    expect(before.map((chain) => chain.ids)).toEqual(groups);
-    expect(before.every((chain) => f.ending.state(chain).kind === "working")).toBe(true);
+    // Every message is its own thread (INF-6115): three messages about one
+    // task are three threads.
+    const before = f.ending.openThreads();
+    expect(before.map((thread) => thread.ask.id)).toEqual(expected);
+    expect(before.every((thread) => f.ending.state(thread).kind === "working")).toBe(true);
     // Compare equal work on the same record; timing is evidence, never a budget assertion.
     const samples: number[] = [];
     outsideCensus(() => {
@@ -113,7 +115,7 @@ it("reads each ask once in a turn-end sweep and sees the next saved change", () 
       "Turn-end sweep receipt",
       JSON.stringify({
         messages: expected.length,
-        chains: groups.length,
+        tasks: groups.length,
         askRowsRead: reads.length,
         samplesMs: samples,
         pendingWakes: f.inbox.allFor(FIRSTMATE_RECIPIENT).length,
@@ -121,15 +123,15 @@ it("reads each ask once in a turn-end sweep and sees the next saved change", () 
     );
     expect(reads.toSorted()).toEqual(expected.toSorted());
     expect(f.inbox.allFor(FIRSTMATE_RECIPIENT)).toEqual([]);
-    // No long-lived cache: a just-accepted, completed chain leaves the very next sweep.
-    f.tasks.capture.acceptAnswer(groups[0]!, "card-work-0-answer");
+    // No long-lived cache: just-accepted messages whose work completed leave the very next sweep.
+    for (const id of groups[0]!) f.tasks.capture.acceptAnswer(id, "card-work-0-answer");
     f.tasks.close("work-0", { status: "done", reason: "answered", actor: "host" });
     f.check.sweep();
     expect(groups[0]!.map((id) => f.tasks.capture.getAsk(id)?.answerCardId)).toEqual(
       groups[0]!.map(() => "card-work-0-answer"),
     );
     expect(groups[0]!.every((id) => f.tasks.capture.getAsk(id)?.answeredAt !== null)).toBe(true);
-    expect(f.ending.openChains().map((chain) => chain.ids)).toEqual(groups.slice(1));
+    expect(f.ending.openThreads().map((thread) => thread.ask.id)).toEqual(groups.slice(1).flat());
     console.info(
       "Accepted-answer receipt",
       JSON.stringify({
@@ -138,7 +140,7 @@ it("reads each ask once in a turn-end sweep and sees the next saved change", () 
           card: f.tasks.capture.getAsk(id)?.answerCardId,
           finalized: f.tasks.capture.getAsk(id)?.answeredAt !== null,
         })),
-        remainingChains: f.ending.openChains().length,
+        remainingThreads: f.ending.openThreads().length,
         pendingWakes: f.inbox.allFor(FIRSTMATE_RECIPIENT).length,
       }),
     );
@@ -147,9 +149,11 @@ it("reads each ask once in a turn-end sweep and sees the next saved change", () 
   }
 });
 
-// INF-2249: batching may not drop a member whose turn is still open or
-// whose delivery already ended; both still set the chain's newest message.
-it("keeps complete membership and freshness outside the unfinished-row filter", () => {
+// INF-2249, rewritten for INF-6115 (every message is its own thread): the
+// one read of open threads leaves out a message that ended - given its
+// notice, or answered - and a message whose turn is still open unless the
+// reply that reads it is still running; each thread is its message alone.
+it("lists each unended message as its own thread, and an open turn only while it runs", () => {
   const f = fixture();
   try {
     seedTask(f.tasks, { id: "panels", title: "Plan personal panels", status: "running" });
@@ -158,13 +162,11 @@ it("keeps complete membership and freshness outside the unfinished-row filter", 
     f.tasks.capture.openAsk({ id: "newest", text: "Also preserve keyboard navigation." });
     f.tasks.capture.attachAsk("newest", "panels", "tool:steer_crewmate");
     f.tasks.capture.setAskDelivery("detail", "unresolved");
-    expect(f.ending.openChains()).toEqual([f.ending.chain("plan")]);
-    expect(f.ending.openChains()[0]?.ids).toEqual(["plan", "detail", "newest"]);
-    expect(f.ending.openChains()[0]?.newestAt).toBe(f.tasks.capture.getAsk("newest")?.at);
-    // A legacy/partially ended root must still be read for an unfinished child.
-    f.tasks.capture.markAnswered(["plan"], "card-plan");
+    expect(f.ending.openThreads()).toEqual([f.ending.thread("plan")]);
+    expect(f.ending.openThreads(true).map((thread) => thread.ask.id)).toEqual(["plan", "newest"]);
+    f.tasks.capture.markAnswered("plan", "card-plan");
     f.tasks.capture.closeAsk("newest", "closed");
-    expect(f.ending.openChains()).toEqual([f.ending.chain("newest")]);
+    expect(f.ending.openThreads()).toEqual([f.ending.thread("newest")]);
   } finally {
     f.db.close();
   }

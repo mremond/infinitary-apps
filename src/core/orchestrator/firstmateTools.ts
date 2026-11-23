@@ -480,15 +480,15 @@ export function buildFirstmateTools(host: FirstmateToolHost) {
     createCloseCardTool((input) => {
       // The messages a step has read that wait on this card, before the close (INF-2664).
       const ending = supervisor.askEnding;
-      const waiting = ending.openChains(true).filter((chain) => {
-        const unread = (id: string, turn: string) => turn === "open" && !host.turn.read.has(id);
-        if (chain.members.some((member) => unread(member.id, member.turnState))) return false;
-        return ending.waitingCard(chain)?.id === input.cardId;
+      const waiting = ending.openThreads(true).filter((thread) => {
+        const { ask } = thread;
+        if (ask.turnState === "open" && !host.turn.read.has(ask.id)) return false;
+        return ending.waitingCard(thread)?.id === input.cardId;
       });
       const closed = supervisor.closeCard(input.cardId, { kind: "firstmate" }, input.reason);
-      const left = waiting.flatMap((chain) => {
-        const now = ending.chain(chain.root.id);
-        return now && ending.state(now).kind === "missing" ? [now.root] : [];
+      const left = waiting.flatMap((thread) => {
+        const now = ending.thread(thread.ask.id);
+        return now && ending.state(now).kind === "missing" ? [now.ask] : [];
       });
       const result = [
         closed,

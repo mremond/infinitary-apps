@@ -142,7 +142,6 @@ it.each(["close", "choice"] as const)(
       expect(
         accepted.every((ask) => ask?.answerCardId === card.id && ask.acceptedAt !== null),
       ).toBe(true);
-      expect(new Set(accepted.map((ask) => ask?.acceptedAt)).size).toBe(1);
       expect(
         groups
           .slice(1)
@@ -155,10 +154,10 @@ it.each(["close", "choice"] as const)(
         groups.flatMap((_, chain) => [`work-${chain}`, `work-${chain}-part`]).toSorted(),
       );
       // The next cold read still sees work state, not a retained acceptance/coverage cache.
-      expect(ending.state(ending.chain(groups[0]![0]!)!).kind).toBe("working");
+      expect(ending.state(ending.thread(groups[0]![0]!)!).kind).toBe("working");
       tasks.close("work-0-part", { status: "done", reason: "answered", actor: "host" });
       tasks.close("work-0", { status: "done", reason: "answered", actor: "host" });
-      expect(ending.state(ending.chain(groups[0]![0]!)!)).toEqual({
+      expect(ending.state(ending.thread(groups[0]![0]!)!)).toEqual({
         kind: "accepted",
         cardId: card.id,
       });

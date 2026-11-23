@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "id": "one-thread-per-message",
+      "kind": "fix",
+      "title": "Each of your messages ends on its own answer",
+      "body": "When two of your messages are about related work, each one now waits for its own answer. Your choice on a card no longer counts as the answer to an earlier message whose work it only builds on, and work another message started stays out of the first message's answer.",
+      "area": "firstmate",
+      "noPicture": "Which message a card answers is a fact in the app's record, with nothing new drawn on screen.",
+      "provenance": { "origin": "change" }
+    }
+  ]
+}

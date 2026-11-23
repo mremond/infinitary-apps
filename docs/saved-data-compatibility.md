@@ -550,3 +550,11 @@ An older build that opens the profile again reads that 0 as a queue version it n
 The home's pairing folder keeps `source-builds.json`, the computers the captain allowed to run the home's code (`DevicePairing.noteSourceAllowed`, `docs/devices.md`, "Matching the home's build"); a missing or unreadable file allows none, and a computer's entry goes when it is removed.
 A computer that runs work keeps each build of the home's source in its work folder's `source/<commit>`, with `infinitary-build.json` (version 1: the commit) beside it; its agent may name that build's Electron, which an older app reads as any launcher it did not write.
 No database migration or saved-data format boundary changes.
+
+## One thread per message
+
+The newest migration adds `ask_thread_carries`, filled once with each followed, unended captain message and the message whose merged thread it was in, read from `captain_asks.continues` (`docs/task-capture.md`, "How a message ends", **The update**).
+The step at the next start attaches each listed message to its old thread's still-running work as `host:carried` and marks its row carried; no row is added after the migration.
+`continues` keeps its saved values and is never written again.
+An older build refuses the profile, because its migration history names a migration it does not know ("Before services start").
+Dropping the table and removing its history row undoes the migration; the carried attachments stay as `ask` events, which an older build reads as the message's work but not as work its tools acted on.

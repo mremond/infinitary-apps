@@ -359,9 +359,14 @@ export class FirstmateAgent {
     }
   }
 
-  /** Save one action that took effect (or one refused card) for the messages the turn has read. */
+  /**
+   * Save one action that took effect (or one refused card) for the messages
+   * the turn has read, or for the one message the action named with
+   * `ask_id` (INF-6115): a card shown for one message is shown for it alone.
+   */
   private noteDelivery(entry: DeliveryNote): void {
-    this.delivery.note(entry, [...this.turn.read]);
+    const named = this.asks.namedAsk();
+    this.delivery.note(entry, named ? [named] : [...this.turn.read]);
     // The same typed facts choose the reply line (./replyLine).
     if (!this.running || entry.outcome !== "action") return;
     this.turn.replyFacts.acted = true;
@@ -440,6 +445,9 @@ export class FirstmateAgent {
       ending: options.supervisor.askEnding,
       observe: options.answerDelivery === "observe",
     });
+    // The one-time step after the update to one thread per message keeps
+    // each message open then whole, before anything judges it (INF-6115).
+    options.supervisor.askEnding.carryThreads();
     // A quit mid-turn left asks open; they land now, marked failed. One whose
     // words still wait on the lane stays open for the turn that reads them.
     const stranded = options.tasks.capture.listOpenAsks().map((ask) => ask.id);

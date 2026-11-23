@@ -722,7 +722,7 @@ describe("a carried-on close whose carrier was once handed to a task dropped sin
       status: "ready",
       createdAt: 1_000,
     });
-    world.tasks.capture.acceptAnswer(["meter-ask"], CARD);
+    world.tasks.capture.acceptAnswer("meter-ask", CARD);
     seedTask(world.tasks, { id: CARRIER, title: "Carry the meter on", status: "running" });
     seedTask(world.tasks, { id: DROPPED, title: "Repair the meter", status: "running" });
     // The carrier's work once moved to the task dropped later; the link stayed.

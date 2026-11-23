@@ -114,14 +114,14 @@ function fixture() {
       .flatMap((row) => (row.facts?.kind === "answer-missing" ? [row.facts.askId] : []));
   const delivery = (askId: string) => tasks.capture.getAsk(askId)?.delivery;
   const state = (askId: string) => {
-    const chain = ending.chain(askId);
-    if (!chain) throw new Error(`No chain for ${askId}`);
-    return ending.state(chain);
+    const thread = ending.thread(askId);
+    if (!thread) throw new Error(`No thread for ${askId}`);
+    return ending.state(thread);
   };
   /** The tasks the first mate's reads of open messages list for one. */
   const listed = (askId: string) => {
-    const chain = ending.chain(askId);
-    return chain ? ending.listedWork(chain).map((task) => task.id) : [];
+    const thread = ending.thread(askId);
+    return thread ? ending.listedWork(thread).map((task) => task.id) : [];
   };
   return {
     tasks,
@@ -328,7 +328,8 @@ describe("a change the task refused", () => {
     expect(f.state("m1")).toEqual({ kind: "waiting", cardId: card.id });
   });
 
-  it("joins an earlier message's open work once a change tied there takes effect", () => {
+  // INF-6115: the later message keeps its own thread on the shared work.
+  it("gives a later message the earlier message's open work in its own thread once a change tied there takes effect", () => {
     const f = fixture();
     f.longTask("review", "Careful review of the batch");
     f.captainTurn("m0", "review the batch carefully", () => {
@@ -336,10 +337,11 @@ describe("a change the task refused", () => {
     });
     f.captainTurn("m1", "give the review a stronger model", () => {
       f.tasks.capture.attachAsk("m1", "review", "tool:update_task", undefined, true);
-      expect(f.tasks.capture.getAsk("m1")?.continues).toBeNull();
       f.tasks.capture.attachAsk("m1", "review", "tool:update_task");
     });
-    expect(f.tasks.capture.getAsk("m1")?.continues).toBe("m0");
+    expect(f.tasks.capture.getAsk("m1")?.continues).toBeNull();
+    expect(f.listed("m1")).toEqual(["review"]);
+    expect(f.listed("m0")).toEqual(["review"]);
     expect(f.retries()).toEqual([]);
   });
 

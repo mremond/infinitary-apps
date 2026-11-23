@@ -98,14 +98,20 @@ export function withAskAttribution<Tool extends BoundTool>(
         if (refusal) throw new Error(refusal);
       }
       const askId = declared === undefined ? capture.current()?.id : declared || undefined;
+      const declares = typeof declared === "string" && declared !== "";
       if (named === undefined || named === "")
-        return capture.withAsk(askId, () => tool.run(filing ? input : rest, signal));
+        return capture.withAsk(
+          askId,
+          () => tool.run(filing ? input : rest, signal),
+          undefined,
+          declares,
+        );
       const answered = typeof named === "string" ? capture.readOrigin(named) : undefined;
       if (!answered)
         throw new Error(
           "origin must name an automation run, card choice or crewmate report this turn has read.",
         );
-      return capture.withAsk(askId, () => tool.run(input, signal), answered);
+      return capture.withAsk(askId, () => tool.run(input, signal), answered, declares);
     },
   } as unknown as AttributedTool<Tool>;
 }

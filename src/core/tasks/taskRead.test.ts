@@ -278,7 +278,11 @@ describe("task projection reads", () => {
         let covered: ReturnType<TaskService["capture"]["askCoverage"]>;
         try {
           covered = tasks.capture.askCoverage(["refresh"]);
-          calls = parse.mock.calls.length;
+          // The test runner parses a module's source map the first time the
+          // statement check names it in a call stack: that is not the app's.
+          calls = parse.mock.calls.filter(
+            ([text]) => !String(text).startsWith('{"version":3,'),
+          ).length;
         } finally {
           parse.mockRestore();
         }

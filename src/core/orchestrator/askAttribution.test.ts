@@ -138,4 +138,34 @@ describe("per-action request attribution", () => {
       db.close();
     }
   });
+
+  // INF-6115: a card or reply made with a named ask_id is recorded for that
+  // message alone, never for every message the turn read.
+  it("names the one message an action's ask_id named, and none when it named none", async () => {
+    const { db, capture, request } = setup();
+    const other = capture.open({ text: "and the phone layout?" });
+    const named: (string | undefined)[] = [];
+    const tool = withAskAttribution(
+      boundTool({
+        name: "emit_card",
+        label: "Card",
+        description: "Show a card",
+        parameters: Type.Object({}),
+        run: async () => {
+          named.push(capture.namedAsk());
+          return { text: "shown" };
+        },
+      }),
+      capture,
+      (id) => id === request.id || id === other.id,
+    );
+    try {
+      await tool.run({ ask_id: request.id });
+      await tool.run({});
+      await tool.run({ ask_id: "" });
+      expect(named).toEqual([request.id, undefined, undefined]);
+    } finally {
+      db.close();
+    }
+  });
 });

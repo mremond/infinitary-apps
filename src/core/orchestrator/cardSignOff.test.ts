@@ -100,12 +100,12 @@ function fixture() {
     later();
     return line.id;
   };
-  const chain = () => {
-    const found = ending?.chain("m1");
-    if (!found) throw new Error("No chain for m1");
+  const thread = () => {
+    const found = ending?.thread("m1");
+    if (!found) throw new Error("No thread for m1");
     return found;
   };
-  return { ...f, cards, ending, answer, see, captainLine, chain, later };
+  return { ...f, cards, ending, answer, see, captainLine, thread, later };
 }
 
 describe("signing an answer off from its thread (INF-2845)", () => {
@@ -124,8 +124,8 @@ describe("signing an answer off from its thread (INF-2845)", () => {
     expect(f.cards.get(card.id)).toBeUndefined();
     expect(f.cardStore.listOpen().map((open) => open.id)).not.toContain(card.id);
     expect(f.tasks.get("overlap")).toMatchObject({ status: "done", closedReason: "answered" });
-    expect(f.ending?.state(f.chain())).toEqual({ kind: "accepted", cardId: card.id });
-    expect(f.ending?.crewmateStep("overlap")).toBeUndefined();
+    expect(f.ending?.state(f.thread())).toEqual({ kind: "accepted", cardId: card.id });
+    expect(f.ending?.crewmateStep("overlap")).toEqual([]);
     expect(f.ending?.closingPlace("overlap").kind).not.toBe("note");
   });
 
@@ -173,10 +173,10 @@ describe("an answer the captain saw (INF-2845)", () => {
     f.see(card);
     // The captain puts it aside without a choice: the answer was in front of them.
     f.cards.dismiss(f.cards.get(card.id) as Card);
-    expect(f.ending?.crewmateStep("overlap")).toBeUndefined();
+    expect(f.ending?.crewmateStep("overlap")).toEqual([]);
     f.cards.retireTaskCards("overlap", "answered");
     f.tasks.close("overlap", { status: "done", reason: "finished", actor: "firstmate" });
-    expect(f.ending?.state(f.chain())).toEqual({ kind: "accepted", cardId: card.id });
+    expect(f.ending?.state(f.thread())).toEqual({ kind: "accepted", cardId: card.id });
     expect(f.ending?.closingPlace("overlap")).toEqual({ kind: "quiet" });
   });
 
@@ -185,10 +185,10 @@ describe("an answer the captain saw (INF-2845)", () => {
     const card = f.answer();
     f.see(card);
     f.cards.close(card.id, { kind: "crewmate", taskId: "overlap" });
-    expect(f.ending?.crewmateStep("overlap")?.ids).toEqual(["m1"]);
-    expect(f.ending?.crewmateStep("overlap")).toBeUndefined();
+    expect(f.ending?.crewmateStep("overlap").map((thread) => thread.ask.id)).toEqual(["m1"]);
+    expect(f.ending?.crewmateStep("overlap")).toEqual([]);
     f.tasks.close("overlap", { status: "done", reason: "finished", actor: "firstmate" });
-    expect(f.ending?.state(f.chain())).toEqual({ kind: "missing" });
+    expect(f.ending?.state(f.thread())).toEqual({ kind: "missing" });
   });
 
   it("counts only when the captain saw it: an answer never in front of them is still asked for", () => {
@@ -196,7 +196,7 @@ describe("an answer the captain saw (INF-2845)", () => {
     const card = f.answer();
     f.cards.retireTaskCards("overlap", "answered");
     expect(f.cards.get(card.id)).toBeUndefined();
-    expect(f.ending?.crewmateStep("overlap")?.ids).toEqual(["m1"]);
+    expect(f.ending?.crewmateStep("overlap").map((thread) => thread.ask.id)).toEqual(["m1"]);
   });
 
   it("counts only the version the captain saw: a revision they never saw is still asked for", () => {
@@ -206,6 +206,6 @@ describe("an answer the captain saw (INF-2845)", () => {
     const revised = f.answer({ id: "plans", title: "Two of the four plans can be built now" });
     expect(revised.id).toBe(first.id);
     f.cards.retireTaskCards("overlap", "answered");
-    expect(f.ending?.crewmateStep("overlap")?.ids).toEqual(["m1"]);
+    expect(f.ending?.crewmateStep("overlap").map((thread) => thread.ask.id)).toEqual(["m1"]);
   });
 });

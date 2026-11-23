@@ -535,7 +535,7 @@ it("INF-1610 leaves every older captain message unfollowed, follows a new one, k
   expect(tasks.capture.getAsk("stack")).toMatchObject({ followed: false, answeredAt: null });
   tasks.capture.openAsk({ id: "taps", text: "the taps on the phone get lost" });
   tasks.capture.closeAsk("taps", "closed");
-  tasks.capture.markAnswered(["taps"], "card-firstmate-taps");
+  tasks.capture.markAnswered("taps", "card-firstmate-taps");
   upgraded.close();
   const reopened = openDatabase(dir);
   const again = new TaskService({ db: reopened, strict: true });

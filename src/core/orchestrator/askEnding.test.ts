@@ -16,7 +16,8 @@ import { pendingMergeLine } from "./settleWords";
 function fixture() {
   const clock = { t: 1_000 };
   const now = () => clock.t;
-  const tasks = new TaskService({ db: freshDatabase(), strict: true, now });
+  const db = freshDatabase();
+  const tasks = new TaskService({ db, strict: true, now });
   const open = new Map<string, Card>();
   const stored = new Map<string, Card>();
   const shown = new Map<string, number>();
@@ -70,11 +71,11 @@ function fixture() {
     tasks.close(taskId, { status: "done", reason: "answered", actor: "host" });
   };
   const state = (askId: string) => {
-    const chain = ending.chain(askId);
-    if (!chain) throw new Error(`No chain for ${askId}`);
-    return ending.state(chain);
+    const thread = ending.thread(askId);
+    if (!thread) throw new Error(`No thread for ${askId}`);
+    return ending.state(thread);
   };
-  return { tasks, ending, message, work, show, closeCard, finish, state, later };
+  return { db, tasks, ending, message, work, show, closeCard, finish, state, later };
 }
 
 const MERGE = {
@@ -92,8 +93,8 @@ describe("how a captain's message ends", () => {
     expect(f.state("m1")).toEqual({ kind: "working" });
 
     // Its crewmate reports finished with no answer up: asked once, never twice.
-    expect(f.ending.crewmateStep("panels")?.ids).toEqual(["m1"]);
-    expect(f.ending.crewmateStep("panels")).toBeUndefined();
+    expect(f.ending.crewmateStep("panels").map((thread) => thread.ask.id)).toEqual(["m1"]);
+    expect(f.ending.crewmateStep("panels")).toEqual([]);
 
     const answer = f.show({
       id: "card-panels-1",
@@ -109,9 +110,9 @@ describe("how a captain's message ends", () => {
     f.ending.captainResponded(answer, "close");
     f.closeCard(answer.id);
     expect(f.state("m1")).toEqual({ kind: "accepted", cardId: answer.id });
-    f.tasks.capture.markAnswered(["m1"], answer.id);
+    f.tasks.capture.markAnswered("m1", answer.id);
     expect(f.state("m1")).toEqual({ kind: "answered", cardId: answer.id });
-    expect(f.ending.openChains()).toEqual([]);
+    expect(f.ending.openThreads()).toEqual([]);
   });
 
   // INF-2664: the first mate names which message its work serves; the host
@@ -122,7 +123,7 @@ describe("how a captain's message ends", () => {
     expect(f.ending.nameRefusal("read")).toBeUndefined();
     f.tasks.capture.openAsk({ id: "parked", text: "and the other mac?" });
     expect(f.ending.nameRefusal("parked")).toMatch(/a step has read/);
-    f.tasks.capture.markAnswered(["read"], null);
+    f.tasks.capture.markAnswered("read", null);
     expect(f.ending.nameRefusal("read")).toMatch(/has ended/);
   });
 
@@ -133,17 +134,29 @@ describe("how a captain's message ends", () => {
     expect(f.state("m1")).toEqual({ kind: "missing" });
   });
 
-  it("takes a later message about the same open work into one chain that ends together", () => {
+  // INF-6115: every message keeps its own thread; two messages about the
+  // same work end on the same card, each accepted on its own.
+  it("keeps a later message about the same open work in its own thread, and both end on the same card", () => {
     const f = fixture();
     f.work("taps", "Keep taps on the phone");
     f.message("m1", "the taps on the phone get lost", "taps");
     f.message("m2", "also the long press", "taps", "tool:steer_crewmate");
-    expect(f.tasks.capture.getAsk("m2")?.continues).toBe("m1");
-    expect(f.ending.openChains().map((chain) => chain.ids)).toEqual([["m1", "m2"]]);
-    expect(f.ending.chain("m2")?.root.id).toBe("m1");
+    expect(f.tasks.capture.getAsk("m2")?.continues).toBeNull();
+    expect(f.ending.openThreads().map((thread) => thread.ask.id)).toEqual(["m1", "m2"]);
+    const answer = f.show({
+      id: "card-taps-1",
+      taskId: "taps",
+      author: "crewmate",
+      title: "Taps and long presses kept",
+      answering: true,
+    });
+    f.finish("taps");
+    f.ending.captainResponded(answer, "close");
+    expect(f.tasks.capture.getAsk("m1")?.answerCardId).toBe(answer.id);
+    expect(f.tasks.capture.getAsk("m2")?.answerCardId).toBe(answer.id);
   });
 
-  it("counts an answer only when it was shown since the newest message of the chain", () => {
+  it("counts an answer for each message only when it was shown since that message", () => {
     const f = fixture();
     f.work("taps", "Keep taps on the phone");
     f.message("m1", "the taps on the phone get lost", "taps");
@@ -155,10 +168,12 @@ describe("how a captain's message ends", () => {
     });
     f.message("m2", "also the long press", "taps", "tool:steer_crewmate");
     f.finish("taps");
-    // The card predates the second message: it cannot answer it.
-    expect(f.state("m1")).toEqual({ kind: "missing" });
+    // The card predates the second message: it answers the first alone.
+    expect(f.state("m1")).toEqual({ kind: "waiting", cardId: early.id });
+    expect(f.state("m2")).toEqual({ kind: "missing" });
     f.ending.captainResponded(early, "close");
-    expect(f.tasks.capture.getAsk("m1")?.answerCardId).toBeNull();
+    expect(f.tasks.capture.getAsk("m1")?.answerCardId).toBe(early.id);
+    expect(f.tasks.capture.getAsk("m2")?.answerCardId).toBeNull();
   });
 
   it("is not answered by a decision closed without a choice, by a card awaiting its author's answer, or by a choice on a question", () => {
@@ -250,9 +265,15 @@ describe("how a captain's message ends", () => {
       scenario === "invalid action" ? "not-an-offer" : "start",
     );
     expect(f.tasks.capture.getAsk("other-ask")?.answerCardId).toBeNull();
+    // A message sent after the offer is not answered by it; the message the
+    // offer was shown for still is (INF-6115: each message ends on its own).
     expect(f.tasks.capture.getAsk("reading-ask")?.answerCardId).toBe(
-      scenario === "ready plan" || scenario === "unrelated ask" ? card.id : null,
+      scenario === "ready plan" || scenario === "unrelated ask" || scenario === "older offer"
+        ? card.id
+        : null,
     );
+    if (scenario === "older offer")
+      expect(f.tasks.capture.getAsk("clarification")?.answerCardId).toBeNull();
   });
 
   it("keeps the message open when the captain's choice started more of its work", () => {
@@ -346,7 +367,7 @@ describe("how a captain's message ends", () => {
     f.tasks.graph.link("first", "second", "replaced-by", "firstmate");
     f.finish("first");
     expect(f.ending.closingPlace("first")).toEqual({ kind: "quiet" });
-    expect(f.ending.crewmateStep("first")).toBeUndefined();
+    expect(f.ending.crewmateStep("first")).toEqual([]);
     f.finish("second");
     expect(f.ending.closingPlace("second")).toEqual({ kind: "note", answering: true });
   });
@@ -355,13 +376,13 @@ describe("how a captain's message ends", () => {
     const f = fixture();
     f.work("runner", "Rebuild the runner image");
     expect(f.ending.closingPlace("runner")).toEqual({ kind: "unasked" });
-    expect(f.ending.crewmateStep("runner")).toBeUndefined();
+    expect(f.ending.crewmateStep("runner")).toEqual([]);
   });
 
   // INF-2059 (the captain: "every several seconds it freezes for a few
   // seconds"): the context build read each message's tasks three times,
   // once for its work and twice more for what the first mate acted on.
-  it("looks up each open message's tasks once while every chain's state and own work are read", () => {
+  it("looks up each open message's tasks once while every thread's state and own work are read", () => {
     const f = fixture();
     f.work("panels", "Build personal panels");
     f.work("meter", "Fix the meter");
@@ -372,15 +393,18 @@ describe("how a captain's message ends", () => {
     f.message("m5", "check the meter on the phone too", "meter", "tool:steer_crewmate");
     const lookups = vi.spyOn(TaskEventStore.prototype, "askAttributions");
     try {
-      const chains = f.ending.openChains();
-      const read = chains.map((chain) => ({
-        ids: chain.ids,
-        state: f.ending.state(chain),
-        own: f.ending.ownWork(chain).map((task) => task.id),
+      const threads = f.ending.openThreads();
+      const read = threads.map((thread) => ({
+        id: thread.ask.id,
+        state: f.ending.state(thread),
+        own: f.ending.ownWork(thread).map((task) => task.id),
       }));
       expect(read).toEqual([
-        { ids: ["m1", "m2"], state: { kind: "working" }, own: ["panels"] },
-        { ids: ["m3", "m4", "m5"], state: { kind: "working" }, own: ["meter"] },
+        { id: "m1", state: { kind: "working" }, own: ["panels"] },
+        { id: "m2", state: { kind: "working" }, own: ["panels"] },
+        { id: "m3", state: { kind: "working" }, own: ["meter"] },
+        { id: "m4", state: { kind: "working" }, own: ["meter"] },
+        { id: "m5", state: { kind: "working" }, own: ["meter"] },
       ]);
       expect(lookups.mock.calls.flatMap(([askIds]) => askIds).sort()).toEqual([
         "m1",
@@ -392,5 +416,162 @@ describe("how a captain's message ends", () => {
     } finally {
       lookups.mockRestore();
     }
+  });
+});
+
+/**
+ * One thread per message (INF-6115, the captain's words on INF-6114: "i
+ * suspect there's some messiness in how we attribute various things to
+ * captain's asks hence causing this kind of mix up. i want a robust fix
+ * from the root"): each message keeps its own thread, and a task belongs
+ * to its nearest origin.
+ */
+describe("one thread per message", () => {
+  const workOf = (f: ReturnType<typeof fixture>, askId: string) =>
+    f.tasks.capture
+      .askCoverage([askId])
+      .work.map((task) => task.id)
+      .sort();
+  /** The record of a card raised on its task, as the card service writes it. */
+  const raised = (f: ReturnType<typeof fixture>, card: Card) =>
+    new TaskEventStore(f.db).insert({
+      taskId: card.taskId ?? "",
+      at: f.later(),
+      actor: "crewmate",
+      kind: "card_raised",
+      text: card.title,
+      ref: card.id,
+    });
+
+  // INF-6104's mix-up: a later message started its own fix built on an
+  // earlier message's review, and the captain's choice on the fix's card
+  // was taken as the earlier message's answer.
+  it("keeps a task another message started out of the thread whose work it builds on", () => {
+    const f = fixture();
+    f.work("review", "Review the tooltip change");
+    f.message("m1", "review the tooltip change", "review");
+    f.later();
+    const review = f.tasks.get("review");
+    seedTask(f.tasks, {
+      id: "fix",
+      title: "Fix the tooltip delay",
+      status: "running",
+      shape: { kind: "implement", basis: review?.key },
+    });
+    f.message("m2", "fix the tooltip delay the review found", "fix");
+    expect(workOf(f, "m1")).toEqual(["review"]);
+    expect(workOf(f, "m2")).toEqual(["fix"]);
+    expect(f.tasks.capture.asksAbove("fix").map((ask) => ask.id)).toEqual(["m2"]);
+    const choice = f.show({
+      id: "card-fix-1",
+      taskId: "fix",
+      author: "crewmate",
+      title: "Pick the tooltip delay",
+      answering: true,
+      actions: [{ id: "short", label: "Short delay", default: true }],
+    });
+    f.ending.captainResponded(choice, "choice");
+    expect(f.tasks.capture.getAsk("m2")?.answerCardId).toBe(choice.id);
+    expect(f.tasks.capture.getAsk("m1")?.answerCardId).toBeNull();
+    // The review's own message still waits on its own work.
+    expect(f.state("m1")).toEqual({ kind: "working" });
+  });
+
+  it("keeps a build filed from a click on the plan's card, or from words its report passed on, in the plan's thread", () => {
+    const f = fixture();
+    f.work("plan", "Plan the panels");
+    f.message("m1", "plan the personal panels", "plan");
+    const plan = f.show({
+      id: "card-plan-1",
+      taskId: "plan",
+      author: "crewmate",
+      title: "The panels plan",
+      answering: true,
+      actions: [{ id: "build", label: "Approve and build", default: true }],
+    });
+    raised(f, plan);
+    const other = f.show({ id: "card-other-1", title: "Another card", taskId: "elsewhere" });
+    f.finish("plan");
+    const key = f.tasks.get("plan")?.key;
+    const filed = (id: string) =>
+      seedTask(f.tasks, {
+        id,
+        title: `Build ${id}`,
+        status: "running",
+        shape: { kind: "implement", basis: key },
+      });
+    filed("build");
+    f.tasks.capture.saveOrigin("build", {
+      kind: "chose",
+      cardId: plan.id,
+      card: plan.title,
+      choice: "Approve and build",
+    });
+    filed("relayed");
+    f.tasks.capture.saveOrigin("relayed", {
+      kind: "report",
+      taskId: "plan",
+      words: { text: "and keep the panel titles short", at: f.later() },
+    });
+    // A click on a card the record never raised on the plan continues nothing.
+    filed("stray");
+    f.tasks.capture.saveOrigin("stray", {
+      kind: "chose",
+      cardId: other.id,
+      card: other.title,
+      choice: "Go",
+    });
+    expect(workOf(f, "m1")).toEqual(["build", "plan", "relayed"]);
+    expect(f.state("m1")).toEqual({ kind: "working" });
+  });
+
+  it("keeps the host's review of a build in the builder's thread, whatever turn filed it", () => {
+    const f = fixture();
+    f.work("build", "Build the panels");
+    f.message("m1", "build the personal panels", "build");
+    f.later();
+    seedTask(f.tasks, {
+      id: "review",
+      title: "Review the panels change",
+      status: "running",
+      parentId: "build",
+      shape: { kind: "review", kind_source: "host:review" },
+    });
+    // Another message's turn filed it: it still takes no origin from that turn.
+    f.later();
+    f.tasks.capture.openAsk({ id: "m2", text: "how is the panels build going?" });
+    f.tasks.capture.attachAsk("m2", "review", "tool:spawn_crewmate", true);
+    f.tasks.capture.closeAsk("m2", "closed");
+    expect(workOf(f, "m1")).toEqual(["build", "review"]);
+  });
+
+  it("never makes a message that started queued work its origin", () => {
+    const f = fixture();
+    f.work("plan", "Plan the panels");
+    f.message("m1", "plan the personal panels", "plan");
+    f.later();
+    seedTask(f.tasks, {
+      id: "build",
+      title: "Build the panels",
+      status: "queued",
+      shape: { kind: "implement", basis: f.tasks.get("plan")?.key },
+    });
+    // Start now: tied before it takes effect, then the message's work.
+    f.later();
+    f.tasks.capture.openAsk({ id: "m2", text: "start the panels build now" });
+    f.tasks.capture.attachAsk("m2", "build", "tool:update_task", false, true);
+    f.tasks.capture.attachAsk("m2", "build", "tool:update_task");
+    f.tasks.capture.closeAsk("m2", "closed");
+    expect(workOf(f, "m1")).toEqual(["build", "plan"]);
+    expect(workOf(f, "m2")).toEqual(["build"]);
+  });
+
+  it("asks a finishing crewmate once for every message that needs its card", () => {
+    const f = fixture();
+    f.work("meter", "Fix the meter");
+    f.message("m1", "fix the meter", "meter");
+    f.message("m2", "the meter is late on the phone too", "meter", "tool:steer_crewmate");
+    expect(f.ending.crewmateStep("meter").map((thread) => thread.ask.id)).toEqual(["m2", "m1"]);
+    expect(f.ending.crewmateStep("meter")).toEqual([]);
   });
 });

@@ -64,7 +64,7 @@ describe("CardService", () => {
     const cards = make(undefined, (card, response, action) => {
       expect(db.inTransaction).toBe(true);
       expect({ response, action }).toEqual({ response: "choice", action: "start" });
-      tasks.capture.acceptAnswer(["reading-ask"], card.id);
+      tasks.capture.acceptAnswer("reading-ask", card.id);
       if (interrupt) throw new Error("Interrupted while admitting choice");
     });
     const id = cards.emitCrewmateCard(
@@ -109,7 +109,7 @@ describe("CardService", () => {
     const cards = make(undefined, (card, response) => {
       expect(db.inTransaction).toBe(true);
       expect(response).toBe("close");
-      tasks.capture.acceptAnswer(["panel-ask"], card.id);
+      tasks.capture.acceptAnswer("panel-ask", card.id);
     });
     try {
       const id = cards.emitCrewmateCard(

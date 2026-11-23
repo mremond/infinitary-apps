@@ -25,10 +25,12 @@ import { prepared } from "./statements";
 
 /**
  * How an ask reached its task. `tool:<name>` is the agent's own attribution
- * (the quality signal); `host:fallback` is the floor the host guarantees.
+ * (the quality signal); `host:fallback` is the floor the host guarantees;
+ * `host:carried` is the one-time step that kept a message's thread whole
+ * when the app moved to one thread per message (INF-6115).
  * The share of fallbacks is the attribution-quality metric to watch.
  */
-export type AskAttachedVia = `tool:${string}` | "host:fallback";
+export type AskAttachedVia = `tool:${string}` | "host:fallback" | "host:carried";
 
 export type AskTurnState = "open" | "closed" | "failed";
 
@@ -315,13 +317,6 @@ export class AskStore {
     this.db.prepare("UPDATE captain_asks SET notice_card_id = ? WHERE id = ?").run(cardId, id);
   }
 
-  /** The earlier message whose open work this one joined. */
-  setContinues(id: string, earlier: string): void {
-    this.db
-      .prepare("UPDATE captain_asks SET continues = ? WHERE id = ? AND continues IS NULL")
-      .run(earlier, id);
-  }
-
   /** The captain accepted a card as the answer; the newest acceptance stands until it is final. */
   setAccepted(id: string, cardId: string, at: number): void {
     this.db
@@ -345,43 +340,53 @@ export class AskStore {
   }
 
   /**
-   * Complete chains with an unfinished member, in one read. The unfinished
-   * rows select roots, not members: an open turn or an already-ended member
-   * still belongs to its chain and determines the newest message's time.
-   * `running` also selects messages whose reply has not finished.
+   * The followed messages that have not ended, oldest first, each its own
+   * thread (INF-6115). `running` also selects messages whose reply has not
+   * finished.
    */
-  openChains(running = false): { root: AskRecord; members: AskRecord[] }[] {
+  listNotEnded(running = false): AskRecord[] {
     const rows = prepared(
       this.db,
-      `WITH unfinished AS (
-         SELECT id, continues FROM captain_asks WHERE ${running ? NOT_ENDED_OR_RUNNING : NOT_ENDED}
-       ), roots AS (
-         SELECT DISTINCT COALESCE(parent.id, unfinished.id) AS id
-         FROM unfinished LEFT JOIN captain_asks parent ON parent.id = unfinished.continues
-       )
-       SELECT roots.id AS root_id, member.* FROM roots
-       JOIN captain_asks member ON member.id = roots.id OR member.continues = roots.id
-       ORDER BY member.at, member.rowid`,
-    ).all() as (Row & { root_id: string })[];
-    const grouped = new Map<string, { root?: AskRecord; members: AskRecord[] }>();
-    for (const row of rows) {
-      const group = grouped.get(row.root_id) ?? { members: [] };
-      const ask = fromRow(row);
-      if (ask.id === row.root_id) group.root = ask;
-      else group.members.push(ask);
-      grouped.set(row.root_id, group);
-    }
-    return [...grouped.values()].flatMap(({ root, members }) =>
-      root ? [{ root, members: [root, ...members] }] : [],
-    );
+      `SELECT * FROM captain_asks WHERE ${running ? NOT_ENDED_OR_RUNNING : NOT_ENDED}
+       ORDER BY at, rowid`,
+    ).all() as Row[];
+    return rows.map(fromRow);
   }
 
-  /** The messages that joined this one's work, oldest first. */
-  listContinuing(id: string): AskRecord[] {
-    const rows = this.db
-      .prepare("SELECT * FROM captain_asks WHERE continues = ? ORDER BY at, rowid")
-      .all(id) as Row[];
-    return rows.map(fromRow);
+  /**
+   * The messages the move to one thread per message has yet to carry, each
+   * with every message of the merged thread it was in: the retired
+   * `continues` column is read here alone (INF-6115).
+   */
+  pendingCarries(): { ask: AskRecord; members: AskRecord[] }[] {
+    const pending = this.db
+      .prepare(
+        // i18n-exempt: SQL, never shown to a person
+        `SELECT carries.root_id AS root_id, asks.* FROM ask_thread_carries AS carries
+         CROSS JOIN captain_asks AS asks ON asks.id = carries.ask_id
+         WHERE carries.carried_at IS NULL`,
+      )
+      .all() as (Row & { root_id: string })[];
+    // Oldest first, sorted here so the read walks only the short carry list.
+    pending.sort((a, b) => a.at - b.at);
+    const members = this.db.prepare(
+      // i18n-exempt: SQL, never shown to a person
+      "SELECT * FROM captain_asks WHERE id = ? OR continues = ? ORDER BY at, rowid",
+    );
+    return pending.map((row) => ({
+      ask: fromRow(row),
+      members: (members.all(row.root_id, row.root_id) as Row[]).map(fromRow),
+    }));
+  }
+
+  /** The move to one thread per message carried this message; it is never read again. */
+  markCarried(id: string, at: number): void {
+    this.db
+      .prepare(
+        // i18n-exempt: SQL, never shown to a person
+        "UPDATE ask_thread_carries SET carried_at = ? WHERE ask_id = ? AND carried_at IS NULL",
+      )
+      .run(at, id);
   }
 
   /** The Firstmate's reply line beside the message (docs/composer.md "The last turn"). */

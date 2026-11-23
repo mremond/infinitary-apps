@@ -72,7 +72,7 @@ A captain message the first mate read and then did nothing visible about is a hi
 Each message saved from INF-1610 piece 2 on is followed until a card the captain accepts answers it ("How a message ends" below); a message saved before it keeps the older rule, which only checked that at least one action took effect after the first mate read it.
 The host never judges whether an answer is right (`src/core/orchestrator/answerDelivery.ts`, the pure rule and the served words; `askEnding.ts`, how a message stands; `answerDeliveryCheck.ts`, the stateful check; `FirstmateAgent` records the facts).
 
-What the first mate did is recorded where the call succeeds (a typed result, never the words) for every message the running turn had read when it took effect:
+What the first mate did is recorded where the call succeeds (a typed result, never the words) for every message the running turn had read when it took effect, or, when the call named a message with `ask_id`, for that message alone (`AskCapture.namedAsk`):
 
 - a card shown or revised (`emit_card`, the Settings hand-over card, the app's approval card for a held `use_integration` call), with the card's id;
 - the closing words written into the card's replies, for a reply under a first mate card or a done task's kept note (`CardService.recordFirstmateThreadAnswer` returns whether it wrote), with the card's id;
@@ -102,14 +102,14 @@ The check runs at the turn's end, after reply capture and the first mate's close
    A missing or changed picture refuses the whole resend and explains in Activity that the message needs to be sent again with the picture, rather than sending only its words or remaining pictures.
    Older messages with no retained picture copies keep their text-only retry.
    It never quotes closing words, refusal text or an error, and the host's own record for it files no crewmate task.
-   The message, and every message joined to it, ends `unresolved`.
-5. A card that can answer the message, offered on the stage after its notice, takes the notice back (`AnswerDeliveryCheck.withdrawNotices`, run whenever a card goes up, is revised or leaves its close-out hold, and on every sweep): every message of its chain is `covered` again and waits on that card.
+   The message ends `unresolved`.
+5. A card that can answer the message, offered on the stage after its notice, takes the notice back (`AnswerDeliveryCheck.withdrawNotices`, run whenever a card goes up, is revised or leaves its close-out hold, and on every sweep): the message is `covered` again and waits on that card.
    A crewmate's card still held for its close-out takes nothing back until it reaches the stage, since the captain sees neither until then.
    While its notice is up the first mate may still name the message on work, so that work's card can be the one.
    The message keeps `notice_card_id`, so if it goes unanswered again the same notice comes back, with no second retry.
    An author's explicit withdrawal rechecks coverage through the existing answer-delivery sweep, without accepting the answer on the captain's behalf.
    Putting a decision aside keeps its answering offer available and does not withdraw it.
-   A newer message that joined the chain after the notice was taken back has its own one retry, and its own notice.
+   Every message has its own one retry and its own notice: a newer message about the same work never shares an older message's.
    A notice the captain answered, with Ask again or Leave it, is gone, and its message stays ended.
 
 Boot reconciles from the saved facts: a message stranded mid-turn is judged as uncovered, a retrying message whose wake was served is judged now, and a message whose parked words are still on the lane waits for them; the once-name and the fixed card id rule out a second retry or notice.
@@ -124,20 +124,26 @@ A message may run any number of tasks and cards; the plans, questions and consen
 The host reads only typed facts: the saved message, the task graph, the cards and the captain's own response, never the words of a card or a message.
 
 What piece 2's migration adds to `captain_asks`: `followed` (every message saved from then on), `continues`, `answer_card_id` with `accepted_at`, `answered_at` and `crewmate_asked_at`.
+`continues` is never written; only the one-time step in **The update** below reads it.
+
+Each message is its own thread: the message and the work it caused (INF-6115).
+One module owns the walk (`src/core/tasks/askThreads.ts`, `AskThreads`): the thread a message ends on, the messages above a task (`asksAbove`), the first mate's open list, the notices and where a closed task's outcome goes all read it, and the You asked line reads the same origin (`threadOrigin` in `taskOrigin.ts`).
 
 - **Its work.**
-  The tasks the message attached to, and every task that carries their work on: parts, builds on a plan (`basis`), retries, branches taken from them, replacements (`replaced-by`), a stronger model (`escalated_to`) and the tasks a merge filed or set to start from its story's after-merge steps (the host's own `discovered-from` link, `TaskGraph.continuations`, which counts as the task's filing for the `before` cutoff, for the message's own work and for `asksAbove`; a crewmate's other follow-ups stay outside it), walked by `TaskService.capture.askCoverage`, which reads each message's tasks once for the whole chain.
+  The tasks the message attached to, and every task that carries their work on: parts, builds on a plan (`basis`), retries, branches taken from them, replacements (`replaced-by`), a stronger model (`escalated_to`) and the tasks a merge filed or set to start from its story's after-merge steps (the host's own `discovered-from` link, `TaskGraph.continuations`, which counts as the task's filing for the `before` cutoff, for the message's own work and for `asksAbove`; a crewmate's other follow-ups stay outside it), walked by `TaskService.capture.askCoverage`, which reads each message's tasks once.
+  Work handed over - a replacement, a retry, a branch, a stronger model - always stays in the thread.
+  A part, a build on a plan and a task a merge filed belong to their nearest origin (**A task's own origin** below): the walk takes one in only when it has no origin of its own, or when its origin continues this thread.
   Attribution and escalation edges are read as typed metadata, without decoding each task's entire timeline.
   Coverage reads only task identity, title, status, close reason and creation/start times from the task row, and child identities in their existing order, without composing specifications, shapes, execution or delivery payloads.
-  One `openChains` read shares these task fields and successor edges across its roots; these facts are discarded after the synchronous read and invalidated by task writes, including rollback.
-  A cold card dismissal or choice uses the same narrow readers without needing a board read to prime them; acceptance still uses the complete batched message membership.
+  A read of every open thread shares these task fields and successor edges across its messages; these facts are discarded after the synchronous read and invalidated by task writes, including rollback.
+  A cold card dismissal or choice uses the same narrow readers without needing a board read to prime them.
   A terminal answer-task choice still reads its own task's shape for eligibility; it does not compose the other covered tasks.
   The message's own work is the part of it the first mate's tools acted on for the message (`acted` on the same read), and anything filed or started after it; a task the message only pointed at, such as the card it was typed under, which nobody acted on since, is not working on it.
 - **Tied, not its work.**
   Two actions tie a message to a task without making the task its work (`tie` on the `ask` event, `TaskService.capture.attachAsk`): a `steer_crewmate` that asks for an answer, which is its default, and a change the first mate tried there before it takes effect (`update_task`, `settle_task`, `interrupt_crewmate`, `link_tasks`, `flag_missed_escalation`, `flag_duplicate`).
   Every task change the first mate tries is tied first, whatever path it takes, and only the outcome it records as taken effect makes the task the message's work (`settle_task`'s `ok`, including a close as done, each `update_task` path's own effect, a link that changed and a flag that went through); a refused one leaves the tie, so the task's own answering card can still answer the message, and the message no longer waits for the task to close.
   A steer that only passes guidance on (`guidance-only`) makes the task its work as before, unless the message is already tied to that task: a steer there, such as "carry on" after an answer, leaves the tie as it is.
-  A tied task is about the message, so its cards count as above, but the work after it is not walked and it never joins the message to another (`asksAbove` with ties left out); the message's first attachment as work, a tie turned into work included, is the one that may join it below.
+  A tied task is about the message, so its cards count as above, but the work after it is not walked (`asksAbove` with ties left out).
   The first mate's reads of open messages (`open_asks`, `open_work`) list a tied task while the message waits on it for an answer (`AskEnding.listedWork`).
 - **Waiting for an answer.**
   Each response request the first mate asks for a message is saved on that message's `ask` event (`TaskService.capture.tieRequest`, from `CrewSteer`).
@@ -147,12 +153,22 @@ What piece 2's migration adds to `captain_asks`: `followed` (every message saved
   A captain's message sent while that turn runs waits on the lane for a turn of its own, as during the retry (`AnswerDeliveryCheck.servedAlone`), and parked captain words are served before a waiting answer.
   The turn that reads the answer (a `requested-response` wake) reads the message too (`AnswerDeliveryCheck.adopt`): a follow-up asked or work started in it stays the message's, a card shown in it is shown for the message, and the message is judged when that turn ends, so an answer written only as closing words gets the one retry below.
   Several messages asked of one long task each wait on their own requests and end on their own answers.
-- **Joining.**
-  A message about open work of an earlier message that has not ended joins it (`continues`), set once when it first attaches; the earliest is the root, and the root with every message that joined it ends together.
-  A later attachment, such as the first mate naming the message on other work, never moves it under another chain.
+- **A task's own origin.**
+  A task's origin is the message that filed or started it, an automation run, the card whose choice filed it, or the task whose report passed the captain's words on (`threadOrigin`).
+  A message or an automation starts a thread of its own: a thread that reaches such a task only through a part, a plan or a merge stops there, so work another message started on top of this one's never ends this message.
+  A click on a card and words a report passed on continue the thread of the card's task, or the reporting task: the task joins the thread once that task is in it, and a click on a card the record never raised on a task continues none.
+  The host's own delivery child, a review or a repair assessment, has no origin: it is always part of the work it checks, whatever turn filed it.
+  Starting queued work (`update_task` `start_now`) is never an origin: the task stays in the thread that filed it.
+  The You asked line reads the same origin, so the line and the thread agree, apart from the report and follow-up routes, which the line follows and a thread never does.
+- **Its own thread.**
+  Two messages about the same work each keep their own thread and each end on their own; they can end on the same card.
   An answer once recorded never moves: work linked afterwards belongs to the newer message.
+- **The update.**
+  The update to one thread per message keeps each message open at it from losing work its merged thread held.
+  The migration lists each followed, unended message with the message whose thread it was in (`ask_thread_carries`); one step at the next start (`AskEnding.carryThreads`, before the boot's answer check) reads that merged thread once as it stood and attaches the message to its still-running work as `host:carried`, ties it to the tasks of the cards that thread waited on or was answered from, carries its response requests, the other messages' card, reply and reaction facts and its spent crewmate ask, and marks it carried in the same write.
+  A carried attachment counts as acted on and is never quoted as where work came from; the step raises no retry, notice or crewmate ask, and runs once.
 - **A card that can answer it.**
-  A card about its work that its author marked `answering`, a merge card's merge, the app's merge line on a story note, or a card the first mate showed for the message; it counts only when it was shown since the newest message of the chain.
+  A card about its work that its author marked `answering`, a merge card's merge, the app's merge line on a story note, or a card the first mate showed for the message; it counts only when it was shown since the message.
 - **Accepted.**
   The captain's choice on a decision about its work that is not still asking (`asking`, `continues`), or Done on a note that can answer it, with no reply of theirs waiting under it (`CardService` reports each response through `captainResponded`).
   Putting a taskless note or an already-completed task's note away as read also acknowledges the message when the note qualifies as its answer; this ends no work.
@@ -163,19 +179,20 @@ What piece 2's migration adds to `captain_asks`: `followed` (every message saved
   The host checks attribution, the admitted choice and offer freshness, never card meaning or button wording.
   CardService saves choice acceptance through TaskService in the resolution transaction before task closure, preserving the original offer and submitted answers.
   The normal `answer_task_closed` handoff remains pending until the first mate recovers and handles the choice; acceptance alone neither authorizes nor proves later work.
-  A choice counts whether it lands before or after the reply that showed the card finishes: `captainResponded` also reads the chains whose reply is still running.
+  The captain's response is accepted per message: for each message whose work or ties include the card's task, or for which the first mate showed the card.
+  A choice counts whether it lands before or after the reply that showed the card finishes: `captainResponded` also reads the threads whose reply is still running.
   A decision closed without a choice answers nothing; a reply, a question or a new message keeps the message open.
   One reply is the exception (INF-2845, the captain's direction A): a line its crewmate signs off.
   When the captain's line under a crewmate's answering card says, in any words, that they need nothing more from it, the crewmate answers it with `reply`, naming the message in `answers_message` and setting `signs_off` (`CardThreads.signOff`).
   The crewmate judges the words; the host checks only typed facts (`signOffRefusal`): its own open answering card of an active answer task, the message the card waits on, no merge, write or browser hand-off for the captain, not `asking`, not `continues` and not an interim line, refusing anything else with its reason and writing nothing.
   An accepted mark resolves the card as read (its past card names the crewmate, never a click of the captain's; a card the captain had seen stays on their screen ended, with one Close, as `close_card` keeps one), accepts it as the answer through `captainResponded` (`signed-off`), and closes the answer task `done/answered` through `taskResultResponse`, the same ending as Done.
   Work the choice started keeps the message working until it ends; then the accepted card still answers it.
-  The step that handles the click joins that work to the message only when the first mate names the message on it (`ask_id`).
+  The step that handles the click attaches that work to the message only when the first mate names the message on it (`ask_id`).
   Closing the first mate's own card is never an acceptance; when `close_card` closes the card a message a step has read was waiting on, and leaves it with no answering card up and no work running, its answer says so, as a fact and never a refusal.
   The first mate's answer in a card's thread is accepted: its closing words under the card the message was typed under, or its line alone on someone else's open card, even one shown before the message.
   So is a reaction to a message that asks nothing, the first mate's own judgment.
 - **Seen.**
-  Once all of a message's work has ended, an answering crewmate card the captain saw since its newest message is its answer (`AskEnding.seenAnswer`), from the card's `seen` observations (`CardStore.seenCards`).
+  Once all of a message's work has ended, an answering crewmate card the captain saw since the message is its answer (`AskEnding.seenAnswer`), from the card's `seen` observations (`CardStore.seenCards`).
   Only a sighting of the card's current version counts - its current offer, and its current released update once there is one - so a revision the captain never saw is still asked for.
   A merge offer never counts, and neither does a lifecycle its own author withdrew.
   An answering card still up keeps the message waiting on it as before; a seen answer counts only when none is up.
@@ -186,7 +203,7 @@ Who writes a missing answer, in the captain's order:
 
 An answer the captain saw (**Seen** above) skips all three: the finished report stands, the first mate is not asked and no notice goes up.
 
-1. The crewmate whose task is the message's last running work: when it reports finished with no answer accepted, up or seen, its report is refused once (`CREWMATE_ANSWER_ASK`), saved as `crewmate_asked_at`; its second finished report stands.
+1. The crewmate whose task is the message's last running work: when it reports finished with no answer accepted, up or seen, its report is refused once (`CREWMATE_ANSWER_ASK`), naming every message that needs its card in that one refusal, each saved as `crewmate_asked_at`; its second finished report stands.
 2. The first mate, through the retry above, once all of the message's work has ended with no answer: the wake names the work that ended (`workEnded`), and the first mate shows the answer or links the task that took the work over with `link_tasks`.
 3. The app's one notice.
 
@@ -203,9 +220,8 @@ A card speaks only for its own task: the close line or merge line is written onl
 - Otherwise the app's one closing note goes up, marked as the answer.
 - Work no message of the captain's covers, such as work the fleet started, puts up a note only when it merged or released and nothing of the task is on the stack.
 
-Open-chain reads select unfinished roots and their complete membership together through `TaskService.capture.openAskChains`, decoding each message once instead of reloading each root and its members after listing the open messages.
-Open turns and already-ended members remain in those chains, so freshness and pending-delivery checks still read the newest message; each call reads current storage, with no retained chain cache.
-The first mate's turn facts list the open messages (`open_asks`): each one's id, when it was sent, how it stands and the work that still runs for it, newest first and bounded like the task list, with a notice still up counted as unanswered.
+Open-thread reads list every followed, unended message in one query (`TaskService.capture.openThreadAsks`), each message decoded once; each call reads current storage, with no retained thread cache.
+The first mate's turn facts list the open messages (`open_asks`), one per row: each one's id, when it was sent, how it stands and the work that still runs for it, newest first and bounded like the task list, with a notice still up counted as unanswered; `open_work` lists every one, one per row, with its words.
 They never repeat the captain's words, which are in its conversation.
 
 ## Pictures stay with the task

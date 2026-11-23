@@ -149,7 +149,7 @@ export class TaskWriter {
   readonly store: TaskStore;
   projection:
     | {
-        workAfter: Map<string, string[]>;
+        workAfter: Map<string, { id: string; inherit: boolean }[]>;
         linksTo: Map<string, TaskLink[]>;
         linksFrom: Map<string, TaskLink[]>;
         blockers: Map<string, TaskRecord[]>;

@@ -34,6 +34,28 @@ function setup() {
   return { tasks, said, tick: () => (now += 1) };
 }
 
+/**
+ * INF-6115: the thread a message ends on and the You asked line read one
+ * origin. The messages whose thread reaches a task through the work it came
+ * from are exactly the one its line quotes from beyond it, and none when the
+ * line names an automation, a click, a task or a message on the task itself.
+ * A report's route and a follow-up are lines only: a thread never follows
+ * them, so their fixtures are left out.
+ */
+function threadAgrees(tasks: TaskService, ...ids: string[]) {
+  for (const id of ids) {
+    const line = tasks.capture.originAbout(id);
+    const direct = new Set(
+      tasks.timeline(id).flatMap((event) => (event.kind === "ask" && event.ref ? [event.ref] : [])),
+    );
+    const beyond = tasks.capture
+      .asksAbove(id, false)
+      .filter((ask) => !direct.has(ask.id))
+      .map((ask) => ask.text);
+    expect(beyond, id).toEqual(line?.kind === "asked" && line.through > 0 ? [line.text] : []);
+  }
+}
+
 describe("where a card's work came from", () => {
   it("skips a part's own later steer and reads the message that started its parent", () => {
     // INF-2229's card quoted a 2:17 PM steer instead of the message that started the work.
@@ -58,6 +80,7 @@ describe("where a card's work came from", () => {
       text: expect.stringContaining("i want an assessment"),
       through: 1,
     });
+    threadAgrees(tasks, "assess", "compare");
   });
 
   it("never quotes a merge or interruption, and names how many tasks the source sits behind", () => {
@@ -94,6 +117,7 @@ describe("where a card's work came from", () => {
       text: expect.stringContaining("merged on its own"),
       through: 4,
     });
+    threadAgrees(tasks, "start", "plan", "build", "fix", "again");
   });
 
   it("says an automation filed the work and keeps its name once the automation is gone", () => {
@@ -120,6 +144,7 @@ describe("where a card's work came from", () => {
       parentId: "audit",
     });
     expect(tasks.capture.originAbout("part")).toMatchObject({ kind: "automation", through: 1 });
+    threadAgrees(tasks, "audit", "part");
   });
 
   it("reads a click the work was filed from, with the button's words and what the captain wrote", () => {
@@ -143,6 +168,7 @@ describe("where a card's work came from", () => {
       text: expect.stringContaining("ran by an automation"),
       through: 0,
     });
+    threadAgrees(tasks, "file", "other");
   });
 
   it("follows a report the work was filed after to the reporting task's own origin", () => {
@@ -273,6 +299,7 @@ describe("where a card's work came from", () => {
         text: lavish,
         through: 1,
       });
+    threadAgrees(tasks, "f55e327c", "part");
   });
 
   it("falls back to a message aimed at this work alone, then to the nearest task it came from", () => {
@@ -302,5 +329,6 @@ describe("where a card's work came from", () => {
       text: "keep the timeout as it is",
       through: 0,
     });
+    threadAgrees(tasks, "alpha", "slow");
   });
 });

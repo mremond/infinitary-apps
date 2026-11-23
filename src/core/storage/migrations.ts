@@ -71,6 +71,27 @@ export const keyboardPresets = (db: AppDatabase, fresh: boolean): void => {
   ).run(JSON.stringify({ version: 1, keys: {} }));
 };
 
+/**
+ * INF-6115 piece 2 (docs/task-capture.md "How a message ends"): every
+ * captain message is its own thread, and `continues` is never written or
+ * read again. Each followed message open at this update is listed once,
+ * with the message whose merged thread it was in, so one step after the
+ * update keeps that thread's still-open work as the message's own and
+ * marks it carried; no row is added after this. `TaskService` is the only
+ * writer; no published view reads it. Dropping the table reverses it.
+ */
+// i18n-exempt: SQL, never shown
+export const ASK_THREAD_CARRIES = `
+  CREATE TABLE IF NOT EXISTS ask_thread_carries (
+    ask_id TEXT PRIMARY KEY,
+    root_id TEXT NOT NULL,
+    carried_at INTEGER
+  ) WITHOUT ROWID;
+  INSERT OR IGNORE INTO ask_thread_carries (ask_id, root_id)
+    SELECT id, COALESCE(continues, id) FROM captain_asks
+    WHERE followed = 1 AND answered_at IS NULL AND delivery != 'unresolved';
+`;
+
 export const MIGRATIONS: readonly Migration[] = [
   // 1: work substrate - registered repos and tasks (worktree per task).
   `
@@ -1510,6 +1531,8 @@ export const MIGRATIONS: readonly Migration[] = [
   // before. `TaskService` is the only writer; no published view reads it.
   // Dropping the column reverses it.
   (db) => addColumn(db, "tasks", "gate_update_json", "TEXT"),
+  // INF-6115 piece 2: one thread per message (`ASK_THREAD_CARRIES`).
+  ASK_THREAD_CARRIES,
 ];
 
 /**

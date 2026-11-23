@@ -18,6 +18,8 @@ export const BOUNDED_TABLES: Record<string, string> = {
   inbox_acks: "InboxStore.ack deletes the acknowledgements older than INBOX_DEDUPE_WINDOW_MS",
   schedule_runs:
     "ScheduleStore.trim keeps each schedule's settled runs to 30 days and RUN_RETENTION_CAP",
+  ask_thread_carries:
+    "filled once by its migration with the messages open at the update to one thread per message; nothing adds a row after",
   card_drafts:
     "rows only for open cards: its triggers delete a card's rows when the card is resolved or removed",
 };

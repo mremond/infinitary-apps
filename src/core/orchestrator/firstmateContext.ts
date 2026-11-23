@@ -793,23 +793,21 @@ export class FirstmateContext {
     const shown = new Set(this.options.supervisor.cards.snapshot().map((card) => card.id));
     const rows: { at: number; row: Record<string, unknown> }[] = [];
     try {
-      const chains = ending.openChains();
-      for (const ask of asksInTurn(this.options.tasks, chains)) {
+      const threads = ending.openThreads();
+      for (const ask of asksInTurn(this.options.tasks, threads)) {
         rows.push({
           at: ask.at,
           row: { ask_id: ask.id, sent: new Date(ask.at).toISOString(), state: IN_TURN },
         });
       }
-      for (const chain of chains) {
-        const state = ending.state(chain);
-        const newest = chain.members.at(-1) ?? chain.root;
-        const live = ending.listedWork(chain).filter((task) => !TaskService.isClosed(task));
+      for (const thread of threads) {
+        const state = ending.state(thread);
+        const live = ending.listedWork(thread).filter((task) => !TaskService.isClosed(task));
         rows.push({
-          at: newest.at,
+          at: thread.ask.at,
           row: {
-            ask_id: chain.root.id,
-            sent: new Date(chain.root.at).toISOString(),
-            ...(chain.members.length > 1 ? { later_messages: chain.members.length - 1 } : {}),
+            ask_id: thread.ask.id,
+            sent: new Date(thread.ask.at).toISOString(),
             state:
               state.kind === "working"
                 ? "working"
@@ -847,7 +845,7 @@ export class FirstmateContext {
     rows.sort((a, b) => b.at - a.at);
     return {
       open_asks: {
-        note: "The captain's messages not yet answered on a card they accepted, newest first, by when each was sent; their words are in your conversation. Each ends on the card marked answering that they accept. open_work reads every one, with its words.",
+        note: "The captain's messages not yet answered on a card they accepted, one per row, newest first, by when each was sent; their words are in your conversation. Each ends on its own accepted answering card; two messages about one task can end on the same card. open_work reads every one, with its words.",
         asks: rows.slice(0, OPEN_ASKS_LISTED).map((entry) => entry.row),
         ...(rows.length > OPEN_ASKS_LISTED ? { more: rows.length - OPEN_ASKS_LISTED } : {}),
       },

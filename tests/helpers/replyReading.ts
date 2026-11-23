@@ -35,7 +35,7 @@ export function seedReplyReading(tasks: TaskService) {
     tasks.capture.setAskReply(round.id, round.reply);
     tasks.capture.setAskDelivery(round.id, "covered");
     tasks.capture.closeAsk(round.id, "closed");
-    tasks.capture.markAnswered([round.id], null);
+    tasks.capture.markAnswered(round.id, null);
   }
   return { question: REPLY_READING_QUESTION, words: REPLY_NOTE_WORDS, problemWords };
 }

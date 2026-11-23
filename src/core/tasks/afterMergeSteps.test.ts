@@ -791,7 +791,7 @@ describe("after-merge steps that hold the rest's waiters", () => {
       seenCards: () => [],
     });
     const state = () =>
-      ending.state(ending.chain("ask") as NonNullable<ReturnType<AskEnding["chain"]>>);
+      ending.state(ending.thread("ask") as NonNullable<ReturnType<AskEnding["thread"]>>);
 
     tasks.close(slice.id, { status: "done", reason: "merged", actor: "host" });
 

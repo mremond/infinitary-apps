@@ -85,18 +85,19 @@ export class DeclaredCloses {
    * The outcome of a carrier that closed before the work it carries on
    * (INF-1825): the old task's message held it back while that task was
    * open, and the old task's close puts up nothing of its own, so the
-   * carrier's outcome is placed once, where it would have gone. A chain
-   * that ends on a dropped task is never one: a dropped task carries no
-   * work on (`carrierRefusal`), so it was reached only through a link left
-   * from before its drop, and its old line is no news (INF-3418).
+   * carrier's outcome is placed once, where it would have gone. The carry
+   * link says which task carries it (`carrierOf`), and a message whose
+   * thread holds the old task is what held it back (INF-6115). A carrier
+   * that ends dropped is never one: a dropped task carries no work on
+   * (`carrierRefusal`), so it was reached only through a link left from
+   * before its drop, and its old line is no news (INF-3418).
    */
   placeHeldOutcome(oldId: string): void {
     const carrier = this.host.tasks.graph.carrierOf(oldId);
     if (!carrier || carrier.id === oldId || !TaskService.isClosed(carrier)) return;
     if (carrier.status === "dropped") return;
     if (!carrier.closedReason) return;
-    const chain = this.host.askEnding.chainsOf(carrier.id)[0];
-    if (!chain?.work.some((task) => task.id === oldId)) return;
+    if (this.host.askEnding.threadsOf(oldId).length === 0) return;
     const close = this.host.tasks
       .timeline(carrier.id)
       .findLast(

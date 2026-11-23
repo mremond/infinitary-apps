@@ -98,6 +98,8 @@ export class AskCapture {
   private readonly actionAsk = new AsyncLocalStorage<{
     askId: string | undefined;
     origin?: TurnOrigin | undefined;
+    /** Whether the action named its message with `ask_id`, rather than leaving it to the turn. */
+    named?: boolean;
   }>();
 
   /**
@@ -152,10 +154,23 @@ export class AskCapture {
   /**
    * Pin an action's declared source through awaits, without changing
    * another action's source: the message it addresses, and the automation
-   * run, click or report it answers when it named one.
+   * run, click or report it answers when it named one. `named` says the
+   * action named the message itself with `ask_id`.
    */
-  withAsk<T>(askId: string | undefined, action: () => T, origin?: TurnOrigin): T {
-    return this.actionAsk.run({ askId, ...(origin ? { origin } : {}) }, action);
+  withAsk<T>(askId: string | undefined, action: () => T, origin?: TurnOrigin, named = false): T {
+    return this.actionAsk.run(
+      { askId, ...(origin ? { origin } : {}), ...(named ? { named } : {}) },
+      action,
+    );
+  }
+
+  /**
+   * The message the running action named with `ask_id`, when it named one:
+   * what it shows or writes is recorded for that message alone (INF-6115).
+   */
+  namedAsk(): string | undefined {
+    const scope = this.actionAsk.getStore();
+    return scope?.named ? scope.askId : undefined;
   }
 
   /**

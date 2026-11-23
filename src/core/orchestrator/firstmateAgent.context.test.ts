@@ -636,20 +636,18 @@ describe("INF-1712: a context carries what changed, and a fold reads open work b
       (result?.content[0] as { text?: string } | undefined)?.text ?? "";
     const jsonOf = (text: string) => JSON.parse(text.slice(text.indexOf("\n") + 1));
     const overview = jsonOf(textOf(await read?.execute("o1", {})));
-    // Messages that steered the same task end together: one chain holds them all.
+    // Every message is its own row, past the context's limit (INF-6115).
     // The message this turn is handling is listed too (INF-1746 R2), though
     // the answer check judges it only once its turn closes.
-    expect(overview.asks).toHaveLength(2);
-    expect(overview.asks[1]).toMatchObject({
-      state: IN_TURN,
-      messages: [expect.objectContaining({ words: "what is open?" })],
-    });
+    expect(overview.asks).toHaveLength(count + 1);
+    const current = overview.asks[count];
+    expect(current).toMatchObject({ state: IN_TURN, words: "what is open?" });
     expect(
       (decodeContext(agent.buildContextBlock()).open_asks as { asks: unknown[] }).asks,
-    ).toContainEqual(expect.objectContaining({ ask_id: overview.asks[1].ask_id, state: IN_TURN }));
-    expect(overview.asks[0].messages).toHaveLength(count);
-    expect(overview.asks[0].messages[0].words).toMatch(/^Message 0: keep the meter steady/);
-    expect(overview.asks[0].messages[0].whole).toBe("ask ask-0");
+    ).toContainEqual(expect.objectContaining({ ask_id: current.ask_id, state: IN_TURN }));
+    expect(overview.asks[0].ask_id).toBe("ask-0");
+    expect(overview.asks[0].words).toMatch(/^Message 0: keep the meter steady/);
+    expect(overview.asks[0].whole).toBe("ask ask-0");
     expect(overview.asks[0].work).toEqual([
       expect.objectContaining({ task_id: "t1", status: "active" }),
     ]);
@@ -667,11 +665,10 @@ describe("INF-1712: a context carries what changed, and a fold reads open work b
     });
 
     const whole = jsonOf(textOf(await read?.execute("o2", { ask: "ask-3" })));
-    expect(
-      (whole.messages as Array<{ ask_id: string; words: string }>).find(
-        (message) => message.ask_id === "ask-3",
-      )?.words,
-    ).toBe(`Message 3: ${"keep the meter steady ".repeat(40)}`);
+    expect(whole).toMatchObject({
+      ask_id: "ask-3",
+      words: `Message 3: ${"keep the meter steady ".repeat(40)}`,
+    });
     const card = jsonOf(textOf(await read?.execute("o3", { card: "card-t1-1" })));
     expect(card).toMatchObject({ state: "open", body: "<p>Two ways to retry.</p>" });
     expect(card.messages).toEqual([expect.objectContaining({ who: "captain", text: replied })]);
@@ -693,8 +690,8 @@ describe("INF-1712: a context carries what changed, and a fold reads open work b
     expect(closed.messages).toEqual([expect.objectContaining({ who: "captain", text: replied })]);
 
     // INF-1746 R4: a message's picture comes back as the picture itself.
-    const asked = await read?.execute("o5", { ask: overview.asks[1].ask_id });
-    expect(jsonOf(textOf(asked)).messages[0].pictures).toEqual([
+    const asked = await read?.execute("o5", { ask: current.ask_id });
+    expect(jsonOf(textOf(asked)).pictures).toEqual([
       expect.objectContaining({ copy: "attached, picture 1" }),
     ]);
     expect(asked?.content[1]).toMatchObject({
@@ -715,7 +712,7 @@ describe("INF-1712: a context carries what changed, and a fold reads open work b
       parts.push(text.slice(text.indexOf("\n", text.indexOf("part ")) + 1));
     } while (next);
     expect(parts.length).toBeGreaterThan(1);
-    expect(JSON.parse(parts.join("")).messages[0].words).toBe(words);
+    expect(JSON.parse(parts.join("")).words).toBe(words);
     const first = textOf(await read?.execute("q", { ask: "ask-long" }));
     tasks.capture.attachAsk("ask-long", "t1", "tool:steer_crewmate");
     const stale = textOf(

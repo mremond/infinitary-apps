@@ -20,10 +20,10 @@ function setup() {
 }
 
 describe("TaskService capture", () => {
-  // INF-2667 review of INF-2664: a message joins an earlier message's chain
-  // on its first attachment only (docs/task-capture.md, "How a message
-  // ends"); naming it later on other work never moves it under another chain.
-  it("joins a message to an earlier one's chain on its first attachment only", () => {
+  // INF-6115 (docs/task-capture.md, "How a message ends"): every message
+  // is its own thread. A message attached to an earlier message's work is
+  // never joined to it; both messages' threads hold that work.
+  it("keeps a message attached to an earlier one's work in its own thread", () => {
     const { tasks, tick } = setup();
     seedTask(tasks, { id: "t1", title: "Add pagination", status: "running" });
     seedTask(tasks, { id: "t2", title: "Fix the meter", status: "running" });
@@ -33,14 +33,21 @@ describe("TaskService capture", () => {
     tasks.capture.openAsk({ id: "askB", text: "fix the meter", images: [] });
     tasks.capture.attachAsk("askB", "t2", "tool:spawn_crewmate");
     tick();
-    // A message first attached to askA's work joins it.
     tasks.capture.openAsk({ id: "askC", text: "and the page size?", images: [] });
-    tasks.capture.attachAsk("askC", "t1", "host:fallback");
-    expect(tasks.capture.getAsk("askC")?.continues).toBe("askA");
+    tasks.capture.attachAsk("askC", "t1", "tool:steer_crewmate");
+    expect(tasks.capture.getAsk("askC")?.continues).toBeNull();
     tick();
-    // askB named later on askA's work stays the root of its own chain.
     expect(tasks.capture.attachAsk("askB", "t1", "tool:create_task")).toBe(true);
     expect(tasks.capture.getAsk("askB")?.continues).toBeNull();
+    const work = (id: string) =>
+      tasks.capture
+        .askCoverage([id])
+        .work.map((task) => task.id)
+        .sort();
+    expect(work("askA")).toEqual(["t1"]);
+    expect(work("askB")).toEqual(["t1", "t2"]);
+    expect(work("askC")).toEqual(["t1"]);
+    expect(tasks.capture.asksAbove("t1").map((ask) => ask.id)).toEqual(["askC", "askB", "askA"]);
   });
 
   it("opens an ask, attaches it once per task with an ask event, and closes it", () => {
