@@ -115057,7 +115057,13 @@ ${startersHtml()}`;
     on: string(),
     branch: string(),
     members: array(object({ taskId: string(), head: string() })),
-    at: number()
+    at: number(),
+    /**
+     * That batch merged carrying each of `members` at its version: the rebuild
+     * stands, so the clashing version stays out of later batches and its merge
+     * waits for the rebuilt version, until the task closes.
+     */
+    merged: literal(true).optional()
   });
   const batchRecordSchema = object({
     line: array(batchChangeSchema),

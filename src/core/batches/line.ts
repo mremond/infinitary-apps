@@ -83,8 +83,9 @@ export function standing(record: BatchRecord, taskId: string, head: string): Sta
       state: "left-out",
       reason: left.reason,
       ...(left.ahead ? { ahead: left.ahead } : {}),
-      // The rebuild it was told stands only while the batch it names is open.
-      ...(left.rebuild && record.open?.branch === left.rebuild.branch
+      // The rebuild it was told stands while the batch it names is open, and after it merged.
+      ...(left.rebuild &&
+      (record.open?.branch === left.rebuild.branch || rebuildStands(record, left))
         ? { rebuild: left.rebuild }
         : {}),
     };
@@ -374,11 +375,13 @@ export function carried(
   // A change rebuilt on an open batch goes right behind the changes it was built on: first
   // in a new batch, behind the declared fixes when the line joins a held batch, and, when the
   // open batch is combined again with those changes still in it, right behind them then too.
-  const rebuilt = record.line.filter((entry) => entry.onBatch && !entry.fix);
-  const rest = record.line.filter((entry) => !entry.onBatch && !entry.fix);
+  // A clashing version whose rebuild stands waits for the rebuilt version, in no batch.
+  const line = record.line.filter((entry) => !rebuildStands(record, entry));
+  const rebuilt = line.filter((entry) => entry.onBatch && !entry.fix);
+  const rest = line.filter((entry) => !entry.onBatch && !entry.fix);
   if (!record.open)
     return inTurn(
-      [...rebuilt, ...record.line.filter((entry) => !rebuilt.includes(entry))],
+      [...rebuilt, ...line.filter((entry) => !rebuilt.includes(entry))],
       new Set(),
       closed,
     ).map(based);
@@ -391,7 +394,7 @@ export function carried(
     );
   const joining =
     join === "line"
-      ? [...record.line.filter((entry) => entry.fix), ...rebuilt, ...rest]
+      ? [...line.filter((entry) => entry.fix), ...rebuilt, ...rest]
       : rebuilt.filter(behindOpen);
   const members = record.open.members.map(asChange);
   return [
@@ -589,8 +592,20 @@ export function merged(
   const { open, finished: _finished, ...rest } = record;
   if (!open || open.number === undefined) return record;
   const number = open.number;
+  // A rebuild told on this batch stands once it merged carrying each change the crewmate was
+  // told about, at that version: the version rebuilt on it goes first in the next batch.
+  const carriedAll = (told: BatchRebuild) =>
+    told.members.every((carried) =>
+      open.members.some(
+        (member) => member.taskId === carried.taskId && member.head === carried.head,
+      ),
+    );
+  const rebuilds = record.rebuilds?.map((told) =>
+    told.branch === open.branch && carriedAll(told) ? { ...told, merged: true as const } : told,
+  );
   return {
     ...rest,
+    ...(rebuilds ? { rebuilds } : {}),
     ...finishedWith(record, open, "merged", at),
     receipts: [
       ...record.receipts.filter(
@@ -673,7 +688,8 @@ export function finishedWithin(finished: readonly FinishedBatch[], now: number):
 
 /**
  * A left-out change's clash with a change ahead that ended; `rebuilt` when
- * its crewmate was already told to rebuild it on the open batch.
+ * its crewmate was told to rebuild it on the batch that merged, and that
+ * rebuild stands (`rebuildStands`).
  */
 export type EndedClash = {
   taskId: string;
@@ -709,7 +725,7 @@ export function clashesEnded(
         head: entry.head,
         ahead,
         how: "merged",
-        ...(entry.rebuild ? { rebuilt: true as const } : {}),
+        ...(rebuildStands(record, entry) ? { rebuilt: true as const } : {}),
       });
       const { ahead: _ahead, ...rest } = entry;
       return [{ ...rest, reason: conflict }];
@@ -794,6 +810,20 @@ export function rebuildTold(record: BatchRecord, change: Pick<BatchChange, "task
     earlier.branch === open.branch &&
     JSON.stringify(earlier.members) === JSON.stringify(carriedBy(open))
   );
+}
+
+/**
+ * The rebuild told for `change` at its version, once the batch it named
+ * merged carrying each change the crewmate was told about (`merged`): the
+ * clashing version waits for the version rebuilt on it, in no batch, until
+ * the task closes or a new version takes its place.
+ */
+export function rebuildStands(
+  record: BatchRecord,
+  change: Pick<BatchChange, "taskId" | "head">,
+): boolean {
+  const told = record.rebuilds?.find((entry) => entry.taskId === change.taskId);
+  return told?.merged === true && told.head === change.head;
 }
 
 /**

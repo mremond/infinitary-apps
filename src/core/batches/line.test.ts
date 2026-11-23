@@ -520,6 +520,7 @@ describe("a change rebuilt on an open batch", () => {
       leftOut: [{ taskId: LEGEND.taskId, head: LEGEND.head, reason, at: 5_000, ahead: "t-parser" }],
     };
   }
+  const AXIS_CHANGE: BatchChange = { ...EXPORT, taskId: "t-axis", head: "7".repeat(40), at: 7_000 };
   const REBUILT: BatchChange = {
     ...LEGEND,
     head: "4444444444444444444444444444444444444444",
@@ -647,6 +648,33 @@ describe("a change rebuilt on an open batch", () => {
       "t-legend",
       "t-early",
     ]);
+  });
+
+  // The captain's answer to the review's question: let the first rebuild stand, so the change
+  // goes first next batch, when the batch merges before the rebuilt version arrives.
+  it("lets the rebuild stand once its batch merged with each change it was told about, and only then", () => {
+    const told = toldRebuild(leftOut(), LEGEND, 6_000).record;
+    const done = merged(told, new Map(), 9_000);
+    expect(done.rebuilds?.[0]?.merged).toBe(true);
+    expect(standing(done, LEGEND.taskId, LEGEND.head)).toMatchObject({
+      state: "left-out",
+      rebuild: { head: BATCH_HEAD, branch: "infinitary-batch/7c41" },
+    });
+    // Its clash with the change ahead ended with that merge, with nothing more to say.
+    expect(clashesEnded(done, "conflict").ended).toEqual([
+      { taskId: LEGEND.taskId, head: LEGEND.head, ahead: "t-parser", how: "merged", rebuilt: true },
+    ]);
+    // Waiting in line at the clashing version, it stays out of every batch until replaced.
+    const waiting = { ...done, leftOut: [], line: [LEGEND, AXIS_CHANGE] };
+    expect(carried(waiting).map((entry) => entry.taskId)).toEqual([AXIS_CHANGE.taskId]);
+    expect(carried({ ...waiting, line: [REBUILT] }).map((entry) => entry.head)).toEqual([
+      REBUILT.head,
+    ]);
+
+    // A batch that merged without a change it was told about leaves the rebuild unstood.
+    const fewer = merged(withdraw(told, EXPORT.taskId), new Map(), 9_000);
+    expect(fewer.rebuilds?.[0]?.merged).toBeUndefined();
+    expect(standing(fewer, LEGEND.taskId, LEGEND.head)).not.toHaveProperty("rebuild");
   });
 
   it("drops what its crewmate was told once its task closes", () => {

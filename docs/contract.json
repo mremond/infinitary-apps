@@ -2819,6 +2819,10 @@
                       },
                       "at": {
                         "type": "number"
+                      },
+                      "merged": {
+                        "type": "boolean",
+                        "const": true
                       }
                     },
                     "required": [
@@ -3870,6 +3874,10 @@
                         },
                         "at": {
                           "type": "number"
+                        },
+                        "merged": {
+                          "type": "boolean",
+                          "const": true
                         }
                       },
                       "required": [
@@ -5251,6 +5259,10 @@
                     },
                     "at": {
                       "type": "number"
+                    },
+                    "merged": {
+                      "type": "boolean",
+                      "const": true
                     }
                   },
                   "required": [
@@ -11636,6 +11648,10 @@
                     },
                     "at": {
                       "type": "number"
+                    },
+                    "merged": {
+                      "type": "boolean",
+                      "const": true
                     }
                   },
                   "required": [

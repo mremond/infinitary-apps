@@ -847,7 +847,7 @@ describe("the merge of a change that joins a batch", () => {
     });
     expect(await at.service.merges.merge(TASK, guard)).toEqual({
       ok: false,
-      text: `Cannot merge yet: the change was left out of its batch because ${reason}. Its crewmate was told to rebuild it on the open batch's version ${on} (branch ${branch}) and declare that push with check_change conflictRepair, giving ${on} as newBase; the rebuilt version then goes in line right behind that batch's changes and first in the next batch.`,
+      text: `Cannot merge yet: the change was left out of its batch because ${reason}. Its crewmate was told to rebuild it on its batch's version ${on} (branch ${branch}) and declare that push with check_change conflictRepair, giving ${on} as newBase; the rebuilt version then goes in line right behind that batch's changes and first in the next batch.`,
       plain: reason,
       stop: "queue",
     });

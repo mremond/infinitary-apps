@@ -279,6 +279,12 @@ export const batchRebuildSchema = z.object({
   branch: z.string(),
   members: z.array(z.object({ taskId: z.string(), head: z.string() })),
   at: z.number(),
+  /**
+   * That batch merged carrying each of `members` at its version: the rebuild
+   * stands, so the clashing version stays out of later batches and its merge
+   * waits for the rebuilt version, until the task closes.
+   */
+  merged: z.literal(true).optional(),
 });
 export type BatchRebuild = z.infer<typeof batchRebuildSchema>;
 

@@ -675,7 +675,7 @@ export class ChangeMerge {
     if (place?.state === "left-out" && place.rebuild)
       return {
         ok: false,
-        text: `Cannot merge yet: the change was left out of its batch because ${place.reason}. Its crewmate was told to rebuild it on the open batch's version ${place.rebuild.head} (branch ${place.rebuild.branch}) and declare that push with check_change conflictRepair, giving ${place.rebuild.head} as newBase; the rebuilt version then goes in line right behind that batch's changes and first in the next batch.`,
+        text: `Cannot merge yet: the change was left out of its batch because ${place.reason}. Its crewmate was told to rebuild it on its batch's version ${place.rebuild.head} (branch ${place.rebuild.branch}) and declare that push with check_change conflictRepair, giving ${place.rebuild.head} as newBase; the rebuilt version then goes in line right behind that batch's changes and first in the next batch.`,
         plain: place.reason,
         stop: "queue",
       };

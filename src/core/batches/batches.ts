@@ -76,6 +76,7 @@ import {
   merged,
   nextBatchAt,
   pruned,
+  rebuildStands,
   rebuildTold,
   release,
   reopened,
@@ -374,7 +375,16 @@ export class Batches {
    * open batch's version, by task, version and batch version, kept in
    * memory alone: after a restart each is tried once again.
    */
-  private readonly tried = new Map<string, Set<string>>();
+  private readonly tried = new Map<string, { at: string; keys: Set<string> }>();
+
+  /** The keys tried for a project's open batch version `at`; a new version starts afresh. */
+  private triedAt(repoId: string, at: string): Set<string> {
+    const kept = this.tried.get(repoId);
+    if (kept?.at === at) return kept.keys;
+    const keys = new Set<string>();
+    this.tried.set(repoId, { at, keys });
+    return keys;
+  }
 
   constructor(private readonly options: BatchesOptions) {}
 
@@ -767,8 +777,7 @@ export class Batches {
    */
   private async markRebuilt(repo: RepoView, record: BatchRecord): Promise<BatchRecord> {
     const open = record.open?.members.length ? record.open.head : undefined;
-    const tried = this.tried.get(repo.id) ?? new Set<string>();
-    this.tried.set(repo.id, tried);
+    const tried = this.triedAt(repo.id, record.open?.head ?? "");
     let next = record;
     for (const change of record.line) {
       if (change.onBatch || change.fix || change.after || change.base) continue;
@@ -814,8 +823,7 @@ export class Batches {
     const open = record.open;
     if (!open || open.hold || open.stale || open.members.length === 0 || !this.options.rebuild)
       return;
-    const tried = this.tried.get(repo.id) ?? new Set<string>();
-    this.tried.set(repo.id, tried);
+    const tried = this.triedAt(repo.id, open.head);
     for (const change of record.line) {
       // A version rebuilt on a batch whose changes no longer stand in the open batch at their
       // versions, nor merged at them, is told once to rebuild on the open batch as it is now.
@@ -828,7 +836,7 @@ export class Batches {
       // place; the combine judges them.
       if (change.fix || change.after || change.base) continue;
       const key = `${change.taskId}:${change.head}:${open.head}`;
-      if (tried.has(key) || rebuildTold(record, change)) continue;
+      if (tried.has(key) || rebuildTold(record, change) || rebuildStands(record, change)) continue;
       const clashes = await (this.options.clashes ?? clashesWithBatch)({
         repoDir: repo.path,
         ...(repo.origin ? { remote: repo.origin } : {}),
@@ -836,7 +844,8 @@ export class Batches {
         head: change.head,
         batch: open.head,
       });
-      if (clashes === undefined) continue;
+      // One that cannot be read at this version, as a moved branch, is tried again only once
+      // the batch's version or the change's version moves.
       tried.add(key);
       if (!clashes || !this.stillAt(repo)) continue;
       this.tellRebuild(repo.id, change, LEFT_OUT_WORDS.clashesBatch);
@@ -922,14 +931,16 @@ export class Batches {
     if (ended.length === 0) return;
     this.save(repoId, record);
     for (const entry of ended) {
-      // Its crewmate was told to rebuild on the batch that merged, and still does.
+      // Its crewmate was told to rebuild on the batch that merged, and that rebuild stands.
       if (entry.how === "merged" && entry.rebuilt) continue;
       this.options.taskNote(
         entry.taskId,
         entry.how === "merged" ? BATCH_WORDS.clashMerged : BATCH_WORDS.clashLeft,
       );
     }
-    this.options.settle(ended.map((entry) => entry.taskId));
+    // One whose rebuild stands since that batch merged keeps waiting for its rebuilt version.
+    const read = ended.filter((entry) => !(entry.how === "merged" && entry.rebuilt));
+    if (read.length) this.options.settle(read.map((entry) => entry.taskId));
   }
 
   /** Whether the project is still at the address this pass read it at. */
@@ -1368,11 +1379,15 @@ export class Batches {
         );
     }
     await forge.deleteBranch?.(open.branch).catch(() => {});
-    // A change left out of this batch whose crewmate was told to rebuild on it reads its place
-    // again: with the batch merged, its left-out reason stands alone.
+    // A change left out of this batch whose crewmate was told to rebuild on it, and whose
+    // rebuild does not stand since the batch merged without a change it was told about, reads
+    // its place again: its left-out reason stands alone.
     this.options.settle([
       ...open.members.map((member) => member.taskId),
-      ...this.toldOn(saved, open.branch),
+      ...this.toldOn(saved, open.branch).filter(
+        (taskId) =>
+          !saved.leftOut.some((left) => left.taskId === taskId && rebuildStands(saved, left)),
+      ),
     ]);
     return saved;
   }

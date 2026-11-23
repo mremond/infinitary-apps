@@ -41,6 +41,15 @@ const LEGEND: BatchChange = {
   at: 3_000,
 };
 
+const AXIS: BatchChange = {
+  taskId: "t-axis",
+  branch: "fm/task-axis",
+  head: "7e6d5c4b3a2918070f6e5d4c3b2a190817263544",
+  title: "fix(chart): label the time axis in local time",
+  body: "- The time axis reads in the viewer's own time.",
+  at: 4_000,
+};
+
 describe("a change that clashes with the open batch", () => {
   it("tells a change left out for a clash with the open batch to rebuild on its version once, then carries the rebuilt version first in the next batch", async () => {
     const home = setup(EVERY_WAY, { rebuilding: true });
@@ -154,5 +163,58 @@ describe("a change that clashes with the open batch", () => {
     expect(home.heard.settled[1]).toEqual(["t-export"]);
     expect(home.place(EXPORT)).toMatchObject({ state: "left-out" });
     expect(home.place(EXPORT)).not.toHaveProperty("rebuild");
+  });
+  // The captain's answer to the review's question (let the first rebuild stand, so the change
+  // goes first next batch): a batch that merges before the rebuilt version is declared asks
+  // for no second bring-up-to-date.
+  it("keeps the first rebuild standing when the batch merges before the rebuilt version arrives, then carries that version first", async () => {
+    const home = setup(EVERY_WAY, { rebuilding: true });
+    home.approve(PARSER);
+    await home.pass();
+    const open = home.open();
+    home.clashingOpen.add(LEGEND.head);
+    home.approve(LEGEND);
+    await home.pass();
+    expect(home.heard.rebuilds).toHaveLength(1);
+
+    home.host.report([passed("build")]);
+    home.host.ready("clean");
+    await home.pass();
+    await home.pass();
+    expect(home.host.merges.map((merge) => merge.number)).toEqual([31]);
+    // The clashing version stays out of the next batch, and nothing tells it again.
+    expect(home.record().open).toBeUndefined();
+    expect(home.place(LEGEND)).toEqual({ state: "waiting", place: "line" });
+    expect(home.heard.rebuilds).toHaveLength(1);
+    expect(home.heard.taskNotes).toHaveLength(1);
+
+    // Approved before the rebuilt version arrives, a later change still goes behind it.
+    home.approve(AXIS);
+    const rebuilt = { ...LEGEND, head: "d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708", at: 9_000 };
+    home.builtOn.set(rebuilt.head, open.head);
+    await home.approve(rebuilt);
+    await home.pass();
+    expect(home.members()).toEqual(["t-legend", "t-axis"]);
+    expect(home.record().line).toEqual([]);
+  });
+
+  it("keeps a told left-out change waiting for its rebuilt version once that batch merged", async () => {
+    const home = setup(EVERY_WAY, { rebuilding: true });
+    home.clashing.set("t-export", "t-parser");
+    home.approve(PARSER);
+    home.approve(EXPORT);
+    await home.pass();
+    const open = home.open();
+    home.host.report([passed("build")]);
+    home.host.ready("clean");
+    await home.pass();
+    expect(home.host.merges.map((merge) => merge.number)).toEqual([31]);
+    expect(home.place(EXPORT)).toMatchObject({
+      state: "left-out",
+      rebuild: { head: open.head, branch: open.branch },
+    });
+    // Only the merged change reads its place again; the told one waits, with no new note.
+    expect(home.heard.settled).toEqual([["t-export"], ["t-parser"]]);
+    expect(home.heard.taskNotes).toHaveLength(1);
   });
 });
