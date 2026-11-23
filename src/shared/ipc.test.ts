@@ -482,6 +482,7 @@ describe("ipc contract", () => {
       "inf:devices:try-again",
       "inf:devices:update",
       "inf:devices:update-app",
+      "inf:devices:update-later",
       "inf:devices:work-setup",
       "inf:feed:recent",
       "inf:forges:cancel",
