@@ -1,92 +1,96 @@
 name: Windows feasibility observations
 
-# Opt-in investigation, not Windows support and not a release/merge gate.
+# Temporary diagnostic on a throwaway branch, never merged: adds a Claude
+# account the way the app does on a fresh Windows 11 machine and records
+# each read the add makes. No sign-in starts; the probe stops before the
+# vendor's own login would run.
 on:
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: windows-feasibility-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
-  observe:
-    name: Manual request · Windows feasibility observations (not parity qualification)
-    runs-on: windows-2025
-    timeout-minutes: 35
+  repro:
+    name: Manual request · Claude account add on fresh Windows 11 (diagnostic)
+    runs-on: ${{ vars.WINDOWS_CLEAN_RUNNER || 'shell-pc-win11' }}
+    timeout-minutes: 30
     defaults:
       run:
-        shell: pwsh
+        shell: powershell
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 24
-      - name: Isolate all app data and record the machine
+      - name: Record the machine and fetch the probe
         run: |
-          $root = Join-Path $env:RUNNER_TEMP 'fm-windows-feasibility'
-          New-Item -ItemType Directory -Force "$root/evidence", "$root/home", "$root/roaming", "$root/local" | Out-Null
-          "FM_WINDOWS_EVIDENCE=$root/evidence" >> $env:GITHUB_ENV
-          "HOME=$root/home" >> $env:GITHUB_ENV
-          "USERPROFILE=$root/home" >> $env:GITHUB_ENV
-          "APPDATA=$root/roaming" >> $env:GITHUB_ENV
-          "LOCALAPPDATA=$root/local" >> $env:GITHUB_ENV
-          "PI_OFFLINE=1" >> $env:GITHUB_ENV
-          "INFINITARY_LOCAL_CODESIGN_DIR=$root/unused-signing" >> $env:GITHUB_ENV
-          Get-ComputerInfo -Property WindowsProductName,WindowsVersion,OsBuildNumber,OsArchitecture | ConvertTo-Json > "$root/evidence/machine.json"
-          git rev-parse HEAD > "$root/evidence/version.txt"
-          whoami /groups > "$root/evidence/groups.txt"
-          node --version
-          pnpm --version
-      - name: Attempt the unchanged dependency install
-        id: install
+          $ProgressPreference = 'SilentlyContinue'
+          $ev = Join-Path $env:RUNNER_TEMP 'repro-evidence'
+          New-Item -ItemType Directory -Force $ev | Out-Null
+          "EVIDENCE=$ev" >> $env:GITHUB_ENV
+          Get-ComputerInfo -Property WindowsProductName,WindowsVersion,OsBuildNumber,OsArchitecture | ConvertTo-Json | Tee-Object "$ev/machine.json"
+          "HOME set: $([bool]$env:HOME); profile has .claude: $(Test-Path (Join-Path $env:USERPROFILE '.claude'))"
+          "git on the search path: $([bool](Get-Command git -ErrorAction SilentlyContinue))"
+          "Git under Program Files: $(Test-Path 'C:\Program Files\Git'); under LOCALAPPDATA: $(Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\Git'))"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/repro/probe.mjs" -OutFile (Join-Path $env:RUNNER_TEMP 'probe.mjs')
+      - name: Install Claude Code with its own Windows installer
         continue-on-error: true
-        timeout-minutes: 12
         run: |
-          pnpm install --frozen-lockfile 2>&1 | Tee-Object "$env:FM_WINDOWS_EVIDENCE/install.txt"
-          exit $LASTEXITCODE
-      - name: Attempt the unchanged source build
-        id: build
-        continue-on-error: true
-        timeout-minutes: 8
+          $ProgressPreference = 'SilentlyContinue'
+          irm https://claude.ai/install.ps1 | iex
+          $c = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
+          "claude.exe at the native installer's place: $(Test-Path $c)"
+      - name: Raw client reads with no Git on the machine
         run: |
-          pnpm build 2>&1 | Tee-Object "$env:FM_WINDOWS_EVIDENCE/build.txt"
-          exit $LASTEXITCODE
-      - name: Observe production boundaries with disposable state
-        timeout-minutes: 12
-        run: |
-          foreach ($probe in @('native','shell','privateFiles','transport','crew','desktop','browser')) {
-            $stdout = "$env:FM_WINDOWS_EVIDENCE/$probe.stdout.txt"
-            $stderr = "$env:FM_WINDOWS_EVIDENCE/$probe.stderr.txt"
-            $p = Start-Process node -ArgumentList @('scripts/windows-feasibility.mjs', $probe) -NoNewWindow -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-            if (-not $p.WaitForExit(100000)) {
-              # Cleanup belongs to the observation runner, not the product.
-              taskkill /PID $p.Id /T /F
-              "Observation timed out; its disposable process tree was stopped." | Out-File "$env:FM_WINDOWS_EVIDENCE/$probe.timeout.txt"
-            }
-            Get-Content $stdout
-            Get-Content $stderr
+          $c = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
+          foreach ($a in @('--version', 'auth status --json')) {
+            $o = Join-Path $env:RUNNER_TEMP 'o.txt'; $e = Join-Path $env:RUNNER_TEMP 'e.txt'
+            $sw = [Diagnostics.Stopwatch]::StartNew()
+            $p = Start-Process -FilePath $c -ArgumentList $a -NoNewWindow -PassThru -Wait -RedirectStandardOutput $o -RedirectStandardError $e
+            "== claude $a -> exit $($p.ExitCode) in $($sw.ElapsedMilliseconds) ms"
+            "stdout: $(Get-Content -Raw $o)"
+            "stderr: $(Get-Content -Raw $e)"
           }
-      - name: Summarize collection without claiming Windows support
-        if: always()
-        env:
-          INSTALL_RESULT: ${{ steps.install.outcome }}
-          BUILD_RESULT: ${{ steps.build.outcome }}
+      - name: Probe A - add the account with no Git on the machine
+        run: node (Join-Path $env:RUNNER_TEMP 'probe.mjs') no-git | Tee-Object "$env:EVIDENCE/probe-a-no-git.json"
+      - name: Install Git for Windows as the app does (pinned, this person only)
         run: |
-          "# Windows feasibility observations" >> $env:GITHUB_STEP_SUMMARY
-          "Install: $env:INSTALL_RESULT; build: $env:BUILD_RESULT." >> $env:GITHUB_STEP_SUMMARY
-          "This job collects failures as data. Its success is not Windows qualification." >> $env:GITHUB_STEP_SUMMARY
-          "Windows Server, hosted administrator; not an ordinary-user Windows 11 desktop." >> $env:GITHUB_STEP_SUMMARY
-          "No installer, real accounts, speech model download, permission changes or publishing." >> $env:GITHUB_STEP_SUMMARY
+          $ProgressPreference = 'SilentlyContinue'
+          $exe = Join-Path $env:RUNNER_TEMP 'Git-2.56.1-64-bit.exe'
+          Invoke-WebRequest -UseBasicParsing -Uri 'https://github.com/git-for-windows/git/releases/download/v2.56.1.windows.1/Git-2.56.1-64-bit.exe' -OutFile $exe
+          if ((Get-FileHash -Algorithm SHA256 $exe).Hash.ToLower() -ne 'c330c72e10b408cc39994bfefdb63542b0d93d21699325c3e0bd874af8a5a559') { throw 'the Git download differs from its release' }
+          $p = Start-Process $exe -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOCANCEL','/SP-','/CURRENTUSER' -PassThru -Wait
+          "Git installer exit $($p.ExitCode); git.exe: $(Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\Git\cmd\git.exe')); bash.exe: $(Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\Git\bin\bash.exe'))"
+      - name: Raw client reads with that Git's cmd folder on the search path
+        run: |
+          $env:PATH = (Join-Path $env:LOCALAPPDATA 'Programs\Git\cmd') + ';' + $env:PATH
+          $c = Join-Path $env:USERPROFILE '.local\bin\claude.exe'
+          $o = Join-Path $env:RUNNER_TEMP 'o.txt'; $e = Join-Path $env:RUNNER_TEMP 'e.txt'
+          $sw = [Diagnostics.Stopwatch]::StartNew()
+          $p = Start-Process -FilePath $c -ArgumentList 'auth status --json' -NoNewWindow -PassThru -Wait -RedirectStandardOutput $o -RedirectStandardError $e
+          "== claude auth status --json -> exit $($p.ExitCode) in $($sw.ElapsedMilliseconds) ms"
+          "stdout: $(Get-Content -Raw $o)"
+          "stderr: $(Get-Content -Raw $e)"
+      - name: Probe B - add the account with Git installed as the app installs it
+        run: node (Join-Path $env:RUNNER_TEMP 'probe.mjs') app-git | Tee-Object "$env:EVIDENCE/probe-b-app-git.json"
+      - name: Probe C - a stored login file (synthetic, not a real token)
+        run: |
+          $d = Join-Path $env:USERPROFILE '.claude'; New-Item -ItemType Directory -Force $d | Out-Null
+          $f = Join-Path $d '.credentials.json'
+          $exp = [DateTimeOffset]::UtcNow.AddDays(1).ToUnixTimeMilliseconds()
+          [IO.File]::WriteAllText($f, "{`"claudeAiOauth`":{`"accessToken`":`"probe-synthetic-not-a-token`",`"expiresAt`":$exp,`"subscriptionType`":`"pro`"}}")
+          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') synthetic-login-file | Tee-Object "$env:EVIDENCE/probe-c-login-file.json"
+          Remove-Item -Force $f
+      - name: Probe D - a stored file that holds no Claude login (synthetic)
+        run: |
+          $f = Join-Path $env:USERPROFILE '.claude\.credentials.json'
+          [IO.File]::WriteAllText($f, '{}')
+          node (Join-Path $env:RUNNER_TEMP 'probe.mjs') empty-login-file | Tee-Object "$env:EVIDENCE/probe-d-empty-file.json"
+          Remove-Item -Force $f
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
+        if: ${{ always() }}
         with:
-          name: windows-feasibility
-          path: ${{ runner.temp }}/fm-windows-feasibility/evidence
-          retention-days: 1
-          if-no-files-found: error
+          name: repro-evidence
+          path: ${{ runner.temp }}/repro-evidence
+          if-no-files-found: ignore
+          retention-days: 3
