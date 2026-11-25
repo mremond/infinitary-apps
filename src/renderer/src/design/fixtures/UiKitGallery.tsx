@@ -87,6 +87,7 @@ export const HELPER_EXPORTS: readonly string[] = [
   "NOW_GROUP_LABELS",
   "NOW_GROUP_TITLES",
   "focusWithRing",
+  "nowCountGroupOf",
   "nowGroupOf",
   "nowGroupsOf",
   "taskStatusLabel",
