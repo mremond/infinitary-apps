@@ -2438,6 +2438,7 @@
 "phoneTasksRestoreHint" = "把卡片拿回來";
 "phoneTasksSearch" = "搜尋任務";
 "phoneTasksSearchTooLong" = "請使用較短的搜尋字詞。";
+"phoneWaitingMaintainers" = "等待專案維護者";
 "phoneWorkPlaceCompacted" = "對話已縮短以符合長度限制。";
 "phoneWorkPlaceStopped" = "這一輪已中斷。";
 "phoneWorkStateBacklog" = "待辦清單";

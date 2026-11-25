@@ -2438,6 +2438,7 @@
 "phoneTasksRestoreHint" = "カードを元に戻します";
 "phoneTasksSearch" = "タスクを検索";
 "phoneTasksSearchTooLong" = "もっと短い語句で検索してください。";
+"phoneWaitingMaintainers" = "プロジェクト管理者の対応待ち";
 "phoneWorkPlaceCompacted" = "会話は収まるように短縮されました。";
 "phoneWorkPlaceStopped" = "ターンは中断されました。";
 "phoneWorkStateBacklog" = "バックログ";

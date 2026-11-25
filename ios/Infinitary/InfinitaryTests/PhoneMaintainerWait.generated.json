@@ -1,0 +1,246 @@
+{
+  "name": "waiting for upstream maintainers",
+  "row": {
+    "id": "t-1887",
+    "key": "INF-1887",
+    "projectId": "p-inf",
+    "parentId": null,
+    "kind": "work",
+    "title": "Show the crewmate's checks on the phone",
+    "goal": "Show the crewmate's checks on the phone",
+    "priority": 0,
+    "status": "active",
+    "activity": "idle",
+    "workPosture": {
+      "state": "idle",
+      "reason": "checks",
+      "maintainers": true
+    },
+    "closedReason": null,
+    "startPolicy": "when-ready",
+    "flags": {
+      "blocked": false,
+      "held": false,
+      "needsYou": false,
+      "ready": false
+    },
+    "blockedBy": [],
+    "blocks": [],
+    "children": {
+      "total": 0,
+      "closed": 0
+    },
+    "assignee": "crewmate",
+    "model": "openai-codex/gpt-6.1-terra",
+    "tier": "high",
+    "repo": {
+      "name": "infinitary",
+      "branch": "fm/task-1887"
+    },
+    "delivery": {
+      "mode": "direct-pr",
+      "prNumber": 612,
+      "prUrl": "https://github.com/infinitary-labs/infinitary/pull/612",
+      "headSha": "c0ffee1",
+      "ci": "green",
+      "checks": {
+        "headSha": "c0ffee1",
+        "items": [
+          {
+            "name": "check-1",
+            "state": "success"
+          }
+        ],
+        "absenceDeclared": false
+      }
+    },
+    "outcomeSummary": null,
+    "waitingCardId": null,
+    "createdAt": 1793287800000,
+    "updatedAt": 1793293080000,
+    "startedAt": 1793288400000,
+    "closedAt": null,
+    "activityLog": [
+      {
+        "id": 1,
+        "at": 1793288400000,
+        "kind": "dispatched",
+        "text": "The crewmate started on GPT-6.1 Terra."
+      },
+      {
+        "id": 2,
+        "at": 1793290800000,
+        "kind": "progress",
+        "text": "Read the phone's task row and the desktop's summary."
+      },
+      {
+        "id": 3,
+        "at": 1793292480000,
+        "kind": "pr_opened",
+        "text": "Opened pull request #612.",
+        "change": {
+          "url": "https://github.com/infinitary-labs/infinitary/pull/612",
+          "from": 7,
+          "to": 23
+        },
+        "actions": [
+          {
+            "at": 1793292660000,
+            "text": "Running the phone's unit tests"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "at": 1793293020000,
+        "kind": "steered",
+        "text": "You asked it to keep the scene still."
+      },
+      {
+        "id": 5,
+        "at": 1793293080000,
+        "kind": "progress",
+        "text": "Checked the waiting task's words.",
+        "from": {
+          "id": "t-1890",
+          "key": "INF-1890"
+        }
+      }
+    ],
+    "said": {
+      "at": 1793292900000,
+      "text": "Drawing the sheet's fact strip."
+    },
+    "plan": {
+      "items": [
+        {
+          "label": "Brief the work",
+          "short": "Brief",
+          "since": 1793292000000,
+          "state": "done"
+        },
+        {
+          "label": "Port the facts",
+          "short": "Port",
+          "since": 1793292300000,
+          "state": "done"
+        },
+        {
+          "label": "Draw the sheet",
+          "short": "Draw",
+          "since": 1793292600000,
+          "state": "current"
+        },
+        {
+          "label": "Photograph it",
+          "short": "Photograph",
+          "since": 1793292900000,
+          "state": "next"
+        }
+      ],
+      "at": 1793292840000
+    },
+    "reasoning": {
+      "level": "high",
+      "lower": "quick"
+    }
+  },
+  "facts": {
+    "key": "INF-1887",
+    "status": {
+      "mark": "idle",
+      "word": "Idle",
+      "reason": "Waiting for the maintainers"
+    },
+    "title": "Show the crewmate's checks on the phone",
+    "now": {
+      "text": "Drawing the sheet's fact strip.",
+      "at": 1793292900000
+    },
+    "plan": {
+      "items": [
+        {
+          "label": "Brief the work",
+          "short": "Brief",
+          "since": 1793292000000,
+          "state": "done"
+        },
+        {
+          "label": "Port the facts",
+          "short": "Port",
+          "since": 1793292300000,
+          "state": "done"
+        },
+        {
+          "label": "Draw the sheet",
+          "short": "Draw",
+          "since": 1793292600000,
+          "state": "current"
+        },
+        {
+          "label": "Photograph it",
+          "short": "Photograph",
+          "since": 1793292900000,
+          "state": "next"
+        }
+      ],
+      "at": 1793292840000
+    },
+    "model": "GPT-6.1 Terra",
+    "tier": "high",
+    "reasoning": {
+      "level": "high",
+      "lower": "quick"
+    },
+    "reason": "Reasoning one step lower for Quick rigor.",
+    "delivery": {
+      "change": {
+        "noun": "Pull request",
+        "label": "#612",
+        "url": "https://github.com/infinitary-labs/infinitary/pull/612"
+      },
+      "checks": {
+        "dot": "ok",
+        "words": "passed",
+        "state": "passed",
+        "at": null,
+        "span": null
+      },
+      "review": null
+    },
+    "browser": null,
+    "label": "Idle · Waiting for the maintainers",
+    "reasoningWords": "High",
+    "nowAge": "5m",
+    "planAge": "6m",
+    "planWords": {
+      "count": "2 of 4",
+      "skipped": 0,
+      "current": "Draw the sheet"
+    },
+    "planDots": [
+      {
+        "label": "Brief the work",
+        "short": "Brief",
+        "state": "done"
+      },
+      {
+        "label": "Port the facts",
+        "short": "Port",
+        "state": "done"
+      },
+      {
+        "label": "Draw the sheet",
+        "short": "Draw",
+        "state": "current"
+      },
+      {
+        "label": "Photograph it",
+        "short": "Photograph",
+        "state": "next"
+      }
+    ],
+    "checksWords": "passed",
+    "checksStateWords": "passed"
+  }
+}

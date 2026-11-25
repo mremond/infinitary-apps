@@ -60,6 +60,8 @@ export function deriveWorkPosture(record: TaskRecord, gather: () => PostureFacts
         ? { atProvider: "retrying" as const }
         : {}),
     };
+  if (facts.timedWait && Number.isFinite(record.gate?.until))
+    return { state: "active", reason: "timed-wait" };
   if (maintainers) {
     const delivery = record.delivery;
     const story = delivery?.presentation;
@@ -78,8 +80,6 @@ export function deriveWorkPosture(record: TaskRecord, gather: () => PostureFacts
       destination.host === forgeOf(upstream?.origin).host;
     return { state: quiet ? "idle" : "active", reason: "checks", maintainers: true };
   }
-  if (facts.timedWait && Number.isFinite(record.gate?.until))
-    return { state: "active", reason: "timed-wait" };
   if (facts.decisionCardOpen || facts.captainGateOwed || facts.putOff === "word")
     return { state: "idle", reason: "captain" };
   // A blocks edge holding its close, or a wait it declared on other work

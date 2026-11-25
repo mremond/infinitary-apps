@@ -161,7 +161,8 @@ public struct PhoneTaskFacts: Sendable {
         let running = task.activity == "running" || task.activity == "starting"
         let reason = dependency ? dependencyWaitWords(waits)
             : task.workPosture.map { posture in
-                posture.reason == "checks" && posture.batch != nil ? PhoneMessages.phoneTaskFactsWaitingBatchCheck()
+                posture.maintainers == true ? PhoneMessages.phoneWaitingMaintainers()
+                    : posture.reason == "checks" && posture.batch != nil ? PhoneMessages.phoneTaskFactsWaitingBatchCheck()
                     : posture.atProvider.flatMap { atProviderWords[$0] } ?? postureWords[posture.reason] ?? ""
             }
             ?? (running ? PhoneMessages.phoneTaskFactsStatusWorking() : task.activity == "interrupted" ? PhoneMessages.phoneTaskFactsWorkInterrupted()

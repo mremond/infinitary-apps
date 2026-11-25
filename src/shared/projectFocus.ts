@@ -1,4 +1,4 @@
-import { type NowGroupInput, nowGroupOf } from "./nowPanel";
+import { type NowGroupInput, nowCountGroupOf, nowGroupOf } from "./nowPanel";
 import { closedLeftOutDone, type ProjectView, type TaskBoard, type TaskView } from "./tasks";
 
 /**
@@ -7,7 +7,7 @@ import { closedLeftOutDone, type ProjectView, type TaskBoard, type TaskView } fr
  * Pure, so the top bar, the stage and the tests read one rule.
  *
  * Waiting and working mean what the collapsed Tasks panel says: each task
- * counts once, by its own state (`nowGroupOf`), so a pill and the panel's
+ * counts once, by its own state (`nowCountGroupOf`), so a pill and the panel's
  * summary narrowed to its project always agree. A parent the Working group
  * lists only beside a working part is not working itself (FI3-1049).
  */
@@ -54,10 +54,11 @@ export function projectPillsOf(board: {
     if (group === null) continue;
     const entry = counts.get(task.projectId) ?? { waiting: 0, working: 0, listed: 0 };
     entry.listed += 1;
-    if (group === "waiting") {
+    const counted = nowCountGroupOf(task);
+    if (counted === "waiting") {
       entry.waiting += 1;
       waiting += 1;
-    } else if (group === "working") {
+    } else if (counted === "working") {
       entry.working += 1;
       working += 1;
     }

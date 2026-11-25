@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { CARD_ONLY_MEDIA_WORDS } from "../../src/core/forge/presentationTiers";
+import * as m from "../../src/panels/now/messages.generated";
 import { CONTRIBUTION_WORDS } from "../../src/shared/contributions";
 import { MERGE_WORDS } from "../../src/shared/vocabulary";
 import { startContributionWorld } from "./contributionWorld";
@@ -7,6 +8,7 @@ import { cardBody } from "./frames";
 import { SPAWN_PROMPT_MARKER, STEER_PROMPT_MARKER } from "./mockProvider";
 import { openProject } from "./projects";
 import { promptInput } from "./prompt";
+import { dockRegion, expandDock, nowRow } from "./rails";
 import {
   CONTRIBUTION_TASK,
   CONTRIBUTION_TITLE,
@@ -62,6 +64,12 @@ test("a contribution asks once for its fork, publishes text upstream and waits w
       "aria-label",
       /0 working.*1 idle/,
     );
+    await expect(dockRegion(page, "now")).toContainText(m.nowPanelSummaryWorking({ count: 0 }));
+    const board = await page.evaluate(() => window.infinitary.tasks.board());
+    const task = board.tasks.find((row) => row.title === CONTRIBUTION_TASK);
+    if (!task) throw new Error("The quiet contribution must remain on the task board");
+    await expandDock(page, "now");
+    await expect(nowRow(page, task.key)).toBeVisible();
     await expect(
       card.getByRole("button", { name: MERGE_WORDS["merge-pr"], exact: true }),
     ).toHaveCount(0);

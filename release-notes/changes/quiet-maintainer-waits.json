@@ -6,7 +6,11 @@
       "area": "tasks",
       "title": "Maintainer waits no longer count as working",
       "body": "A published contribution waiting only for its maintainers stays visible and watched without adding to the working count. Replies, running work and checks keep their usual status.",
-      "noPicture": "The existing idle and maintainer-wait appearances are unchanged; the correction selects them for a quiet published contribution.",
+      "picture": {
+        "dark": "quiet-maintainer-waits-dark.webp",
+        "light": "quiet-maintainer-waits-light.webp",
+        "alt": "Collapsed Tasks summary showing zero waiting and zero working, with intentionally empty background above its bottom-of-window position"
+      },
       "provenance": { "origin": "change" }
     }
   ],

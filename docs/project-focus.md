@@ -26,7 +26,8 @@ Scratch (the project with no repository) and the app's own workspace, personal, 
 The board's project view says which repository is the workspace (`repo.kind` is `personal`), so the rule reads a typed fact, never the name.
 An archived project gets none.
 The pill shows only while there are two projects or more; with one there is nothing to choose.
-A pill counts its project's tasks that wait on the captain and that work, each task once by its own state (`nowGroupOf`), so a pill and the Tasks panel's collapsed summary narrowed to its project always agree.
+A pill counts its project's tasks that wait on the captain and that work, each task once by its own count state (`nowCountGroupOf`), so a pill and the Tasks panel's collapsed summary narrowed to its project always agree.
+A quiet published contribution waiting on maintainers remains listed in its existing group but adds nothing to either working count.
 A project with nothing waiting and nothing working reads dimmer.
 
 ## What the focus does

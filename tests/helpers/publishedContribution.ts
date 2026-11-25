@@ -1,8 +1,27 @@
 import { createHash } from "node:crypto";
 import { presentationContentHash, presentationMarkdown } from "../../src/core/forge";
+import type { PostureFacts } from "../../src/core/orchestrator/workPosture";
 import { seedTask } from "../../src/core/tasks/seedTask";
 import type { TaskService } from "../../src/core/tasks/taskService";
 import { original, storyFixture } from "./savedStory";
+
+export const quietContributionFacts = {
+  threadAwaitingAuthor: false,
+  decisionCardOpen: false,
+  captainGateOwed: false,
+  deliverable: false,
+  jobsRunning: false,
+  pendingSettle: false,
+  timedWait: false,
+  checksWatched: true,
+  accountHeld: false,
+  waitsOnUnstarted: false,
+  turnRunning: false,
+  liveJobs: false,
+  clientJobs: 0,
+  observable: true,
+  blocked: false,
+} satisfies PostureFacts;
 
 /** Both posture and admission cases share the saved-story fixture's publication shape. */
 export function seedPublishedContribution(

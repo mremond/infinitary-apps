@@ -88,7 +88,15 @@ export type NowGroupInput = Pick<
   | "startAttempt"
   | "activity"
 > &
-  Partial<Pick<TaskView, "backlogSince">>;
+  Partial<Pick<TaskView, "backlogSince" | "workPosture">>;
+
+export function nowCountGroupOf(task: NowGroupInput): NowGroup | null {
+  const group = nowGroupOf(task);
+  // Quiet contributions stay in their existing list without inflating its working count.
+  return group === "working" && task.workPosture?.state === "idle" && task.workPosture.maintainers
+    ? null
+    : group;
+}
 
 export function nowGroupOf(task: NowGroupInput): NowGroup | null {
   if (task.answerNoteId || task.minimizedCardId) return "waiting";

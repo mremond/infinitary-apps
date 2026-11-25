@@ -101,6 +101,7 @@ A number placeholder sits directly against its counter with no space (「{count}
 | log in (to a computer's user account) | ログイン | Kept apart from サインイン, which is for services. |
 | machine (avoided) | コンピューター | Vocabulary rule; マシン appears only as a search word. |
 | main message | メインのメッセージ欄 | Command label. |
+| maintainer | プロジェクト管理者 | |
 | mark (a place marked on a picture or a page) | マーク | 「マーク {mark}」, 「マーク付きの画像」. |
 | median (Usage, Cost per task) | 中央値 | The middle task of a week's finished tasks; never "average". |
 | merge | マージ | GitHub Japanese docs; 「マージ済み」 for the merged state. |

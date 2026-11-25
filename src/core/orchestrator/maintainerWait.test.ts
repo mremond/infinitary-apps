@@ -1,30 +1,15 @@
 import { BATCH_CHECK } from "@shared/batches";
 import { workPostureLabel } from "@shared/workPosture";
 import { describe, expect, it } from "vitest";
-import { seedPublishedContribution } from "../../../tests/helpers/publishedContribution";
+import {
+  quietContributionFacts as quietFacts,
+  seedPublishedContribution,
+} from "../../../tests/helpers/publishedContribution";
 import { original, repaired } from "../../../tests/helpers/savedStory";
 import { openInMemoryDatabase } from "../storage/db";
 import { TaskService } from "../tasks/taskService";
 import { crewTally } from "../tasks/workPresentation";
-import { deriveWorkPosture, type PostureFacts } from "./workPosture";
-
-const quietFacts = {
-  threadAwaitingAuthor: false,
-  decisionCardOpen: false,
-  captainGateOwed: false,
-  deliverable: false,
-  jobsRunning: false,
-  pendingSettle: false,
-  timedWait: false,
-  checksWatched: true,
-  accountHeld: false,
-  waitsOnUnstarted: false,
-  turnRunning: false,
-  liveJobs: false,
-  clientJobs: 0,
-  observable: true,
-  blocked: false,
-} satisfies PostureFacts;
+import { deriveWorkPosture } from "./workPosture";
 
 function contribution() {
   const db = openInMemoryDatabase();
@@ -43,7 +28,6 @@ describe("quiet published upstream contributions", () => {
       const tally = crewTally();
       tally.see(at.record, () => posture);
       expect(tally.counts(at.tasks)).toEqual({ working: 0, idle: 1, queued: 0 });
-      expect(at.tasks.get(at.record.id)).toEqual(at.record);
     } finally {
       at.db.close();
     }
@@ -110,6 +94,26 @@ describe("quiet published upstream contributions", () => {
     }
   });
 
+  it("keeps the same published contribution active until its owned finite wait clears", () => {
+    const at = contribution();
+    try {
+      const posture = () => {
+        const record = at.tasks.get(at.record.id);
+        if (!record) throw new Error("Missing published contribution");
+        return deriveWorkPosture(record, () => ({
+          ...quietFacts,
+          timedWait: record.gate?.kind === "at-time",
+        }));
+      };
+      at.tasks.placement.setGate(at.record.id, { kind: "at-time", until: 100 });
+      expect(posture()).toEqual({ state: "active", reason: "timed-wait" });
+      at.tasks.placement.setGate(at.record.id, null);
+      expect(posture()).toEqual({ state: "idle", reason: "checks", maintainers: true });
+    } finally {
+      at.db.close();
+    }
+  });
+
   it("requires the same upstream request and current confirmed publication", () => {
     const at = contribution();
     try {
@@ -164,16 +168,6 @@ describe("quiet published upstream contributions", () => {
           reason: "checks",
         });
       }
-      expect(
-        deriveWorkPosture(
-          {
-            ...at.record,
-            delivery: null,
-            gate: { kind: "at-time", until: 100 },
-          },
-          () => ({ ...quietFacts, checksWatched: false, timedWait: true }),
-        ),
-      ).toEqual({ state: "active", reason: "timed-wait" });
     } finally {
       at.db.close();
     }

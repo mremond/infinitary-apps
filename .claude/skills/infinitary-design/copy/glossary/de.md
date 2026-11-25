@@ -93,6 +93,7 @@ The plural forms are "one" and "other"; menu items that open a dialog end in a s
 | live validation | Live-Prüfung | Trying the change for real; kept apart from "Überprüfungen". |
 | log (a check's kept output) | das Log | "Protokoll" already names the task's record. |
 | main message | Hauptnachricht | |
+| maintainer | Projektverantwortlicher | |
 | mark (a place marked on a picture or a page) | Markierung | "Markierung {mark}", "Bild mit Markierungen". |
 | median (Usage, Cost per task) | Median | The middle task of a week's finished tasks; never "average". |
 | merge | zusammenführen, Zusammenführen | GitHub's German docs say "Zusammenführen eines Pull Requests"; "mergen" is avoided as jargon. |

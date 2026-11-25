@@ -243,6 +243,7 @@ struct PhoneSceneRoster {
     }
     static func words(_ task: PhoneTask, computer: Computer) -> String {
         if unknown(task, computer: computer) || task.workPosture?.state == "unknown" { return PhoneMessages.phoneSceneActivityUnknown() }
+        if task.workPosture?.maintainers == true { return PhoneMessages.phoneWaitingMaintainers() }
         if task.workPosture?.reason == "checks" { return task.workPosture?.batch != nil ? PhoneMessages.phoneSceneWaitingBatchCheck() : PhoneMessages.phoneSceneWaitingChecks() }
         return working(task) ? PhoneMessages.phoneSceneWorking() : task.state
     }

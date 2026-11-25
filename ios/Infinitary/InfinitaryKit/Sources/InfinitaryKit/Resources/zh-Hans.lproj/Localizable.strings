@@ -2438,6 +2438,7 @@
 "phoneTasksRestoreHint" = "把卡片拿回来";
 "phoneTasksSearch" = "搜索任务";
 "phoneTasksSearchTooLong" = "请使用更短的搜索词。";
+"phoneWaitingMaintainers" = "等待项目维护者";
 "phoneWorkPlaceCompacted" = "对话已被缩短以适应长度。";
 "phoneWorkPlaceStopped" = "这一轮被中断了。";
 "phoneWorkStateBacklog" = "待办列表";

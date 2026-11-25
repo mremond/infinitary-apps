@@ -2548,6 +2548,7 @@ public enum PhoneMessages {
     public static func `phoneTasksRestoreHint`() -> String { PhoneWords.format("phoneTasksRestoreHint", []) }
     public static func `phoneTasksSearch`() -> String { PhoneWords.format("phoneTasksSearch", []) }
     public static func `phoneTasksSearchTooLong`() -> String { PhoneWords.format("phoneTasksSearchTooLong", []) }
+    public static func `phoneWaitingMaintainers`() -> String { PhoneWords.format("phoneWaitingMaintainers", []) }
     public static func `phoneWorkPlaceCompacted`() -> String { PhoneWords.format("phoneWorkPlaceCompacted", []) }
     public static func `phoneWorkPlaceStopped`() -> String { PhoneWords.format("phoneWorkPlaceStopped", []) }
     public static func `phoneWorkStateBacklog`() -> String { PhoneWords.format("phoneWorkStateBacklog", []) }
@@ -7367,6 +7368,7 @@ extension PhoneWords {
         "phoneTasksRestoreHint": [],
         "phoneTasksSearch": [],
         "phoneTasksSearchTooLong": [],
+        "phoneWaitingMaintainers": [],
         "phoneWorkPlaceCompacted": [],
         "phoneWorkPlaceStopped": [],
         "phoneWorkStateBacklog": [],

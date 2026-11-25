@@ -84,6 +84,7 @@ The plural forms are "one", "many" and "other"; "many" repeats the "other" wordi
 | live validation | validação ao vivo | Trying the change for real; kept apart from the checks. |
 | log (a check's kept output) | o log | "Registro" already names the task's record. |
 | machine (avoided) | computador | Also in the voice consent line, where the English says "this machine". |
+| maintainer | responsável pelo projeto | |
 | mark (a place marked on a picture or a page) | marca | "a marca {mark}", "Imagem marcada". |
 | median (Usage, Cost per task) | mediana | The middle task of a week's finished tasks; never "average". |
 | merge | mesclar, mesclagem | GitHub's Portuguese docs say "mesclar uma solicitação de pull"; the noun is "mesclagem". |

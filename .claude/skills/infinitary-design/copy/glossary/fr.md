@@ -87,6 +87,7 @@ A no-break space sits between a number and its unit or the percent sign ("1,6 Go
 | log (a check's kept output) | le journal | Distinct from the task's record, "la fiche". |
 | machine (never said) | ordinateur | "Il fonctionne sur cet ordinateur" in the voice consent line. |
 | main message | message principal | |
+| maintainer | responsable du projet | |
 | mark (a place marked on a picture or a page) | repère | Masculine: "repère {mark}", "Image avec ses repères". |
 | median (Usage, Cost per task) | médiane | The middle task of a week's finished tasks; never "average". |
 | merge | fusionner, fusion | GitHub's French docs say "fusionner"; "Fusion impossible" for "Cannot merge". |

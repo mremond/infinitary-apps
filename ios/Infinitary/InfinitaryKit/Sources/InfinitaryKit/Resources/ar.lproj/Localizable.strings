@@ -2438,6 +2438,7 @@
 "phoneTasksRestoreHint" = "يعيد البطاقة";
 "phoneTasksSearch" = "البحث في المهام";
 "phoneTasksSearchTooLong" = "استخدم بحثًا أقصر.";
+"phoneWaitingMaintainers" = "بانتظار القائمين على المشروع";
 "phoneWorkPlaceCompacted" = "اختُصرت المحادثة لتتسع.";
 "phoneWorkPlaceStopped" = "انقطع الدور.";
 "phoneWorkStateBacklog" = "المهام المؤجلة";

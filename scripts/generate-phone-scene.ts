@@ -99,6 +99,9 @@ try {
   }>(join(REPO_ROOT, "src/renderer/src/app/stack.ts"));
   const { satellitePhase } = await runner.import<typeof import("../src/renderer/src/character/crew/satellites.ts")>(join(character, "crew/satellites.ts"));
   const { arrangePanels, RAIL_SLOTS } = await runner.import<typeof import("../src/shared/panelArrangement.ts")>(join(REPO_ROOT, "src/shared/panelArrangement.ts"));
+  const taskFacts = taskFactReadings();
+  const maintainerWait = taskFacts.cases.find((item) => item.name === "waiting for upstream maintainers");
+  if (!maintainerWait) throw new Error("Missing desktop maintainer-wait reading");
   const outputs = {
     "ios/Infinitary/InfinitaryApp/PhoneSceneData.generated.json": {
       orbit: DEFAULT_ORBIT, remoteTrip: REMOTE_TRIP, program: Object.fromEntries(Object.entries(CONSTELLATION).filter(([, value]) => typeof value === "number")),
@@ -121,7 +124,8 @@ try {
     "ios/Infinitary/InfinitaryTests/PhoneSupernovaTraces.generated.json": supernovaTraces(),
     "ios/Infinitary/InfinitaryTests/PhoneOrbitSeats.generated.json": orbitSeats(),
     "ios/Infinitary/InfinitaryTests/PhoneFixedStars.generated.json": fixedStarReadings(),
-    "ios/Infinitary/InfinitaryKit/Tests/InfinitaryKitTests/Fixtures/PhoneTaskFacts.generated.json": taskFactReadings(),
+    "ios/Infinitary/InfinitaryTests/PhoneMaintainerWait.generated.json": maintainerWait,
+    "ios/Infinitary/InfinitaryKit/Tests/InfinitaryKitTests/Fixtures/PhoneTaskFacts.generated.json": taskFacts,
     "ios/Infinitary/InfinitaryKit/Tests/InfinitaryKitTests/Fixtures/PhoneTaskList.generated.json": taskListReadings(),
     "ios/Infinitary/InfinitaryKit/Tests/InfinitaryKitTests/Fixtures/PhoneTaskRecord.generated.json": taskRecordReadings(),
     "ios/Infinitary/InfinitaryKit/Tests/InfinitaryKitTests/Fixtures/PhoneRowMoves.generated.json": taskMoveReadings(),
@@ -311,6 +315,7 @@ try {
       ["backlog on a computer out of reach", { status: "open", activity: null, workPosture: undefined, startPolicy: "on-request",
         executionDeviceId: "dev-mini", place: { name: "Mac mini", where: "on Mac mini", reach: "out-of-reach" } }],
       ["backlog by itself", { status: "open", activity: null, workPosture: undefined, startPolicy: "on-request" }],
+      ["waiting for upstream maintainers", { ...read, activity: "idle", workPosture: { state: "idle", reason: "checks", maintainers: true }, delivery: { ...pr, ci: "green", checks: checks(["success"]) } }],
       ["waiting for a batch", { ...read, workPosture: { state: "active", reason: "checks", batch: "waiting" } }],
       ["running in a batch", { ...read, workPosture: { state: "active", reason: "checks", batch: "in-batch" } }],
       ["paused in a batch", { ...read, workPosture: { state: "active", reason: "checks", batch: "paused" } }],

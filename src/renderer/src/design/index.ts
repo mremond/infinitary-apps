@@ -33,6 +33,7 @@ export {
   NOW_GROUP_TITLES,
   NOW_GROUPS,
   type NowGroup,
+  nowCountGroupOf,
   nowGroupOf,
   nowGroupsOf,
 } from "@shared/nowPanel";

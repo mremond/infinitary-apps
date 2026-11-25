@@ -80,6 +80,7 @@ public struct PhoneTask: Decodable, Identifiable, Sendable {
         public let state: String
         public let reason: String
         public let batch: String?
+        public let maintainers: Bool?
         /// A crewmate failing at its provider: `retrying` or `stuck` (the Mac's `AT_PROVIDER_WORDS`).
         public let atProvider: String?
         /// The account's typed cut-off while `access` stands on it; the record reads only its class.

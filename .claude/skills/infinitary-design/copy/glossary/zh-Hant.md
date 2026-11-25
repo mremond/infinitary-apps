@@ -90,6 +90,7 @@ Words the person meets on GitHub follow what Taiwan's developers and Microsoft's
 | live validation | 實際驗證 | Trying the change for real; kept apart from the checks. |
 | local merge | 本機合併 | Taiwan writes 本機, not 本地. |
 | log (a check's kept output) | 日誌 | Distinct from the record, 紀錄. |
+| maintainer | 專案維護者 | |
 | mark (a place marked on a picture or a page) | 標記 | 「標記 {mark}」, 「帶標記的圖片」. |
 | median (Usage, Cost per task) | 中位數 | The middle task of a week's finished tasks; never "average". |
 | merge | 合併 | GitHub-adjacent Taiwan docs and Microsoft Taiwan both say 合併. |

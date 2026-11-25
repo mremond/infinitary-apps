@@ -89,6 +89,7 @@ Counts take a measure word after the number (3 个部分, 2 条消息, 1 张卡�
 | link (to add a device) | 链接 | The one-time link that adds a computer or phone. |
 | live validation | 实测验证 | Trying the change for real; kept apart from the checks. |
 | log (a check's kept output) | 日志 | Distinct from the record, 记录. |
+| maintainer | 项目维护者 | |
 | mark (a place marked on a picture or a page) | 标记 | “标记 {mark}”, “带标记的图片”. |
 | median (Usage, Cost per task) | 中位数 | The middle task of a week's finished tasks; never "average". |
 | merge | 合并 | |

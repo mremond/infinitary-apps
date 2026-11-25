@@ -90,6 +90,7 @@ Particles after a filled value are avoided by word order, or written in the pair
 | live validation | 실제 검증 | Trying the change for real; kept apart from the checks |
 | log (a check's kept output) | 로그 | Plain loanword, distinct from the record, 기록. |
 | machine | (not used) | 컴퓨터 instead |
+| maintainer | 프로젝트 관리자 | |
 | mark (a place marked on a picture or a page) | 표시 | "표시 {mark}", "표시한 사진". |
 | median (Usage, Cost per task) | 중앙값 | The middle task of a week's finished tasks; never "average". |
 | merge | 병합, 병합하다 | GitHub's Korean docs; "Cannot merge" is 병합할 수 없어요 |

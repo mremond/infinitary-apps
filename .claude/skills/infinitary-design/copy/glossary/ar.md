@@ -98,6 +98,7 @@ Numbers reach the messages as digits from the runtime, a unit follows the number
 | log (a check's kept output) | سجل التشغيل | Never "سجل" alone, which reads as the task's record ("سجل المهمة"). |
 | machine, server, home computer (never said) | الحاسوب باسمه | "هذا الحاسوب" on itself. |
 | main message | الرسالة الرئيسية | |
+| maintainer | القائم على المشروع | |
 | mark (a place marked on a picture or a page) | علامة | Numbered: "العلامة {mark}"; plural "علامات". |
 | median (Usage, Cost per task) | الوسيط | The middle task of a week's finished tasks; never "average". |
 | merge | دمج | "تعذّر الدمج" for "Cannot merge", "دُمج" for "Merged". |

@@ -2438,6 +2438,7 @@
 "phoneTasksRestoreHint" = "Ramène la carte";
 "phoneTasksSearch" = "Rechercher des tâches";
 "phoneTasksSearchTooLong" = "Utilisez une recherche plus courte.";
+"phoneWaitingMaintainers" = "En attente des responsables du projet";
 "phoneWorkPlaceCompacted" = "La conversation a été raccourcie pour tenir.";
 "phoneWorkPlaceStopped" = "Le tour a été interrompu.";
 "phoneWorkStateBacklog" = "Réserve";

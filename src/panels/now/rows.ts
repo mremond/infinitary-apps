@@ -9,6 +9,7 @@ import {
   NOW_GROUP_TITLES,
   NOW_GROUPS,
   type NowGroup,
+  nowCountGroupOf,
   nowGroupOf,
   nowGroupsOf,
   taskStatusOf,
@@ -649,7 +650,7 @@ export function leftOutDone(board: PanelTaskBoard, projectId: string | null = nu
 /**
  * What the collapsed panel says it holds: how many tasks wait on the
  * captain, the part that matters while any do, and how many are working.
- * Each task counts by its own state (`nowGroupOf`): a parent the Working
+ * Each task counts by its own state (`nowCountGroupOf`): a parent the Working
  * group shows only beside a working child is not working itself (FI3-1049).
  * Focused on a project, only its tasks count, as the top bar's pill counts
  * them (src/shared/projectFocus.ts).
@@ -667,7 +668,7 @@ export function summaryOf(
   const tasks =
     projectId === null ? board.tasks : board.tasks.filter((task) => task.projectId === projectId);
   for (const task of tasks) {
-    const group = nowGroupOf(task);
+    const group = nowCountGroupOf(task);
     if (group === "waiting") waiting += 1;
     else if (group === "working") working += 1;
   }
