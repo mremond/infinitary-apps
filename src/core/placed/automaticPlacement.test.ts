@@ -21,6 +21,7 @@ import {
   orderPolicyOnlyRoute,
   preparePolicyOnlyRoute,
 } from "../../../tests/helpers/policyOnlyRouting";
+import { seedPublishedContribution } from "../../../tests/helpers/publishedContribution";
 import { scratchDir } from "../../../tests/helpers/scratchDirs";
 import { ForgeSignInStore, ForgeSignIns } from "../forge";
 import type { RoutePreview, Router } from "../routing/router";
@@ -189,6 +190,44 @@ describe("AutomaticPlacement's room set aside for starting tasks", () => {
   });
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("admits the same starts beside quiet published contributions at equal readings and reservations", async () => {
+    const baseline = world();
+    const waiting = world();
+    try {
+      for (const number of [23, 24, 25])
+        seedPublishedContribution(waiting.tasks, `contribution-${number}`, number);
+      const observe = async (w: ReturnType<typeof world>) => {
+        const first = w.task("first", "Fix the ledger footer");
+        const second = w.task("second", "Fix the ledger totals");
+        const next = w.task("next", "Fix the ledger header");
+        const decisions = [await w.start(first), await w.start(second), await w.start(next)];
+        return {
+          decisions,
+          starts: [first, second].map((task) => ({
+            reservation: w.tasks.get(task.id)?.placement?.reservation,
+            candidates: w.tasks.get(task.id)?.placement?.snapshot.candidates,
+          })),
+        };
+      };
+      const before = await observe(baseline);
+      const after = await observe(waiting);
+      expect(
+        before.decisions.map((decision) =>
+          decision && "computerId" in decision ? { computerId: decision.computerId } : decision,
+        ),
+      ).toEqual([
+        { computerId: null },
+        { computerId: null },
+        { wait: { kind: "room", words: PLACEMENT_HELD_WAIT } },
+      ]);
+      expect(after).toEqual(before);
+      expect(after.starts.map((task) => task.reservation)).toEqual(["pending", "pending"]);
+    } finally {
+      baseline.dispose();
+      waiting.dispose();
+    }
   });
 
   it("starts the first task after a quiet spell beside two tasks that are running and measured", async () => {

@@ -298,6 +298,9 @@ One reader beside the board: the quiet check refresh skips a task whose posture 
 The card-thread Working badge still reads turn activity.
 
 Active means a running turn, a live host/client job, watched checks, deliverable guidance (including retry backoff or a captured captain reply), captured settlement, or a finite automatic wait.
+A quiet upstream contribution with the same open pull request and a confirmed published story at its current version stays watched but reads idle, retaining Waiting for the maintainers.
+A real check or run watch, pending batch, running turn, job, settlement or actionable author guidance takes precedence over that external wait.
+This presentation changes neither session ownership nor placement reservations or admission.
 A decision card does not cool a worker while evidenced work continues.
 Host jobs remain active past their two-hour inspection bound; that bound remains a supervision rule, not proof of exit.
 An account cut-off or quota gate pauses queued delivery.

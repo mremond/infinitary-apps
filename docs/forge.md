@@ -75,6 +75,8 @@ The host refuses both direct and reviewed merges on that contribution.
 The existing change watcher keeps reading the upstream request, records its open, merged or closed state, and steers the crewmate when the host reports new activity; while a runbook asks for the comment wake and the crewmate's conversation holds that guidance, only a change of state steers it, and new comments reach it as that wake ("Comments on a pull request").
 The crewmate reads maintainer comments through the existing host reads and pushes requested fixes to the same fork branch.
 Its waiting state says Waiting for the maintainers, and its story note's existing status line follows the confirmed external outcome.
+Once its latest story is confirmed published on that same open pull request at the current version, a quiet contribution counts as idle rather than working.
+A running turn, job, settlement, actionable author guidance, pending batch or actual check/run watch retains its normal posture; watching the contribution and delivering its wakes are unchanged.
 A confirmed external merge can close a completed contribution whose saved-story note named that exact request and head, without sending another merge.
 Checks that require upstream write access are named as not run in the story; the contributor does not attempt to start the maintainers' checks or queue.
 

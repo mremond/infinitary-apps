@@ -48,6 +48,20 @@ test("a contribution asks once for its fork, publishes text upstream and waits w
     await expect(
       cardBody(page, CONTRIBUTION_TITLE).getByText(CONTRIBUTION_WORDS.waiting, { exact: true }),
     ).toBeVisible();
+    await expect
+      .poll(async () => {
+        const board = await page.evaluate(() => window.infinitary.tasks.board());
+        const task = board.tasks.find((row) => row.title === CONTRIBUTION_TASK);
+        return { status: task?.status, posture: task?.workPosture };
+      })
+      .toEqual({
+        status: "active",
+        posture: { state: "idle", reason: "checks", maintainers: true },
+      });
+    await expect(page.locator('canvas[data-crew-layer="near"]')).toHaveAttribute(
+      "aria-label",
+      /0 working.*1 idle/,
+    );
     await expect(
       card.getByRole("button", { name: MERGE_WORDS["merge-pr"], exact: true }),
     ).toHaveCount(0);

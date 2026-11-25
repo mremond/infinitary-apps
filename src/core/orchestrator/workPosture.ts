@@ -1,5 +1,8 @@
 import { BATCH_CHECK } from "@shared/batches";
+import { readyPresentation } from "@shared/changePresentation";
 import { waitingForMaintainers } from "@shared/contributions";
+import { forgeOf } from "@shared/forge";
+import { hostedPresentation } from "@shared/presentationDestination";
 import type { AccountHold, WorkPosture } from "@shared/workPosture";
 import type { TaskRecord } from "../storage/taskRecords";
 import type { TaskRuntime } from "./crewRuntime";
@@ -41,11 +44,14 @@ export function deriveWorkPosture(record: TaskRecord, gather: () => PostureFacts
   // Stuck at its provider: nothing moves until the first mate answers.
   if (facts.atProvider === "stuck")
     return { state: "idle", reason: "inactive", atProvider: "stuck" };
-  if (facts.checksWatched && waitingForMaintainers(record.delivery))
-    return { state: "active", reason: "checks", maintainers: true };
+  const maintainers = facts.checksWatched && waitingForMaintainers(record.delivery);
   const batch = pendingBatch(record);
   if (batch) return { state: "active", reason: "checks", batch };
-  if (facts.checksWatched) return { state: "active", reason: "checks" };
+  if (
+    facts.checksWatched &&
+    (!maintainers || record.delivery?.ciWatch || (record.delivery?.runWatches?.length ?? 0) > 0)
+  )
+    return { state: "active", reason: "checks" };
   if (facts.deliverable || facts.threadAwaitingAuthor)
     return {
       state: "active",
@@ -54,6 +60,24 @@ export function deriveWorkPosture(record: TaskRecord, gather: () => PostureFacts
         ? { atProvider: "retrying" as const }
         : {}),
     };
+  if (maintainers) {
+    const delivery = record.delivery;
+    const story = delivery?.presentation;
+    const published = readyPresentation(story);
+    const destination = story?.revisions.at(-1)?.destination;
+    const upstream = delivery?.contribution?.upstream;
+    // A prepared, stale or other-project story does not establish finished publication here.
+    const quiet =
+      published !== undefined &&
+      published.head === delivery?.headSha &&
+      story?.published?.state === "confirmed" &&
+      story.published.number === delivery?.prNumber &&
+      destination !== undefined &&
+      hostedPresentation(destination) &&
+      destination.projectId === upstream?.id &&
+      destination.host === forgeOf(upstream?.origin).host;
+    return { state: quiet ? "idle" : "active", reason: "checks", maintainers: true };
+  }
   if (facts.timedWait && Number.isFinite(record.gate?.until))
     return { state: "active", reason: "timed-wait" };
   if (facts.decisionCardOpen || facts.captainGateOwed || facts.putOff === "word")
