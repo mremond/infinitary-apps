@@ -2,6 +2,7 @@ import type { PanelProject, PanelTaskBoard, PanelTaskRow } from "@infinitary/con
 import { describe, expect, it } from "vitest";
 import { RECORD_NEXT_LABELS } from "../../shared/recordBar";
 import { taskMovesOf } from "../../shared/taskMoves";
+import type { WorkPosture } from "../../shared/workPosture";
 import {
   byTagGroupsOf,
   earlierRowsOf,
@@ -38,7 +39,10 @@ import {
  * tests/e2e/now-panel.spec.ts.
  */
 
-function task(overrides: Partial<PanelTaskRow> = {}): PanelTaskRow {
+// The live board carries posture even when its standalone panel declaration omits it.
+type TaskFixture = PanelTaskRow & { workPosture?: WorkPosture };
+
+function task(overrides: Partial<TaskFixture> = {}): TaskFixture {
   return {
     id: "t1",
     key: "FI3-12",
@@ -941,6 +945,58 @@ describe("a task with parts (INF-3823)", () => {
     expect(folded.shown.map((row) => row.task.id)).toEqual(["plan", "ask"]);
     expect(folded.parentRowOf.get("ask")).toBe("plan");
   });
+});
+
+describe("quiet maintainer waits in folded summaries", () => {
+  it.each(["tag", "parts"] as const)(
+    "keeps the quiet segment at rest in the %s bar without changing other states",
+    (kind) => {
+      const closedId = "closed";
+      const parent = task({
+        id: "parent",
+        key: "FI3-20",
+        children: { total: 4, closed: 1, closedIds: [closedId] },
+      });
+      const quietPosture: WorkPosture = { state: "idle", reason: "checks", maintainers: true };
+      const timedPosture: WorkPosture = { state: "active", reason: "timed-wait" };
+      const quiet = task({
+        id: "quiet",
+        key: "FI3-21",
+        parentId: parent.id,
+        workPosture: quietPosture,
+      });
+      const queued = task({
+        id: "queued",
+        key: "FI3-22",
+        parentId: parent.id,
+        status: "open",
+        activity: null,
+      });
+      const timed = task({
+        id: "timed",
+        key: "FI3-23",
+        parentId: parent.id,
+        workPosture: timedPosture,
+      });
+      const current = board({ tasks: [parent, quiet, queued, timed] });
+      if (kind === "tag") {
+        const [group] = tagGroupsOf(rowsOf(current, noFilter), project());
+        expect(group && tagGroupBarOf(group)).toEqual([
+          { state: "working", id: parent.id },
+          { state: "rest", id: quiet.id },
+          { state: "working", id: queued.id },
+          { state: "working", id: timed.id },
+        ]);
+      } else {
+        expect(partsBarOf(current, parent)).toEqual([
+          { state: "done", id: closedId },
+          { state: "rest", id: quiet.id },
+          { state: "rest", id: queued.id },
+          { state: "working", id: timed.id },
+        ]);
+      }
+    },
+  );
 });
 
 /**

@@ -9,7 +9,7 @@
       "picture": {
         "dark": "quiet-maintainer-waits-dark.webp",
         "light": "quiet-maintainer-waits-light.webp",
-        "alt": "Collapsed Tasks summary showing zero waiting and zero working, with intentionally empty background above its bottom-of-window position"
+        "alt": "Contribution summary showing Idle, Waiting for the maintainers, its task name and passed pull-request checks"
       },
       "provenance": { "origin": "change" }
     }

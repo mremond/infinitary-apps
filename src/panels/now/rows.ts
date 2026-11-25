@@ -572,7 +572,7 @@ export function tagGroupsOf(
  */
 export function tagGroupBarOf(group: TagGroup): PartSegment[] {
   return group.rows.map(({ task, group: home }) => ({
-    state: home === "waiting" ? "waiting" : home === "working" ? "working" : "rest",
+    state: home === "waiting" ? "waiting" : home === "working" && nowCountGroupOf(task, home) === "working" ? "working" : "rest",
     id: task.id,
   }));
 }
@@ -745,7 +745,7 @@ export function partsBarOf(board: PanelTaskBoard, task: PanelTaskRow): PartSegme
   }));
   for (const part of openPartsOf(board).get(task.id) ?? []) {
     if (bar.length >= count.total) break;
-    const group = nowGroupOf(part);
+    const group = nowCountGroupOf(part);
     const state = group === "waiting" ? "waiting" : group === "working" ? "working" : "rest";
     bar.push({ state, id: part.id });
   }

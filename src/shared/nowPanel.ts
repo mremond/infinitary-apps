@@ -90,9 +90,11 @@ export type NowGroupInput = Pick<
 > &
   Partial<Pick<TaskView, "backlogSince" | "workPosture">>;
 
-export function nowCountGroupOf(task: NowGroupInput): NowGroup | null {
-  const group = nowGroupOf(task);
-  // Quiet contributions stay in their existing list without inflating its working count.
+export function nowCountGroupOf(
+  task: NowGroupInput,
+  group: NowGroup | null = nowGroupOf(task),
+): NowGroup | null {
+  // A folded tree can supply its resolved lane; only quiet maintainer waits override it.
   return group === "working" && task.workPosture?.state === "idle" && task.workPosture.maintainers
     ? null
     : group;
