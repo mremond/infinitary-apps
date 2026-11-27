@@ -418,7 +418,8 @@ export class ProjectContributions {
    * change's last check, the advisory reset it showed included, comes before
    * its first write, which releases its push address and pins prepared
    * tasks' routes, and the project refuses advisory saves from that check
-   * until its address is saved.
+   * until its address is saved. An address the project has by then releases
+   * nothing; the folder check keeps it the folder's.
    */
   changeAddress(repoId: string, changes: RepoPolicyPatch): Promise<RepoView> {
     return this.inLine(repoId, () => this.changeAddressOnce(repoId, changes), false);
@@ -428,11 +429,13 @@ export class ProjectContributions {
     await this.options.repos.checkDetails(repoId, changes);
     // The Git reads above wait, and a list saved meanwhile was never shown as cleared.
     this.options.repos.checkConfigure(repoId, changes);
-    const release = this.options.repos.holdAdvisoryWorkflows(repoId);
-    try {
-      await this.clearPushAddress(repoId);
-    } finally {
-      release();
+    if (changes.origin !== this.options.repos.get(repoId)?.origin) {
+      const release = this.options.repos.holdAdvisoryWorkflows(repoId);
+      try {
+        await this.clearPushAddress(repoId);
+      } finally {
+        release();
+      }
     }
     // Released in the same step as the save, so the patch's own list is not refused.
     return this.options.repos.configure(repoId, changes);
@@ -448,6 +451,8 @@ export class ProjectContributions {
     const route = repo?.contribution;
     if (!repo || !route?.fork) throw new Error("This project has no confirmed fork to choose.");
     const reset = JSON.stringify(shown ?? clearedBy(repo, destination));
+    if (JSON.stringify(clearedBy(repo, destination)) !== reset)
+      throw new ResetChanged(ADVISORY_WORKFLOWS_RESET_REFUSAL);
     this.checkHost(repo, route);
     const project = destination === "upstream" ? route.upstream : route.fork;
     const same = contributionOriginMatches(project, repo.origin, repo.host?.kind);

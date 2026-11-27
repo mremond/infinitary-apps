@@ -43,6 +43,7 @@ import { Button, GroupedPills, Input, Switch } from "../design";
 import { useFirstMatePlace, useHereAs } from "../devices/useFirstMatePlace";
 import { AddProject } from "./AddProject";
 import { BatchHoldPanel, BatchWaitPanel } from "./BatchHoldPanel";
+import { configureProject } from "./configureProject";
 import { FIRSTMATE_SELECT_STYLE } from "./GeneralTab";
 import { MoveRepository } from "./MoveRepository";
 import { ProjectCostLimit } from "./ProjectCostLimit";
@@ -911,7 +912,7 @@ function ProjectDetails({ repo, withName }: { repo: RepoView; withName: boolean 
     setSaving(true);
     setError(null);
     try {
-      await window.infinitary.repos.configure(repo.id, {
+      await configureProject(repo.id, {
         ...(withName && name !== repo.name ? { name } : {}),
         ...((scope || null) !== (repo.scope ?? null) ? { scope: scope || null } : {}),
         ...(path !== repo.path ? { path } : {}),

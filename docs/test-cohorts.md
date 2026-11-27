@@ -298,6 +298,7 @@ A file whose slowest test fits the 5 s default under the rule carries none.
 | `src/core/core.connection.phonePush.test.ts` | the whole core and its connection on loopback, a stand-in relay and a stand-in usage endpoint | 60 to 120 s on its boots |
 | `src/core/dispatcher.media.test.ts` | the whole core and a recording read through dispatch | 20 s (Mac slowest 3.594 s) |
 | `src/core/dispatcher.placement.test.ts` | the whole core, real git and a project placement change | 30 s (Mac slowest 3.683 s) |
+| `src/core/dispatcher.projectAddress.test.ts` | the whole core, real git, a project's address and target project saved through the configure request | 60 s on its boot |
 | `src/core/core.contract.test.ts` | the whole core, its connection on loopback, the scripted client as its own process | 60 s on its boot |
 | `src/core/core.wiring.test.ts` | the whole core, a loopback GitHub and GitLab stand-in, the e2e mock provider | 120 s on its boot and its one first mate turn |
 | `src/core/core.feedback.test.ts` | the whole core and its connection on loopback, the e2e mock provider, a paired phone | 120 s on its boot and on each first mate turn |

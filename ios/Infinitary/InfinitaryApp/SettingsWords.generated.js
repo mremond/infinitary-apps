@@ -17706,7 +17706,8 @@ ${events}` : prompt;
     /**
      * The advisory workflows the place offering this patch's move showed it
      * clearing (`advisoryWorkflowsCleared`), [] when it showed none: the move
-     * is refused before its first write once it would clear others.
+     * is refused before its first write once it would clear others. A
+     * request that names none showed none, as a window older than the list.
      */
     advisoryWorkflowsCleared: advisoryWorkflowsSchema.optional()
   }).strict().refine((patch) => Object.values(patch).some((value) => value !== void 0), {

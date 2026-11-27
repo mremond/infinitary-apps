@@ -303,7 +303,7 @@ export const ADVISORY_WORKFLOWS_MOVING_REFUSAL =
 
 // i18n-exempt: served to the first mate's model
 export const ADVISORY_WORKFLOWS_RESET_REFUSAL =
-  "The advisory workflows this change clears are no longer the ones shown when it was chosen. Nothing changed; read the project and choose again.";
+  "This change would clear other advisory workflows than the ones shown when it was chosen. Nothing changed; read the project and choose again.";
 
 export const NO_CHECKS_REFUSAL =
   "Require pull request checks can be turned off only for a project whose changes go through pull requests on GitHub, GitLab or Bitbucket. This project's changes do not, so no check holds its merge.";
@@ -395,7 +395,8 @@ export const repoPolicyPatchSchema = z
     /**
      * The advisory workflows the place offering this patch's move showed it
      * clearing (`advisoryWorkflowsCleared`), [] when it showed none: the move
-     * is refused before its first write once it would clear others.
+     * is refused before its first write once it would clear others. A
+     * request that names none showed none, as a window older than the list.
      */
     advisoryWorkflowsCleared: advisoryWorkflowsSchema.optional(),
   })

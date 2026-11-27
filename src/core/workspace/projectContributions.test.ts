@@ -1260,9 +1260,12 @@ describe("approved once-per-project contribution consent", () => {
     const service = world.make();
     await service.discover(world.repo.id);
     world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+    const reads = world.branchReader.mock.calls.length;
     await expect(service.choose(world.repo.id, "upstream", false, [])).rejects.toThrow(
       ADVISORY_WORKFLOWS_RESET_REFUSAL,
     );
+    // A window older than the list sends none, and is refused before the host is read.
+    expect(world.branchReader).toHaveBeenCalledTimes(reads);
     expect(world.repos.get(world.repo.id)).toMatchObject({
       origin: world.fork.origin,
       advisoryWorkflows: pilot,
@@ -1404,6 +1407,27 @@ describe("approved once-per-project contribution consent", () => {
     expect(refusals).toEqual([ADVISORY_WORKFLOWS_MOVING_REFUSAL]);
     expect(world.repos.get(world.repo.id)?.origin).toBe(next);
     expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
+  });
+
+  // Every change naming an address takes the line, and one naming the address
+  // the project has by then is a no-op that keeps its push route in Git.
+  it("keeps a contributing project's push address when an address change names the address it has", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    await service.choose(world.repo.id, "upstream", false);
+    await service.changeAddress(world.repo.id, {
+      origin: world.upstream.origin,
+      advisoryWorkflowsCleared: [],
+    });
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.upstream.origin,
+      contribution: { destination: "upstream" },
+    });
+    expect(await git(world.folder, ["config", "--get", "remote.origin.pushurl"])).toBe(
+      world.fork.origin,
+    );
   });
 
   it("creates a fork only after the consent click and reuses it after reopening the project owner", async () => {

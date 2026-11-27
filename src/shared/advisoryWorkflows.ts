@@ -77,3 +77,27 @@ export function advisoryWorkflowsCleared(
 ): string[] {
   return clearsAdvisoryWorkflows(repo, origin) ? [...(repo.advisoryWorkflows ?? [])] : [];
 }
+
+/** The change a home lists once it reads a project's advisory workflows (`project-advisory-workflows.md`). */
+export const PROJECT_ADVISORY_WORKFLOWS = "project-advisory-workflows";
+
+/**
+ * A project patch as this window's home reads it. A view of a home without
+ * the change sends a move as a window older than the list does: that home
+ * reads the patch strictly, and keeps no list a move could clear.
+ */
+export function patchForHome<Patch extends { advisoryWorkflowsCleared?: readonly string[] }>(
+  patch: Patch,
+  view: boolean,
+  homeChanges: readonly string[] | null | undefined,
+): Patch {
+  if (
+    !view ||
+    patch.advisoryWorkflowsCleared === undefined ||
+    homeChanges?.includes(PROJECT_ADVISORY_WORKFLOWS)
+  )
+    return patch;
+  const older = { ...patch };
+  delete older.advisoryWorkflowsCleared;
+  return older;
+}

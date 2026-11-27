@@ -352,6 +352,7 @@
         "!src/core/core.connection.phonePush.test.ts",
         "!src/core/dispatcher.media.test.ts",
         "!src/core/dispatcher.placement.test.ts",
+        "!src/core/dispatcher.projectAddress.test.ts",
         "!src/core/core.contract.test.ts",
         "!src/core/core.projects.test.ts",
         "!src/core/core.settings.test.ts",
