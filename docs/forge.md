@@ -826,8 +826,8 @@ A check in another workflow or event still counts, and so does the latest run's 
 So a newer request at the version replaces every check it shares a name with: a retry there asks for the same selection again, or reruns the failed job, never a narrower one.
 While that later run has not created the check, it reads pending; the reading does not invent a successful check.
 The reading identifies incomplete lists rather than inventing a check for a physical read limit.
-An empty hosted reading, or one where every check skipped, stays pending and watched until checks run or the crew records positive, exact-version absence evidence through `absentChecks`, with `pull` or, for the task's own pull request, alone (INF-1955: `CheckChangeTool.declareOwnAbsence` matches it to the pull request the task's branch holds, by number, branch and version, and stores it on an owned merge review).
-A declaration the record cannot match - no open pull request yet, another version, a host that runs no checks - is refused in words, never dropped; the merge card's checks hold names the declaration when an empty or all-skipped reading holds the card.
+An empty hosted reading, or one where every check skipped or is advisory ("Advisory workflows"), so no check that holds the merge was reported, stays pending and watched until checks run or the crew records positive, exact-version absence evidence through `absentChecks`, with `pull` or, for the task's own pull request, alone (INF-1955: `CheckChangeTool.declareOwnAbsence` matches it to the pull request the task's branch holds, by number, branch and version, and stores it on an owned merge review).
+A declaration the record cannot match - no open pull request yet, another version, a host that runs no checks - is refused in words, never dropped; the merge card's checks hold names the declaration when such a reading holds the card.
 While such a reading is watched, `check_change` does not tell the crewmate to end its turn and wait: it names both ways out, waiting if checks are still to start, or else declaring `absentChecks` or reporting that there is no evidence to declare, and the first mate's reading carries the same fact (INF-4215).
 A project recorded as running no checks needs no declaration for each version ("A project with no checks" below).
 That evidence names an explicit no-CI policy from the trusted default branch and the applicable local gate; elapsed time, history and missing workflow files are not evidence of that policy.
@@ -892,9 +892,10 @@ The GitHub reader marks each check whose workflow run's file is on the list (`as
 Every reader of a check reading follows with no path of its own, because each one already treats `neutral` as holding nothing: the merge card's checks hold, the check watch and its wakes, the merge's own reading, a batch's admission and its trial, and a reviewed pull request's merge.
 A merge past the branch rules is the one exception: GitHub's own merge reaches past the list, so its review reads each advisory check as GitHub reported it (`asReported`), waits for it to finish and names it among the failed checks ("A merge past the branch rules").
 The crew's check facts give such a check's own state and say it holds nothing, and the task's checks and the check watch's wakes say `advisory, running` or `advisory, failed`, so a crewmate still sees the workflow's result and can read its log with `read_workflow`.
-A check whose workflow run is still unfinished before it registers carries the run, so it is marked as soon as it is read.
+A check whose workflow run is still unfinished before it registers carries the run, so it is marked as soon as it is read, and so does the pending stand-in a newer run of an advisory workflow leaves for a check it has not registered yet (`withoutSupersededRuns`).
 The Batches panel's counts and a task's check times come from the checks that decide the change, so an advisory check's late finish moves neither (`Batches.read`, `checksTimes`).
 A reading where only advisory or skipped checks ran is treated as an empty one: it waits for the required checks to register, or for the crew to declare their absence ("Check facts and crew judgment" above), and an advisory check never ends a project's no-checks record ("A project with no checks" above).
+The crew's guidance for such a reading says that no check that holds the merge was reported (`emptyWords`, the merge card's refusal and the two-hour wake), and Settings and the crew's check facts say that GitHub branch rules still apply.
 A check the project's GitHub branch rules require still holds the merge at GitHub, whatever the list says: the list changes what the app waits for, never what GitHub enforces.
 
 ## A requested merge
@@ -1184,7 +1185,7 @@ A story that cannot be written into the description or a comment, such as one wh
 
 The host's own reading decides what happens next, on each pass of the tick and after each change of the line (`Batches.follow`).
 A project's record has one writer at a time: a pass keeps the record it read through its work where the project lives, so an approval, a withdrawal and a declared fix each take their turn behind the pass at work, and none is saved over (`Batches.write`).
-Checks all passed or skipped, with the host reading the pull request as mergeable, merge it; a reading where no check ran, none at all or only skipped ones, counts as passed only where every member's version was declared to run none.
+Checks all passed or skipped, an advisory one in any state, with the host reading the pull request as mergeable, merge it; a reading where no check that holds the merge ran, none at all or only skipped or advisory ones, counts as passed only where every member's version was declared to run none.
 On GitHub the batch's checks are the runs its pull request and the push of its own branch started, so a project can check a batch by either, telling it by the branch's `infinitary-batch/` prefix (`ownChecksOf`).
 A pull request the host reads as behind or conflicting is combined again onto the default branch as it is now.
 The merge keeps one commit per change (`mergeWayFor`, `src/shared/batches.ts`).
@@ -1492,7 +1493,7 @@ The design follows the firstmate repo's PR poll: a watcher that is not a model, 
 - **A branch-only change** (INF-6241), the pushed branch of a project that merges in batches of its own, once a reading has named its version (`readsBranch`), has no quiet refresh: it is read on the first tick after the crewmate's turn ends, when a run watch starts on it, and every minute while its merge card waits under a captain's reply or is held for its new version (`versionAwaited`).
   A merge card held for the read after the turn starts it at once (`CheckWatcher.readAfterTurn`), and a failed read counts as done (`afterTurnReadOwed`).
   A read that starts while the crewmate's turn or one of its background jobs runs (`working`) can miss a push that work still makes, so the read after that work ends is owed again.
-  A reading at a new version arms a watch only when a check there is running or queued: none started, or only checks a person starts, arms none.
+  A reading at a new version arms a watch only when a check that holds the merge is running or queued there: none started, only checks a person starts, or only advisory ones, arms none.
 - **Bound to the head**: a new head where the project lives re-arms the watch for it, and only the head it last saw is woken about.
   A reading the crewmate takes itself that finds the checks finished ends the watch (it already knows); the merge card gate's does not, so the crewmate still hears.
 - **Two wakes at most** for one head, each a `checks-settled` steer on the crewmate's own lane, the supervisor's, through the ordinary steer path (it resumes an idle task).
@@ -1500,7 +1501,7 @@ The design follows the firstmate repo's PR poll: a watcher that is not a model, 
   A read that first sees a failure and also sees the checks finished sends only the end wake.
   At a version the captain's standing approval covers, a finish with every check passed sends no wake and runs the approval instead, and any other wake carries the approval's line (INF-4018, `docs/delivery-rigor.md` "No second card for an approved version").
   A `gone` wake after the pull request read merged outside the app carries no approval line, since nothing is left for the approval to merge or repair (INF-4161).
-  The end wake carries the finished check states without a passing verdict; `timed-out`, still running after `CHECK_WATCH_BOUND_MS` (two hours), or with no check started in that time (`noneStarted`), when it names the absence declaration instead; `gone` (no open change for the branch); `unreadable` (a sign-in, permission or other refusal; a transient failure reads again inside the bound).
+  The end wake carries the finished check states without a passing verdict; `timed-out`, still running after `CHECK_WATCH_BOUND_MS` (two hours), or with no check that holds the merge started in that time, a skipped or advisory one aside (`noneStarted`), when it names the absence declaration instead; `gone` (no open change for the branch); `unreadable` (a sign-in, permission or other refusal; a transient failure reads again inside the bound).
   A spent hourly allowance is not a refusal: the watch keeps standing, wakes nobody, and reads again at the reset GitHub named (`ForgeAllowanceSpent.resetAt`, INF-2149); the quiet refresh and the merge read wait the same.
   Each wake is named by the watch and the event (`check-watch:<head>:<since>:failure` or `:end`), and the inbox records the name with the row it queues (`InboxStore.enqueueSteerOnce`), so a restart between the wake and the clear never sends it again.
   A wake recorded before the early wake existed, named `check-watch:<head>:<since>`, still counts as the end wake.

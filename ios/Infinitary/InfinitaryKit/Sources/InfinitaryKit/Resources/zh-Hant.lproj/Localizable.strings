@@ -3595,7 +3595,7 @@
 "settingsPhoneStoppedThere" = "%2$@請在 %1$@ 上的「設定 → 自動化」重新選擇它的整合。";
 "settingsPhoneTodayPartial" = "今天尚未結束";
 "settingsPhoneUsageThere" = "最近的任務和各模型的詳細資料在 %1$@ 上的「設定 → 用量」。";
-"settingsProjectsAdvisoryDescription" = "這些 GitHub 工作流程檔案（如 .github/workflows/early-tests.yml）的檢查會顯示在變更上，但從不擋下它的合併或批次。";
+"settingsProjectsAdvisoryDescription" = "這些 GitHub 工作流程檔案（如 .github/workflows/early-tests.yml）的檢查會顯示在變更上，但從不擋下它的合併或批次。GitHub 分支規則要求的檢查仍會在 GitHub 上擋下合併。";
 "settingsProjectsAdvisoryInvalid" = "請直接在 .github/workflows 中寫出每個工作流程檔案，每個只寫一次。";
 "settingsProjectsAdvisoryLabel" = "參考工作流程檔案";
 "settingsProjectsAdvisoryNone" = "無";

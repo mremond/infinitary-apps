@@ -679,7 +679,7 @@ export function describeCheckState(
 ): string {
   if (check.advisory)
     // i18n-exempt: a check fact served to the crew's model
-    return `${check.advisory === "pending" ? "in_progress / -" : `completed / ${check.advisory}`}, advisory, so it holds nothing`;
+    return `${check.advisory === "pending" ? "in_progress / -" : `completed / ${check.advisory}`}, advisory, so it holds nothing here; a GitHub branch rule that requires it still holds the merge on GitHub`;
   if (check.manual) return "manual / waiting for a person to start it";
   if (check.failureAllowed) {
     const ended = check.status ? `${check.status}, ` : "";

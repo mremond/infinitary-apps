@@ -894,7 +894,7 @@
   "settingsPhoneStoppedThere": "{reason} {home}의 설정 → 자동화에서 연동을 다시 고르세요.",
   "settingsPhoneTodayPartial": "오늘은 아직 진행 중",
   "settingsPhoneUsageThere": "최근 작업과 모델별 세부 정보는 {home}의 설정 → 사용량에 있어요.",
-  "settingsProjectsAdvisoryDescription": "이 GitHub 워크플로 파일(예: .github/workflows/early-tests.yml)의 검사는 변경에 표시되지만, 병합이나 일괄 끌어오기 요청을 막지 않아요.",
+  "settingsProjectsAdvisoryDescription": "이 GitHub 워크플로 파일(예: .github/workflows/early-tests.yml)의 검사는 변경에 표시되지만, 병합이나 일괄 끌어오기 요청을 막지 않아요. GitHub 분기 규칙에서 필수인 검사는 여전히 GitHub에서 병합을 막아요.",
   "settingsProjectsAdvisoryInvalid": "각 워크플로 파일을 .github/workflows 바로 아래에서 한 번씩 적어 주세요.",
   "settingsProjectsAdvisoryLabel": "참고용 워크플로 파일",
   "settingsProjectsAdvisoryNone": "없음",

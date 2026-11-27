@@ -1211,7 +1211,9 @@ describe("a check from an advisory workflow (INF-67)", () => {
         { name: "unit-tests", state: "success" },
         early(state),
       ]);
-      expect(said).toContain(`- early-tests: ${facts}, advisory, so it holds nothing`);
+      expect(said).toContain(
+        `- early-tests: ${facts}, advisory, so it holds nothing here; a GitHub branch rule that requires it still holds the merge on GitHub`,
+      );
       expect(checkSnapshotSummary(delivery!.checks!)).toMatchObject({
         overall: "green",
         words: `1 passed · 1 advisory, ${words}`,

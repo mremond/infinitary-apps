@@ -61,7 +61,7 @@ describe('the check watch\'s side of a reading (docs/forge.md, "The check watch"
     }
     expect(steers).toHaveLength(1);
     const wake = renderWake(steers[0] as TypedWake);
-    expect(wake).toContain("No check started");
+    expect(wake).toContain("No check that holds the merge started");
     expect(wake).toContain("check_change absentChecks");
     expect(wake).toContain("project true");
     expect(wake).not.toContain("still running");

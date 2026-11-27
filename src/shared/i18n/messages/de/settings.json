@@ -912,7 +912,7 @@
   "settingsPhoneStoppedThere": "{reason} Wähl ihre Integration unter Einstellungen → Automatisierung auf {home} erneut aus.",
   "settingsPhoneTodayPartial": "Heute ist unvollständig",
   "settingsPhoneUsageThere": "Letzte Aufgaben und die Details zu jedem Modell stehen unter Einstellungen → Nutzung auf {home}.",
-  "settingsProjectsAdvisoryDescription": "Überprüfungen aus diesen GitHub-Workflow-Dateien, etwa .github/workflows/early-tests.yml, erscheinen bei einer Änderung, halten aber nie ihr Zusammenführen oder ihr Bündel auf.",
+  "settingsProjectsAdvisoryDescription": "Überprüfungen aus diesen GitHub-Workflow-Dateien, etwa .github/workflows/early-tests.yml, erscheinen bei einer Änderung, halten aber nie ihr Zusammenführen oder ihr Bündel auf. Eine Überprüfung, die deine Branch-Regeln auf GitHub verlangen, hält das Zusammenführen auf GitHub weiterhin auf.",
   "settingsProjectsAdvisoryInvalid": "Nenn jede Workflow-Datei einmal, direkt in .github/workflows.",
   "settingsProjectsAdvisoryLabel": "Dateien unverbindlicher Workflows",
   "settingsProjectsAdvisoryNone": "Keine",

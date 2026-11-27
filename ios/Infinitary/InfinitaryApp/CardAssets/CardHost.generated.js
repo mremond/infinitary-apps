@@ -85092,29 +85092,29 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
   function settingsProjectsAdvisoryDescription() {
     switch (currentLanguage()) {
       case "ar":
-        return `تظهر فحوصات ملفات مسارات عمل GitHub هذه، مثل .github/workflows/early-tests.yml، على التغيير، لكنها لا تعلّق دمجه ولا دفعته أبدًا.`;
+        return `تظهر فحوصات ملفات مسارات عمل GitHub هذه، مثل .github/workflows/early-tests.yml، على التغيير، لكنها لا تعلّق دمجه ولا دفعته أبدًا. ويظل الفحص الذي تشترطه قواعد الفروع في GitHub يعلّق الدمج على GitHub.`;
       case "de":
-        return `Überprüfungen aus diesen GitHub-Workflow-Dateien, etwa .github/workflows/early-tests.yml, erscheinen bei einer Änderung, halten aber nie ihr Zusammenführen oder ihr Bündel auf.`;
+        return `Überprüfungen aus diesen GitHub-Workflow-Dateien, etwa .github/workflows/early-tests.yml, erscheinen bei einer Änderung, halten aber nie ihr Zusammenführen oder ihr Bündel auf. Eine Überprüfung, die deine Branch-Regeln auf GitHub verlangen, hält das Zusammenführen auf GitHub weiterhin auf.`;
       case "es":
-        return `Las comprobaciones de estos archivos de flujo de trabajo de GitHub, como .github/workflows/early-tests.yml, aparecen en un cambio, pero nunca retienen su fusión ni su lote.`;
+        return `Las comprobaciones de estos archivos de flujo de trabajo de GitHub, como .github/workflows/early-tests.yml, aparecen en un cambio, pero nunca retienen su fusión ni su lote. Una comprobación que exigen tus reglas de rama de GitHub sigue reteniendo la fusión en GitHub.`;
       case "fr":
-        return `Les vérifications de ces fichiers de workflow GitHub, comme .github/workflows/early-tests.yml, s’affichent sur une modification, mais ne retiennent jamais sa fusion ni son lot.`;
+        return `Les vérifications de ces fichiers de workflow GitHub, comme .github/workflows/early-tests.yml, s’affichent sur une modification, mais ne retiennent jamais sa fusion ni son lot. Une vérification exigée par vos règles de branche GitHub retient toujours la fusion sur GitHub.`;
       case "ja":
-        return `これらの GitHub ワークフローファイル（.github/workflows/early-tests.yml など）のチェックは変更に表示されますが、マージや一括プルリクエストを止めることはありません。`;
+        return `これらの GitHub ワークフローファイル（.github/workflows/early-tests.yml など）のチェックは変更に表示されますが、マージや一括プルリクエストを止めることはありません。GitHub のブランチルールで必須のチェックは、引き続き GitHub 上でマージを止めます。`;
       case "ko":
-        return `이 GitHub 워크플로 파일(예: .github/workflows/early-tests.yml)의 검사는 변경에 표시되지만, 병합이나 일괄 끌어오기 요청을 막지 않아요.`;
+        return `이 GitHub 워크플로 파일(예: .github/workflows/early-tests.yml)의 검사는 변경에 표시되지만, 병합이나 일괄 끌어오기 요청을 막지 않아요. GitHub 분기 규칙에서 필수인 검사는 여전히 GitHub에서 병합을 막아요.`;
       case "pt-BR":
-        return `As verificações destes arquivos de fluxo de trabalho do GitHub, como .github/workflows/early-tests.yml, aparecem em uma alteração, mas nunca seguram a mesclagem nem o lote.`;
+        return `As verificações destes arquivos de fluxo de trabalho do GitHub, como .github/workflows/early-tests.yml, aparecem em uma alteração, mas nunca seguram a mesclagem nem o lote. Uma verificação exigida pelas suas regras de branch do GitHub ainda segura a mesclagem no GitHub.`;
       case "zh-Hans":
-        return `这些 GitHub 工作流文件（如 .github/workflows/early-tests.yml）的检查会显示在改动上，但从不阻止它合并，也不阻止这批改动合并。`;
+        return `这些 GitHub 工作流文件（如 .github/workflows/early-tests.yml）的检查会显示在改动上，但从不阻止它合并，也不阻止这批改动合并。GitHub 分支规则要求的检查仍会在 GitHub 上阻止合并。`;
       case "zh-Hant":
-        return `這些 GitHub 工作流程檔案（如 .github/workflows/early-tests.yml）的檢查會顯示在變更上，但從不擋下它的合併或批次。`;
+        return `這些 GitHub 工作流程檔案（如 .github/workflows/early-tests.yml）的檢查會顯示在變更上，但從不擋下它的合併或批次。GitHub 分支規則要求的檢查仍會在 GitHub 上擋下合併。`;
       case "en-XA":
-        return `[Çĥéçķš ƒŕöɱ ţĥéšé ĜîţĤûƀ ŵöŕķƒļöŵ ƒîļéš, šûçĥ áš .ĝîţĥûƀ/ŵöŕķƒļöŵš/éáŕļý-ţéšţš.ýɱļ, šĥöŵ öñ á çĥáñĝé ƀûţ ñéṽéŕ ĥöļð îţš ɱéŕĝé öŕ îţš ƀáţçĥ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+        return `[Çĥéçķš ƒŕöɱ ţĥéšé ĜîţĤûƀ ŵöŕķƒļöŵ ƒîļéš, šûçĥ áš .ĝîţĥûƀ/ŵöŕķƒļöŵš/éáŕļý-ţéšţš.ýɱļ, šĥöŵ öñ á çĥáñĝé ƀûţ ñéṽéŕ ĥöļð îţš ɱéŕĝé öŕ îţš ƀáţçĥ. Å çĥéçķ ýöûŕ ĜîţĤûƀ ƀŕáñçĥ ŕûļéš ŕéǫûîŕé šţîļļ ĥöļðš ţĥé ɱéŕĝé öñ ĜîţĤûƀ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
       case "ar-XB":
-        return `‮Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch.‬`;
+        return `‮Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch. A check your GitHub branch rules require still holds the merge on GitHub.‬`;
     }
-    return `Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch.`;
+    return `Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch. A check your GitHub branch rules require still holds the merge on GitHub.`;
   }
   function settingsProjectsAdvisoryInvalid() {
     switch (currentLanguage()) {

@@ -205,7 +205,7 @@ export type DeliveryFacts =
       checks?: { name: string; state: string; manual?: boolean }[];
       /** timed-out: how long the host watched. */
       waitedMs?: number;
-      /** timed-out with no check started: none reported, or every one skipped. */
+      /** timed-out with no check that holds the merge started: none reported, or every one skipped or advisory. */
       noneStarted?: boolean;
       /** timed-out on a version waiting in the project's batch: what the app knows of that batch. */
       batch?: string;
@@ -535,7 +535,7 @@ function renderChecksSettled(facts: ChecksSettledFacts): string {
       return `An earlier check-watch record reports ${JSON.stringify(facts)}. It is history, not a current readiness verdict. Repair counts are retired and place no hold. Read current check facts and follow your delivery guidance before offering a merge.`;
     case "timed-out":
       if (facts.noneStarted)
-        return `No check started on ${change}${head} in ${formatDurationShort(facts.waitedMs ?? 0)}, and nothing declares that it has none.${facts.batch ? ` ${facts.batch}` : ""} The app stopped watching it. If this pull request runs no checks, declare that with check_change absentChecks (its version, the evidence and the local gate run at it), adding project true when the project's default branch runs none; if you have no such evidence, report that it has no checks and nothing to declare.`;
+        return `No check that holds the merge started on ${change}${head} in ${formatDurationShort(facts.waitedMs ?? 0)}, and nothing declares that it has none.${facts.batch ? ` ${facts.batch}` : ""} The app stopped watching it. If this pull request runs no checks, declare that with check_change absentChecks (its version, the evidence and the local gate run at it), adding project true when the project's default branch runs none; if you have no such evidence, report that it has no checks and nothing to declare.`;
       return `The checks on ${change}${head} are still running after ${formatDurationShort(facts.waitedMs ?? 0)}${named ? `: ${named}` : ""}.${facts.batch ? ` ${facts.batch}` : ""} The app stopped watching them: read them with check_change, and report a blocker if they never finish.`;
     case "gone":
       return `${change.charAt(0).toUpperCase()}${change.slice(1)} is no longer open where the project lives, so the app stopped watching its checks. Read it with check_change and carry on.`;
