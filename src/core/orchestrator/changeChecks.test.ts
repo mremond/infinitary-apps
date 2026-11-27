@@ -2,9 +2,9 @@ import { rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { checkSnapshotSummary } from "@shared/checkSnapshot";
+import { inLanguage, setCurrentLanguage } from "@shared/i18n/current";
 import type { MergeReview } from "@shared/mergeReview";
 import type { NoChecksChange } from "@shared/repos";
-import { inLanguage, setCurrentLanguage } from "@shared/i18n/current";
 import { describe, expect, it, vi } from "vitest";
 import { stub as githubStub } from "../../../tests/helpers/githubForgeStub";
 import {
