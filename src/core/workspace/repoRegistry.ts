@@ -29,6 +29,7 @@ import { AUTOMATIC_COMPUTER, placementRequirementsSchema } from "@shared/placeme
 import {
   ADVISORY_WORKFLOWS_MOVED_REFUSAL,
   ADVISORY_WORKFLOWS_REFUSAL,
+  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
   BATCH_HOST_REFUSAL,
   BATCHES_OFF_REFUSAL,
   deliveryChoices,
@@ -331,6 +332,8 @@ export class RepoRegistry {
   private readonly batchListeners = new Set<(repo: RepoView) => void>();
   /** Who hears the app start or end a project's no-checks record (`onNoChecks`). */
   private readonly noChecksListeners = new Set<(repo: RepoView, change: NoChecksChange) => void>();
+  /** Projects whose addresses a target switch is writing (`holdAdvisoryWorkflows`). */
+  private readonly targetWrites = new Set<string>();
 
   constructor(
     private readonly db: AppDatabase,
@@ -643,6 +646,16 @@ export class RepoRegistry {
     return { ...repo, contribution, contributionChecked: true };
   }
 
+  /**
+   * Refuse the project's advisory saves until the returned release: a target
+   * switch checks the reset it showed before its first write, and its address
+   * write would clear a list saved after that check unshown.
+   */
+  holdAdvisoryWorkflows(id: string): () => void {
+    this.targetWrites.add(id);
+    return () => this.targetWrites.delete(id);
+  }
+
   /** JSON null records a successful inspection without a contribution route; SQL null is undiscovered. */
   markContributionChecked(id: string): RepoView {
     this.db.prepare("UPDATE repos SET contribution_json = 'null' WHERE id = ?").run(id);
@@ -850,6 +863,8 @@ export class RepoRegistry {
       !sameAdvisoryRepository(changes.advisoryWorkflowsAt, origin)
     )
       throw new Error(ADVISORY_WORKFLOWS_MOVED_REFUSAL);
+    if (changes.advisoryWorkflows !== undefined && this.targetWrites.has(id))
+      throw new Error(ADVISORY_WORKFLOWS_TARGET_REFUSAL);
     if (
       name !== repo.name &&
       (!/^[\w][\w.-]*$/.test(name) || this.nameTaken(name, undefined, ownFolder))

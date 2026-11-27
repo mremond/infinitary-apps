@@ -18,6 +18,7 @@ import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import {
   ADVISORY_WORKFLOWS_MOVED_REFUSAL,
   ADVISORY_WORKFLOWS_REFUSAL,
+  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
   BATCH_HOST_REFUSAL,
   BATCHES_OFF_REFUSAL,
   NO_CHECKS_REFUSAL,
@@ -492,6 +493,29 @@ describe("RepoRegistry's advisory workflows", () => {
         advisoryWorkflowsAt: "git@github.com:Example-Studio/meter.git",
       }).advisoryWorkflows,
     ).toEqual(pilot);
+  });
+
+  // A target change compares the clearing it showed before its first write,
+  // so from then until its address write the list waits.
+  it("refuses an advisory save while a target change holds the project, and still takes its address", async () => {
+    const { registry } = setup();
+    const { repo } = await registry.setup({ kind: "init", name: "meter" });
+    const pilot = [".github/workflows/early-tests.yml"];
+    registry.configure(repo.id, {
+      origin: "https://github.com/someone/meter.git",
+      delivery: "direct-pr",
+    });
+    const release = registry.holdAdvisoryWorkflows(repo.id);
+    expect(() => registry.configure(repo.id, { advisoryWorkflows: pilot })).toThrow(
+      ADVISORY_WORKFLOWS_TARGET_REFUSAL,
+    );
+    expect(
+      registry.configure(repo.id, { origin: "https://github.com/example-studio/meter.git" }).origin,
+    ).toBe("https://github.com/example-studio/meter.git");
+    release();
+    expect(registry.configure(repo.id, { advisoryWorkflows: pilot }).advisoryWorkflows).toEqual(
+      pilot,
+    );
   });
 
   it("refuses a file that names no workflow, and a file named twice", () => {

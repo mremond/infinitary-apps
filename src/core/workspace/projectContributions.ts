@@ -41,6 +41,9 @@ function clearingChoices(repo: RepoView): string[] {
   );
 }
 
+/** A target switch whose advisory reset changed after it was shown; it wrote nothing. */
+class ResetChanged extends Error {}
+
 /** Project-owned fork routing, with creation reachable only from an app-authored consent card. */
 export class ProjectContributions {
   static ownsOffer(arg: string | undefined): boolean {
@@ -243,12 +246,14 @@ export class ProjectContributions {
         );
       this.checkHost(repo, repo.contribution);
       if (ask.action === "upstream" || ask.action === "fork") {
-        // A card raised before its clicks carried the list showed none.
-        if (JSON.stringify(clearingChoices(repo)) !== JSON.stringify(ask.clears ?? [])) {
-          this.offer(repo);
-          return;
+        try {
+          // A card raised before its clicks carried the list showed none.
+          await this.choose(repo.id, ask.action, true, ask.clears ?? []);
+        } catch (error) {
+          if (!(error instanceof ResetChanged)) throw error;
+          const current = this.options.repos.get(repo.id);
+          if (current) this.offer(current);
         }
-        await this.choose(repo.id, ask.action);
         return;
       }
       if (ask.action !== "create") throw new Error("That contribution choice is unavailable.");
@@ -366,12 +371,21 @@ export class ProjectContributions {
     }
   }
 
-  /** Serialize target writes; a new task waits before reading its branch's route. */
-  choose(repoId: string, destination: "upstream" | "fork", notify = true): Promise<RepoView> {
+  /**
+   * Serialize target writes; a new task waits before reading its branch's
+   * route. `shown` is the reset its card showed (`clearingChoices`); a
+   * Settings switch showed the project's as it starts.
+   */
+  choose(
+    repoId: string,
+    destination: "upstream" | "fork",
+    notify = true,
+    shown?: readonly string[],
+  ): Promise<RepoView> {
     const previous = this.choosing.get(repoId);
     const next = previous
-      ? previous.catch(() => {}).then(() => this.chooseOnce(repoId, destination, notify))
-      : this.chooseOnce(repoId, destination, notify);
+      ? previous.catch(() => {}).then(() => this.chooseOnce(repoId, destination, notify, shown))
+      : this.chooseOnce(repoId, destination, notify, shown);
     const run = next.finally(() => {
       if (this.choosing.get(repoId) === run) this.choosing.delete(repoId);
     });
@@ -383,10 +397,12 @@ export class ProjectContributions {
     repoId: string,
     destination: "upstream" | "fork",
     notify: boolean,
+    shown?: readonly string[],
   ): Promise<RepoView> {
     const repo = this.options.repos.get(repoId);
     const route = repo?.contribution;
     if (!repo || !route?.fork) throw new Error("This project has no confirmed fork to choose.");
+    const reset = JSON.stringify(shown ?? clearingChoices(repo));
     this.checkHost(repo, route);
     const project = destination === "upstream" ? route.upstream : route.fork;
     const same = contributionOriginMatches(project, repo.origin, repo.host?.kind);
@@ -402,35 +418,50 @@ export class ProjectContributions {
     const preferredPush = await git(repo.path, ["config", "--get", "remote.origin.pushurl"]).catch(
       () => "",
     );
-    if (branch) {
-      await git(repo.path, [
-        "fetch",
-        "--quiet",
-        "--no-tags",
-        origin,
-        `+refs/heads/${branch}:refs/remotes/origin/${branch}`,
-      ]);
-    }
-    await clearManagedOriginPush(repo.path);
-    if (destination === "upstream")
-      await setManagedOriginPush(
-        repo.path,
-        contributionTransport(route.fork, preferredPush || origin),
+    // The reads above wait on the host, and a list saved meanwhile was never
+    // shown as cleared: compare before the first write, then hold the
+    // project's advisory saves until its address is written.
+    const current = this.options.repos.get(repoId);
+    if (!current || JSON.stringify(clearingChoices(current)) !== reset)
+      throw new ResetChanged(
+        // i18n-exempt: served to the first mate's model; Settings shows the project again instead
+        "The project's advisory workflows changed while its target project was read. Nothing changed; choose its target project again.",
       );
-    if (branch) {
-      await git(repo.path, ["remote", "set-url", "origin", origin]);
-      await git(repo.path, [
-        "symbolic-ref",
-        "refs/remotes/origin/HEAD",
-        `refs/remotes/origin/${branch}`,
-      ]);
+    const release = this.options.repos.holdAdvisoryWorkflows(repoId);
+    let updated: RepoView;
+    try {
+      if (branch) {
+        await git(repo.path, [
+          "fetch",
+          "--quiet",
+          "--no-tags",
+          origin,
+          `+refs/heads/${branch}:refs/remotes/origin/${branch}`,
+        ]);
+      }
+      await clearManagedOriginPush(repo.path);
+      if (destination === "upstream")
+        await setManagedOriginPush(
+          repo.path,
+          contributionTransport(route.fork, preferredPush || origin),
+        );
+      if (branch) {
+        await git(repo.path, ["remote", "set-url", "origin", origin]);
+        await git(repo.path, [
+          "symbolic-ref",
+          "refs/remotes/origin/HEAD",
+          `refs/remotes/origin/${branch}`,
+        ]);
+      }
+      this.options.repos.configure(repo.id, { origin });
+      updated = this.saveRoute(
+        repo.id,
+        { ...route, destination },
+        { notify, originChanged: repo.origin !== origin },
+      );
+    } finally {
+      release();
     }
-    this.options.repos.configure(repo.id, { origin });
-    const updated = this.saveRoute(
-      repo.id,
-      { ...route, destination },
-      { notify, originChanged: repo.origin !== origin },
-    );
     this.options.note(
       `New tasks in ${repo.name} now go to ${destination === "upstream" ? "the original project's maintainers" : "your fork"}.`,
       "applied",

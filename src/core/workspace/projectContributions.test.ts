@@ -12,7 +12,7 @@ import {
 import type { FmEvent } from "@shared/events";
 import { said, saidMark } from "@shared/i18n/said";
 import { PULL_REQUEST_COMMENTS_WAKE } from "@shared/pullComments";
-import type { RepoView } from "@shared/repos";
+import { ADVISORY_WORKFLOWS_TARGET_REFUSAL, type RepoView } from "@shared/repos";
 import { MERGE_WORDS } from "@shared/vocabulary";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -1094,6 +1094,100 @@ describe("approved once-per-project contribution consent", () => {
     expect(shown.body).toContain(clears(CONTRIBUTION_WORDS.contribute));
     await service.answer(world.choose(shown, "contribute-upstream"));
     expect(world.repos.get(world.repo.id)?.origin).toBe(world.upstream.origin);
+    expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
+  });
+
+  // A target change reads the target's default branch from the host before
+  // its first write; a list saved during that read was never shown as cleared.
+  const pauseBranchRead = (world: Awaited<ReturnType<typeof fixture>>) => {
+    let resume = () => {};
+    let started = () => {};
+    const reading = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    world.branchReader.mockImplementationOnce(() => {
+      started();
+      return new Promise<string>((resolve) => {
+        resume = () => resolve("main");
+      });
+    });
+    return { reading, resume: () => resume() };
+  };
+  const pilot = [".github/workflows/early-tests.yml"];
+
+  it("keeps the list and target when a list is saved while the card's choice reads the branch, and shows the card again", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    const opened = world.offer();
+    const read = pauseBranchRead(world);
+    const answered = service.answer(world.choose(opened, "contribute-upstream"));
+    await read.reading;
+    world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+    read.resume();
+    await answered;
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.fork.origin,
+      advisoryWorkflows: pilot,
+      contribution: { destination: null },
+    });
+    expect(await git(world.folder, ["config", "--get", "remote.origin.url"])).toBe(
+      world.fork.origin,
+    );
+    expect(world.offer()).not.toBe(opened);
+    expect(world.offer().body).toContain(clears(CONTRIBUTION_WORDS.contribute));
+  });
+
+  it("keeps the list and target when a list is saved while a Settings target change reads the branch", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    const read = pauseBranchRead(world);
+    const switching = service.choose(world.repo.id, "upstream", false);
+    await read.reading;
+    world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+    read.resume();
+    await expect(switching).rejects.toThrow("Nothing changed");
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.fork.origin,
+      advisoryWorkflows: pilot,
+      contribution: { destination: null },
+    });
+    expect(await git(world.folder, ["config", "--get", "remote.origin.url"])).toBe(
+      world.fork.origin,
+    );
+  });
+
+  it("refuses a list saved while a target change writes the project's addresses", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    const refusals: string[] = [];
+    const run = gitProcesses.runGitProcess;
+    const spy = vi
+      .spyOn(gitProcesses, "runGitProcess")
+      .mockImplementation((file, args, options) => {
+        if (args.includes("fetch"))
+          try {
+            world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+          } catch (error) {
+            refusals.push(error instanceof Error ? error.message : String(error));
+          }
+        return run(file, args, options);
+      });
+    try {
+      await service.choose(world.repo.id, "upstream", false);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(refusals).toEqual([ADVISORY_WORKFLOWS_TARGET_REFUSAL]);
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.upstream.origin,
+      contribution: { destination: "upstream" },
+    });
     expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
   });
 
