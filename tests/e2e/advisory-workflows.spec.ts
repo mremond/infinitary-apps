@@ -333,7 +333,8 @@ for (const batchCase of [
  * move the project to another repository and clear it. An imported fork that
  * contributes to its original (`contributionWorld.ts`) offers both: its
  * address and its Target project. Completion signals are the two notes and
- * the saved project's address and list.
+ * the saved project's address and list. A list saved with a target change
+ * names the repository the page showed, so it never lands on the other one.
  */
 test("Settings says before the change that another repository clears the advisory workflows", async () => {
   const world = await startContributionWorld(true);
@@ -399,6 +400,22 @@ test("Settings says before the change that another repository clears the advisor
     await expect.poll(async () => (await saved())?.origin).toBe(world.forge.fork.clone_url);
     expect((await saved())?.advisoryWorkflows).toBeUndefined();
     await expect(targetNote).toHaveCount(0);
+
+    // Both land in one task, before Settings sends its batched changes, so
+    // they reach the app as one save.
+    const advisory = row.getByRole("textbox", { name: PROJECT_POLICY_WORDS.advisoryLabel });
+    await advisory.fill(ADVISORY);
+    const form = await advisory.evaluateHandle((input) => (input as HTMLInputElement).form);
+    const toOriginal = await original.elementHandle();
+    await page.evaluate(
+      ([saving, choosing]) => {
+        saving?.requestSubmit();
+        (choosing as HTMLInputElement | null)?.click();
+      },
+      [form, toOriginal] as const,
+    );
+    await expect.poll(async () => (await saved())?.origin).toBe(world.forge.upstream.clone_url);
+    expect((await saved())?.advisoryWorkflows).toBeUndefined();
   } finally {
     await world.close();
   }

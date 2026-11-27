@@ -293,6 +293,10 @@ export function namesAdvisoryWorkflows(
 export const ADVISORY_WORKFLOWS_REFUSAL =
   "Advisory workflows can be named only for a project whose changes go through pull requests on GitHub, which says which workflow file each check comes from. This project's changes do not.";
 
+// i18n-exempt: served to the first mate's model
+export const ADVISORY_WORKFLOWS_MOVED_REFUSAL =
+  "These advisory workflows were named for a repository this project no longer uses. Read the project again and name them for the repository it uses now.";
+
 export const NO_CHECKS_REFUSAL =
   "Require pull request checks can be turned off only for a project whose changes go through pull requests on GitHub, GitLab or Bitbucket. This project's changes do not, so no check holds its merge.";
 
@@ -374,6 +378,12 @@ export const repoPolicyPatchSchema = z
      * empty list names none.
      */
     advisoryWorkflows: advisoryWorkflowsSchema.optional(),
+    /**
+     * The address of the repository `advisoryWorkflows` was named for, as
+     * the place naming it read the project: a save is refused once the
+     * project uses another repository, however it was queued.
+     */
+    advisoryWorkflowsAt: z.string().max(4096).nullable().optional(),
   })
   .strict()
   .refine((patch) => Object.values(patch).some((value) => value !== undefined), {

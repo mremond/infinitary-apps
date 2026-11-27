@@ -139272,7 +139272,13 @@ ${startersHtml()}`;
      * workflows"): the workflow files whose checks never hold a merge; an
      * empty list names none.
      */
-    advisoryWorkflows: advisoryWorkflowsSchema.optional()
+    advisoryWorkflows: advisoryWorkflowsSchema.optional(),
+    /**
+     * The address of the repository `advisoryWorkflows` was named for, as
+     * the place naming it read the project: a save is refused once the
+     * project uses another repository, however it was queued.
+     */
+    advisoryWorkflowsAt: string().max(4096).nullable().optional()
   }).strict().refine((patch) => Object.values(patch).some((value) => value !== void 0), {
     message: "pass delivery, autonomy, rigor, costLimit, scope, name, path, origin, requireChecks, batchGap, contributorDisclosure, advisoryWorkflows, or several"
   });

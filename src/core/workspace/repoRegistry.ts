@@ -12,7 +12,11 @@ import {
   unlinkSync,
 } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
-import { advisoryWorkflowsSchema, clearsAdvisoryWorkflows } from "@shared/advisoryWorkflows";
+import {
+  advisoryWorkflowsSchema,
+  clearsAdvisoryWorkflows,
+  sameAdvisoryRepository,
+} from "@shared/advisoryWorkflows";
 import { type BatchRecord, batchRecordSchema } from "@shared/batches";
 import {
   type ContributionRoute,
@@ -23,6 +27,7 @@ import { type ForgeKind, forgeOf, type KnownForgeHost } from "@shared/forge";
 import { changeRequestHost } from "@shared/forgeKinds";
 import { AUTOMATIC_COMPUTER, placementRequirementsSchema } from "@shared/placement";
 import {
+  ADVISORY_WORKFLOWS_MOVED_REFUSAL,
   ADVISORY_WORKFLOWS_REFUSAL,
   BATCH_HOST_REFUSAL,
   BATCHES_OFF_REFUSAL,
@@ -838,6 +843,13 @@ export class RepoRegistry {
       })
     )
       throw new Error(ADVISORY_WORKFLOWS_REFUSAL);
+    const origin = changes.origin === undefined ? repo.origin : changes.origin;
+    if (
+      changes.advisoryWorkflowsAt !== undefined &&
+      changes.advisoryWorkflowsAt !== origin &&
+      !sameAdvisoryRepository(changes.advisoryWorkflowsAt, origin)
+    )
+      throw new Error(ADVISORY_WORKFLOWS_MOVED_REFUSAL);
     if (
       name !== repo.name &&
       (!/^[\w][\w.-]*$/.test(name) || this.nameTaken(name, undefined, ownFolder))

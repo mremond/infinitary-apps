@@ -1121,6 +1121,8 @@ function ContributorDisclosure({
 /**
  * docs/forge.md, "Advisory workflows". A refused patch reaches this page
  * with no reason a person reads, so the field checks the list before saving.
+ * Each save names the address this page showed: one queued behind a change
+ * of target project is refused rather than saved for the new repository.
  */
 function AdvisoryWorkflows({
   repo,
@@ -1146,7 +1148,7 @@ function AdvisoryWorkflows({
         style={{ display: "flex", gap: "var(--space-2)", paddingBottom: "var(--space-2)" }}
         onSubmit={(event) => {
           event.preventDefault();
-          if (changed) onPatch({ advisoryWorkflows: typed.data });
+          if (changed) onPatch({ advisoryWorkflows: typed.data, advisoryWorkflowsAt: repo.origin });
         }}
       >
         <Input

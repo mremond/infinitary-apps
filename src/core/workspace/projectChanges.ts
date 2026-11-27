@@ -82,6 +82,9 @@ export class ProjectChanges {
     if (action === "project-settings") {
       const patch = value.changes as RepoPolicyPatch;
       if (patch.origin === null && patch.delivery === undefined) patch.delivery = "local-only";
+      // The list is named for the repository read here, however long its card waits.
+      if (patch.advisoryWorkflows !== undefined)
+        patch.advisoryWorkflowsAt ??= (before as RepoView).origin;
       if (
         opensPullRequest(patch.delivery ?? (before as RepoView).delivery) &&
         !(patch.origin === undefined ? (before as RepoView).origin : patch.origin)
@@ -391,6 +394,8 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     offer.action === "project-settings"
       ? { ...(offer.value.changes as Record<string, unknown>) }
       : { runsOn: offer.value.deviceId };
+  // The repository the list was named for binds its save; the card shows no row for it.
+  delete changes.advisoryWorkflowsAt;
   if (offer.action === "project-settings" && changes.origin === null && previous.runsOn)
     changes.runsOn = null;
   if (

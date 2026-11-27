@@ -16,6 +16,7 @@ import { join } from "node:path";
 import { contributorDisclosureLine } from "@shared/contributorDisclosure";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import {
+  ADVISORY_WORKFLOWS_MOVED_REFUSAL,
   ADVISORY_WORKFLOWS_REFUSAL,
   BATCH_HOST_REFUSAL,
   BATCHES_OFF_REFUSAL,
@@ -458,6 +459,37 @@ describe("RepoRegistry's advisory workflows", () => {
       registry.configure(repo.id, {
         origin: "https://github.com/example-studio/meter.git",
         advisoryWorkflows: pilot,
+      }).advisoryWorkflows,
+    ).toEqual(pilot);
+  });
+
+  // A list Settings or the first mate named for one repository, sent after
+  // the project moved to another, as a save queued behind a target change is.
+  it("refuses a list named for a repository the project no longer uses, however that address is spelled", async () => {
+    const { registry } = setup();
+    const { repo } = await registry.setup({ kind: "init", name: "meter" });
+    const pilot = [".github/workflows/early-tests.yml"];
+    const fork = "https://github.com/someone/meter.git";
+    const original = "https://github.com/example-studio/meter.git";
+    registry.configure(repo.id, { origin: fork, delivery: "direct-pr" });
+    registry.configure(repo.id, { origin: original });
+    expect(() =>
+      registry.configure(repo.id, { advisoryWorkflows: pilot, advisoryWorkflowsAt: fork }),
+    ).toThrow(ADVISORY_WORKFLOWS_MOVED_REFUSAL);
+    expect(registry.get(repo.id)?.advisoryWorkflows).toBeUndefined();
+    // One patch moving the project and naming the list for where it was is refused whole.
+    expect(() =>
+      registry.configure(repo.id, {
+        origin: fork,
+        advisoryWorkflows: pilot,
+        advisoryWorkflowsAt: original,
+      }),
+    ).toThrow(ADVISORY_WORKFLOWS_MOVED_REFUSAL);
+    expect(registry.get(repo.id)?.origin).toBe(original);
+    expect(
+      registry.configure(repo.id, {
+        advisoryWorkflows: pilot,
+        advisoryWorkflowsAt: "git@github.com:Example-Studio/meter.git",
       }).advisoryWorkflows,
     ).toEqual(pilot);
   });

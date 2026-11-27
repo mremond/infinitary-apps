@@ -160,6 +160,52 @@ describe("the app's exact-change card", () => {
     expect(advisoryRow(raised[1]?.body)).toBeUndefined();
   });
 
+  // docs/forge.md, "Advisory workflows": a list the first mate names is for
+  // the repository its request read, however long the save waits.
+  it("sends an advisory list with the address the request read, on exact words and on the card's click", async () => {
+    const current: RepoView = { ...WEBSITE };
+    const sent: unknown[] = [];
+    const raised: Omit<Card, "author" | "priority" | "status" | "createdAt">[] = [];
+    const changes = new ProjectChanges({
+      repos: { get: () => current, checkDetails: async () => {} } as unknown as RepoRegistry,
+      devices: () => [],
+      raiseCard: (card) => raised.push(card),
+      tell: () => {},
+    });
+    changes.bindDispatch((async (channel: string, args: unknown[]) => {
+      if (channel === "inf:repos:list") return [current];
+      if (channel === "inf:repos:configure") {
+        sent.push(args[1]);
+        return current;
+      }
+      throw new Error(`No ${channel} here.`);
+    }) as CoreDispatch);
+    const advisoryWorkflows = [".github/workflows/early-tests.yml"];
+    await changes.request(
+      "project-settings",
+      { repoId: WEBSITE.id, changes: { advisoryWorkflows } },
+      {
+        kind: "firstmate",
+        wake: "captain",
+        projectWords: true,
+        evidence: "Make early-tests.yml advisory on website",
+      },
+    );
+    await changes.request(
+      "project-settings",
+      { repoId: WEBSITE.id, changes: { advisoryWorkflows: [] } },
+      { kind: "firstmate", wake: "other" },
+    );
+    expect(raised[0]?.body).not.toContain("advisoryWorkflowsAt");
+    await changes.apply(
+      raised[0]?.actions[0]?.effect?.kind === "host" ? raised[0].actions[0].effect.arg : undefined,
+    );
+    expect(sent).toEqual([
+      { advisoryWorkflows, advisoryWorkflowsAt: WEBSITE.origin },
+      { advisoryWorkflows: [], advisoryWorkflowsAt: WEBSITE.origin },
+    ]);
+  });
+
   it("offers a primary Apply change as the default and a ghost Not now", async () => {
     const raised: Omit<Card, "author" | "priority" | "status" | "createdAt">[] = [];
     const changes = new ProjectChanges({

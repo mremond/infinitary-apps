@@ -5214,6 +5214,17 @@
                   "type": "string",
                   "pattern": "^\\.github\\/workflows\\/[^/\\s]+\\.ya?ml$"
                 }
+              },
+              "advisoryWorkflowsAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "additionalProperties": false
