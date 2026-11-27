@@ -3563,24 +3563,28 @@ export async function startPhoneHome(
       cardHold = undefined;
       releaseBoardHold();
       await new Promise<void>((resolve) => control.close(() => resolve()));
-      await ssh?.stop();
-      await takeOver.stop();
-      await secondHome.stop();
-      unreach();
-      await connection.close();
-      unsubscribe("net.server.socket", countAttempt);
-      for (const socket of stalledSockets) socket.destroy();
-      await new Promise<void>((resolve) => stalledServer.close(() => resolve()));
-      clearTimeout(relayStalled);
-      for (const socket of relaySockets) socket.destroy();
-      await new Promise<void>((resolve) => relayServer.close(() => resolve()));
-      stopConversationReading();
-      google.close();
-      if (options.settings) delete process.env.INFINITARY_QUOTA_FIXTURE_DIR;
-      await core.dispose();
-      await provider.close();
-      await googleStandIn.close();
-      await pushRelay.close();
+      try {
+        await controls?.keyboardClosed?.();
+      } finally {
+        await ssh?.stop();
+        await takeOver.stop();
+        await secondHome.stop();
+        unreach();
+        await connection.close();
+        unsubscribe("net.server.socket", countAttempt);
+        for (const socket of stalledSockets) socket.destroy();
+        await new Promise<void>((resolve) => stalledServer.close(() => resolve()));
+        clearTimeout(relayStalled);
+        for (const socket of relaySockets) socket.destroy();
+        await new Promise<void>((resolve) => relayServer.close(() => resolve()));
+        stopConversationReading();
+        google.close();
+        if (options.settings) delete process.env.INFINITARY_QUOTA_FIXTURE_DIR;
+        await core.dispose();
+        await provider.close();
+        await googleStandIn.close();
+        await pushRelay.close();
+      }
     },
   };
 }

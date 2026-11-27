@@ -12,7 +12,7 @@ import { capturePhoneIdleTimeout, capturePhoneKeyboardTimeout, phoneLaunchOwner,
 import { phoneWebContentStartup } from "../tests/helpers/phoneWebContent.ts";
 import { capturePhoneWebStacks } from "../tests/helpers/phoneWebStacks.ts";
 import { libraryPhotoAdded, photosOpened } from "../tests/helpers/phonePhotos.ts";
-import { changePhoneTextSize, setPhoneHardwareKeyboard, observePhoneKeyboard, type PhoneChord, type PhoneDisplayReport, type PhoneTextSize, phoneApplicationPid, phoneDisplayDeadline, phoneTouchDeadline, withPhoneHardwareKeyboard } from "../tests/helpers/phoneKeyboard.ts";
+import { changePhoneTextSize, joinPhoneHardwareKeyboardWrites, setPhoneHardwareKeyboard, observePhoneKeyboard, type PhoneChord, type PhoneDisplayReport, type PhoneTextSize, phoneApplicationPid, phoneDisplayDeadline, phoneTouchDeadline, withPhoneHardwareKeyboard } from "../tests/helpers/phoneKeyboard.ts";
 import { removeScratchDirs, scratchDir } from "../tests/helpers/scratchDirs.ts";
 import { ciModeRefusal } from "./checks-mode.ts";
 import { openModuleRunner, REPO_ROOT } from "./moduleRunner.ts";
@@ -292,6 +292,10 @@ const recording = {
     const deadline = phoneTouchDeadline();
     const services = await run("xcrun", ["simctl", "spawn", owned, "launchctl", "list"]);
     return observer.caret(phoneApplicationPid(services, phoneBundle), since, deadline);
+  },
+  keyboardClosed: async () => {
+    await withinPhoneDeadline("Simulator keyboard shutdown", 2 * PHONE_COMMAND_BUDGET_MS,
+      joinPhoneHardwareKeyboardWrites(run), async () => "pending commands end with gate cleanup");
   },
   keyboardAttachment: async (attached: boolean) => {
     if (!simulator) throw new Error("No owned simulator keyboard exists");

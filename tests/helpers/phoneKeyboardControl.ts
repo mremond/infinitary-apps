@@ -2,6 +2,7 @@ import type { IncomingMessage } from "node:http";
 import type { PhoneChord, PhoneKeyWitness } from "./phoneKeyboard";
 
 export type PhoneKeyboardControls = {
+  keyboardClosed?(): Promise<void>;
   keyboardBeforeLaunch?(): Promise<{ generation: number }>;
   keyboardAttachment?(attached: boolean): Promise<{ attached: boolean }>;
   keyboardReady?(chord: PhoneChord): Promise<PhoneKeyWitness>;

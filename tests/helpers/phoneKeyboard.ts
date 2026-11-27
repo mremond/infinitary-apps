@@ -919,6 +919,16 @@ export function setPhoneHardwareKeyboard(
   return pending;
 }
 
+export async function joinPhoneHardwareKeyboardWrites(run: KeyboardRun): Promise<void> {
+  const writes = keyboardWrites.get(run);
+  const failures: unknown[] = [];
+  while (writes?.size) {
+    const completed = await Promise.allSettled([...writes.values()]);
+    for (const result of completed) if (result.status === "rejected") failures.push(result.reason);
+  }
+  if (failures.length) throw new AggregateError(failures, "Simulator keyboard cleanup failed");
+}
+
 /**
  * UIKit publishes an app's key commands to backboardd only while a hardware keyboard is attached when
  * its deferred update runs, and XCTest's own keyboard detaches within a millisecond of a key press.
