@@ -446,6 +446,26 @@ export async function startGitHubStub(
     }
   };
 
+  /**
+   * The checks GitHub holds at a version: an open change that carries its
+   * own answers them at its own head, and checks that finished on its
+   * earlier head say nothing of this one, so it starts again from the ones
+   * a change opens with.
+   */
+  const checksAt = (sha: string): StubCheckRun[] => {
+    const own = [...opened.values()].find((pull) => {
+      if (!pull.checks || pull.merged || pull.closed) return false;
+      try {
+        return headOfPull(pull) === sha;
+      } catch {
+        return false;
+      }
+    });
+    if (!own?.checks) return checkRuns;
+    const moved = own.checksHead !== undefined && own.checksHead !== sha;
+    return moved ? (openedChecks ?? checkRuns) : own.checks;
+  };
+
   const pullJson = (pull: StubPull, owner: string, name: string) => ({
     number: pull.number,
     title: pull.title,
@@ -1081,44 +1101,35 @@ export async function startGitHubStub(
           return;
         }
         if (method === "GET" && /^\/commits\/[^/]+\/check-runs$/.test(rest)) {
-          const sha = decodeURIComponent(rest.split("/")[2] ?? "");
-          // A change that carries its own checks answers them at its own head.
-          const own = [...opened.values()].find((pull) => {
-            if (!pull.checks || pull.merged || pull.closed) return false;
-            try {
-              return headOfPull(pull) === sha;
-            } catch {
-              return false;
-            }
-          });
-          // Checks that finished on an earlier head say nothing of this one: its own start again.
-          const moved = own?.checksHead !== undefined && own.checksHead !== sha;
-          const runs = own ? (moved ? (openedChecks ?? checkRuns) : own.checks) : checkRuns;
-          const listed = (runs ?? checkRuns).map(({ run, workflow: _workflow, ...check }) =>
-            run === undefined ? check : { ...check, check_suite: { id: run } },
+          const listed = checksAt(decodeURIComponent(rest.split("/")[2] ?? "")).map(
+            ({ run, workflow: _workflow, ...check }) =>
+              run === undefined ? check : { ...check, check_suite: { id: run } },
           );
           send(200, { total_count: listed.length, check_runs: listed });
           return;
         }
         if (method === "GET" && rest === "/actions/runs") {
+          const sha = url.searchParams.get("head_sha");
+          // The runs at a version are the ones its own checks name, as GitHub keeps both per commit.
+          const atVersion = sha ? checksAt(sha) : checkRuns;
           if (
             priorPullRequestWorkflows &&
             url.searchParams.get("event") === "pull_request" &&
-            checkRuns.length === 0
+            atVersion.length === 0
           ) {
             send(200, { total_count: 1, workflow_runs: [] });
             return;
           }
-          if (url.searchParams.get("head_sha") && checkRuns.length === 0) {
+          if (sha && atVersion.length === 0) {
             send(200, { total_count: 0, workflow_runs: [] });
             return;
           }
           // Pull request workflows' runs, each a check suite, finished once
           // every check run in it has.
-          const numbers = [...new Set(checkRuns.flatMap((check) => check.run ?? []))];
-          const files = [...new Set(checkRuns.flatMap((check) => check.workflow ?? []))];
+          const numbers = [...new Set(atVersion.flatMap((check) => check.run ?? []))];
+          const files = [...new Set(atVersion.flatMap((check) => check.workflow ?? []))];
           const runs = numbers.map((number) => {
-            const workflow = checkRuns.find((check) => check.run === number)?.workflow;
+            const workflow = atVersion.find((check) => check.run === number)?.workflow;
             return {
               id: number,
               run_number: number,
@@ -1129,8 +1140,8 @@ export async function startGitHubStub(
                 : "ci",
               ...(workflow ? { path: workflow } : {}),
               event: "pull_request",
-              head_sha: url.searchParams.get("head_sha"),
-              status: checkRuns.every(
+              head_sha: sha,
+              status: atVersion.every(
                 (check) => check.run !== number || check.status === "completed",
               )
                 ? "completed"

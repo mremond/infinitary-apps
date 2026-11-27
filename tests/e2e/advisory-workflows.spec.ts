@@ -21,7 +21,7 @@ import {
 } from "./scenarios/githubChange";
 import { ownBatch, ownBatchPrompt, ownBatchTask, ownBatchTitle } from "./scenarios/ownBatch";
 import { completionAction, factsStrip, showCard, shownCard } from "./stack";
-import { focusOn, pressKey } from "./windowKeys";
+import { focusOn, pressKey, untilFocused } from "./windowKeys";
 
 const git = (...args: string[]) => execFileSync("git", args, { stdio: "pipe" }).toString().trim();
 
@@ -153,6 +153,10 @@ test("a project names an advisory workflow by keys, and a change merges while th
 
     const facts = factsStrip(cardBody(page, MOCK_GITHUB_CHANGE_CARD_TITLE));
     await expect(facts.checks).toHaveText(CHECK_WORDS.green);
+    // The checks cell's counts, on rest, name the advisory check and its own state.
+    await pressKey(facts.change.locator("a"), "Shift+Tab");
+    await untilFocused(facts.cell("checks"));
+    await expect(facts.rest("checks")).toContainText("1 passed · 1 advisory, running");
     const merge = page.getByRole("button", { name: MERGE_WORDS["merge-pr"], exact: true });
     await expect(merge).toBeVisible();
     await expect(
@@ -190,89 +194,133 @@ test("a project names an advisory workflow by keys, and a change merges while th
 });
 
 /**
+ * The batch pull request's own version, which GitHub checks apart from the
+ * change's: the same two workflows in runs of their own, so only a reading
+ * at the batch's version can tell which of its checks is advisory.
+ */
+const atBatch = (required: string, advisory: string) => [
+  {
+    name: "unit-tests",
+    status: "completed",
+    conclusion: required,
+    run: 11,
+    workflow: ".github/workflows/ci.yml",
+  },
+  { name: "early-tests", status: "completed", conclusion: advisory, run: 12, workflow: ADVISORY },
+];
+
+/**
  * The same goal for a batched project (docs/forge.md, "Batches of your
  * own"): the captain's merge click puts the change in line while its
- * advisory workflow still runs, and the batch pull request merges once its
- * required check passed, with the advisory one still running there too.
- * The batch crewmate is scripted (`scenarios/ownBatch.ts`).
+ * advisory workflow still runs, and the batch pull request's own checks
+ * decide the batch: it merges once its required check passed, with the
+ * advisory one failed there, and holds on a failed required check, with
+ * the advisory one passed. The batch crewmate is scripted
+ * (`scenarios/ownBatch.ts`).
  */
-test("a batched project's change goes in line and its batch merges while the advisory workflow still runs", async () => {
-  test.setTimeout(240_000);
-  const userDataDir = scratchDir("infinitary-advisory-batch-");
-  const { repoDir } = seedRepo(userDataDir);
-  const repoGit = (...args: string[]) => git("-C", repoDir, ...args);
-  const github = await startGitHubStub();
-  github.headOf((branch) => repoGit("rev-parse", `refs/heads/${branch}`));
-  // GitHub's merge moves the project's default branch; the project folder is its own mirror here.
-  github.onPutIn((sha) => {
-    repoGit("merge", "--ff-only", sha);
-  });
-  github.onBranchDelete((branch) => {
-    repoGit("branch", "-D", branch);
-  });
-  github.setChecks(REQUIRED_PASSED_ADVISORY_RUNNING);
-  github.setOpenedChecks(REQUIRED_PASSED_ADVISORY_RUNNING);
-  seedGitHubSignIn(userDataDir);
-  const db = openDatabase(userDataDir);
-  seedProject(db, {
-    id: "repo-meterlab",
-    path: repoDir,
-    name: "meterlab",
-    setupKind: "clone",
-    origin: "https://github.com/o/meterlab.git",
-    runsOn: null,
-    delivery: "queue-pr",
-    rigor: "quick",
-  });
-  seedHostedOrigins(db, userDataDir);
-  db.close();
-  const launched = await launchApp({
-    withMockProvider: true,
-    scenarios: [ownBatch],
-    userDataDir,
-    env: { ...github.env, ...SHORT_TICK },
-  });
-  try {
-    const { page } = launched;
-    // The setting Settings → Projects writes, through the same request.
-    await page.evaluate(
-      (advisory) =>
-        window.infinitary.repos.configure("repo-meterlab", { advisoryWorkflows: [advisory] }),
-      ADVISORY,
-    );
-    expect(savedAdvisory(userDataDir)).toEqual([ADVISORY]);
+for (const batchCase of [
+  {
+    name: "merges once its required check passed, with the advisory one failed",
+    checks: atBatch("success", "failure"),
+    merges: true,
+  },
+  {
+    name: "holds on its failed required check, with the advisory one passed",
+    checks: atBatch("failure", "success"),
+    merges: false,
+  },
+]) {
+  test(`a batched project's change goes in line while the advisory workflow still runs, and its batch ${batchCase.name}`, async () => {
+    test.setTimeout(240_000);
+    const userDataDir = scratchDir("infinitary-advisory-batch-");
+    const { repoDir } = seedRepo(userDataDir);
+    const repoGit = (...args: string[]) => git("-C", repoDir, ...args);
+    const github = await startGitHubStub();
+    github.headOf((branch) => repoGit("rev-parse", `refs/heads/${branch}`));
+    // GitHub's merge moves the project's default branch; the project folder is its own mirror here.
+    github.onPutIn((sha) => {
+      repoGit("merge", "--ff-only", sha);
+    });
+    github.onBranchDelete((branch) => {
+      repoGit("branch", "-D", branch);
+    });
+    github.setChecks(REQUIRED_PASSED_ADVISORY_RUNNING);
+    github.setOpenedChecks(batchCase.checks);
+    seedGitHubSignIn(userDataDir);
+    const db = openDatabase(userDataDir);
+    seedProject(db, {
+      id: "repo-meterlab",
+      path: repoDir,
+      name: "meterlab",
+      setupKind: "clone",
+      origin: "https://github.com/o/meterlab.git",
+      runsOn: null,
+      delivery: "queue-pr",
+      rigor: "quick",
+    });
+    seedHostedOrigins(db, userDataDir);
+    db.close();
+    const launched = await launchApp({
+      withMockProvider: true,
+      scenarios: [ownBatch],
+      userDataDir,
+      env: { ...github.env, ...SHORT_TICK },
+    });
+    try {
+      const { page } = launched;
+      // The setting Settings → Projects writes, through the same request.
+      await page.evaluate(
+        (advisory) =>
+          window.infinitary.repos.configure("repo-meterlab", { advisoryWorkflows: [advisory] }),
+        ADVISORY,
+      );
+      expect(savedAdvisory(userDataDir)).toEqual([ADVISORY]);
 
-    const input = promptInput(page);
-    await input.fill(ownBatchPrompt("meterlab", ["dates"]));
-    await input.press("Enter");
-    const title = ownBatchTitle("dates");
-    await expect
-      .poll(
-        async () => (await page.evaluate(() => window.infinitary.cards.list())).map((c) => c.title),
-        { timeout: 120_000 },
-      )
-      .toContain(title);
-    await showCard(page, title);
-    await expect(
-      page
-        .locator("[data-card-layer]")
-        .getByRole("button", { name: MERGE_WORDS.batch, exact: true }),
-    ).toBeVisible({ timeout: 30_000 });
-    await pressKey(await completionAction(page, title), "Enter");
+      const input = promptInput(page);
+      await input.fill(ownBatchPrompt("meterlab", ["dates"]));
+      await input.press("Enter");
+      const title = ownBatchTitle("dates");
+      await expect
+        .poll(
+          async () =>
+            (await page.evaluate(() => window.infinitary.cards.list())).map((c) => c.title),
+          { timeout: 120_000 },
+        )
+        .toContain(title);
+      await showCard(page, title);
+      await expect(
+        page
+          .locator("[data-card-layer]")
+          .getByRole("button", { name: MERGE_WORDS.batch, exact: true }),
+      ).toBeVisible({ timeout: 30_000 });
+      await pressKey(await completionAction(page, title), "Enter");
 
-    // The change goes in line and its batch of one opens, then merges with
-    // the advisory workflow still running on the batch pull request.
-    await expect.poll(() => github.pulls().length, { timeout: 30_000 }).toBe(1);
-    await expect.poll(() => github.pulls()[0]?.merged, { timeout: 60_000 }).toBe(true);
-    const board = (await page.evaluate(() => window.infinitary.tasks.board())).tasks;
-    const taskId = board.find((task) => task.title === ownBatchTask("meterlab", "dates"))?.id ?? "";
-    await expect
-      .poll(() => page.evaluate((id) => window.infinitary.tasks.detail(id), taskId), {
-        timeout: 30_000,
-      })
-      .toMatchObject({ status: "done", closedReason: "merged" });
-  } finally {
-    await launched.close();
-    await github.close();
-  }
-});
+      // The change goes in line and its batch of one opens.
+      await expect.poll(() => github.pulls().length, { timeout: 30_000 }).toBe(1);
+      if (!batchCase.merges) {
+        const meterlab = async () =>
+          (await page.evaluate(() => window.infinitary.repos.list())).find(
+            (repo) => repo.id === "repo-meterlab",
+          );
+        await expect
+          .poll(async () => (await meterlab())?.batch?.open?.hold, { timeout: 60_000 })
+          .toMatchObject({ reason: "checks", checks: ["unit-tests"] });
+        expect(github.merges()).toEqual([]);
+        expect(github.pulls()[0]?.merged).toBe(false);
+        return;
+      }
+      await expect.poll(() => github.pulls()[0]?.merged, { timeout: 60_000 }).toBe(true);
+      const board = (await page.evaluate(() => window.infinitary.tasks.board())).tasks;
+      const taskId =
+        board.find((task) => task.title === ownBatchTask("meterlab", "dates"))?.id ?? "";
+      await expect
+        .poll(() => page.evaluate((id) => window.infinitary.tasks.detail(id), taskId), {
+          timeout: 30_000,
+        })
+        .toMatchObject({ status: "done", closedReason: "merged" });
+    } finally {
+      await launched.close();
+      await github.close();
+    }
+  });
+}
