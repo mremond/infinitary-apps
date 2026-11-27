@@ -2467,6 +2467,7 @@
 "policySourceParent" = "Übergeordnete Aufgabe";
 "policySourceProject" = "Projekteinstellung";
 "policySourceTask" = "Diese Aufgabe";
+"projectsContributionClearsAdvisory" = "„%1$@“ löscht die unverbindlichen Workflows dieses Projekts, denn sie wurden für sein aktuelles Repository gewählt.";
 "projectsHost" = "der Host des Projekts";
 "projectsMoveAfterNew" = "Ein eigenes Projekt (%1$@)";
 "projectsMoveAfterRevive" = "Wieder ein eigenes Projekt (%1$@)";

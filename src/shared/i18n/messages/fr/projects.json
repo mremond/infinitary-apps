@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "« {choice} » efface les workflows indicatifs de ce projet, choisis pour son dépôt actuel.",
   "projectsHost": "l’hébergeur du projet",
   "projectsMoveAfterNew": "Un projet à part ({key})",
   "projectsMoveAfterRevive": "De nouveau son propre projet ({key})",

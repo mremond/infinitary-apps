@@ -2467,6 +2467,7 @@
 "policySourceParent" = "上層任務";
 "policySourceProject" = "專案設定";
 "policySourceTask" = "這項任務";
+"projectsContributionClearsAdvisory" = "選擇「%1$@」會清除這個專案的參考工作流程，因為它們是為目前的存放庫選的。";
 "projectsHost" = "專案的主機";
 "projectsMoveAfterNew" = "單獨的專案（%1$@）";
 "projectsMoveAfterRevive" = "重新成為單獨的專案（%1$@）";

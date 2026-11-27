@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "「{choice}」を選ぶと、このプロジェクトの参考ワークフローは消去されます。現在のリポジトリ用に選ばれたものだからです。",
   "projectsHost": "プロジェクトのホスト",
   "projectsMoveAfterNew": "単独のプロジェクト（{key}）",
   "projectsMoveAfterRevive": "再び単独のプロジェクト（{key}）",

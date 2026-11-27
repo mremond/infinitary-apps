@@ -2467,6 +2467,7 @@
 "policySourceParent" = "Tâche parente";
 "policySourceProject" = "Réglage du projet";
 "policySourceTask" = "Cette tâche";
+"projectsContributionClearsAdvisory" = "« %1$@ » efface les workflows indicatifs de ce projet, choisis pour son dépôt actuel.";
 "projectsHost" = "l’hébergeur du projet";
 "projectsMoveAfterNew" = "Un projet à part (%1$@)";
 "projectsMoveAfterRevive" = "De nouveau son propre projet (%1$@)";

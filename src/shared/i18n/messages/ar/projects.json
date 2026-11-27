@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "يمسح «{choice}» مساراتِ العمل الاستشارية لهذا المشروع، لأنها اختيرت لمستودعه الحالي.",
   "projectsHost": "مستضيف المشروع",
   "projectsMoveAfterNew": "مشروع مستقل ({key})",
   "projectsMoveAfterRevive": "مشروعه المستقل مجددًا ({key})",

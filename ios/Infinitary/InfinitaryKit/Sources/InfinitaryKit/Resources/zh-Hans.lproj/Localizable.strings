@@ -2467,6 +2467,7 @@
 "policySourceParent" = "上层任务";
 "policySourceProject" = "项目设置";
 "policySourceTask" = "此任务";
+"projectsContributionClearsAdvisory" = "选择“%1$@”会清除这个项目的参考工作流，因为它们是为当前仓库选的。";
 "projectsHost" = "项目的托管平台";
 "projectsMoveAfterNew" = "单独的项目（%1$@）";
 "projectsMoveAfterRevive" = "重新成为单独的项目（%1$@）";

@@ -2467,6 +2467,7 @@
 "policySourceParent" = "Tarefa principal";
 "policySourceProject" = "Ajuste do projeto";
 "policySourceTask" = "Esta tarefa";
+"projectsContributionClearsAdvisory" = "“%1$@” apaga os fluxos de trabalho informativos deste projeto, escolhidos para o repositório atual dele.";
 "projectsHost" = "o host do projeto";
 "projectsMoveAfterNew" = "Um projeto próprio (%1$@)";
 "projectsMoveAfterRevive" = "Seu próprio projeto de novo (%1$@)";

@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "{choice} clears this project's advisory workflows, which were chosen for its current repository.",
   "projectsHost": "the project's host",
   "projectsMoveAfterNew": "A project of its own ({key})",
   "projectsMoveAfterRevive": "Its own project again ({key})",

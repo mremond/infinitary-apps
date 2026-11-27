@@ -2467,6 +2467,7 @@
 "policySourceParent" = "상위 작업";
 "policySourceProject" = "프로젝트 설정";
 "policySourceTask" = "이 작업";
+"projectsContributionClearsAdvisory" = "‘%1$@’을(를) 고르면 이 프로젝트의 참고용 워크플로가 지워져요. 지금 저장소에 맞춰 고른 것이기 때문이에요.";
 "projectsHost" = "프로젝트 호스트";
 "projectsMoveAfterNew" = "별도 프로젝트(%1$@)";
 "projectsMoveAfterRevive" = "다시 별도 프로젝트(%1$@)";

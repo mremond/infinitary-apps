@@ -97,8 +97,6 @@ export const CONTRIBUTION_WORDS = {
   keepFork: "Keep changes in my fork",
   consentTitle: (name: string) => `Make your fork of ${name}?`,
   destinationTitle: (name: string) => `Where should ${name}'s changes go?`,
-  clearsAdvisory: (choice: string) =>
-    `${choice} clears this project's advisory workflows, which were chosen for its current repository.`,
 } as const;
 
 export function contributesUpstream(route: ContributionRoute | null | undefined): boolean {

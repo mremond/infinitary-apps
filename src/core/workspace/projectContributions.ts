@@ -11,6 +11,7 @@ import {
 } from "@shared/contributions";
 import type { FmEvent } from "@shared/events";
 import { forgeOf } from "@shared/forge";
+import * as m from "@shared/i18n/messages.generated";
 import { deliveryForRecord, opensPullRequest, type RepoView } from "@shared/repos";
 import { type Forge, ForgeAllowanceSpent, ForgeError, ForgeWriteError } from "../forge";
 import { escapeCardText } from "../orchestrator/cardText";
@@ -192,7 +193,7 @@ export class ProjectContributions {
         : CONTRIBUTION_WORDS.consentTitle(repo.name),
       meta: FIRSTMATE_CARD_META,
       body: choice
-        ? `<p>${name} is your fork of <span class="inf-mono">${escapeCardText(route.upstream.fullName)}</span>.</p><p>Contribute to the original project, or keep changes in your fork.</p>${clearing.map((label) => `<p>${escapeCardText(CONTRIBUTION_WORDS.clearsAdvisory(label))}</p>`).join("")}<p>You can change Target project in Settings → Projects later.</p>`
+        ? `<p>${name} is your fork of <span class="inf-mono">${escapeCardText(route.upstream.fullName)}</span>.</p><p>Contribute to the original project, or keep changes in your fork.</p>${clearing.map((label) => `<p>${escapeCardText(m.projectsContributionClearsAdvisory({ choice: label }))}</p>`).join("")}<p>You can change Target project in Settings → Projects later.</p>`
         : route.creationAttempted
           ? `<p>The host has not confirmed your fork of ${name} yet.</p><p>Infinitary will read the result before sending anything else. It will not repeat an uncertain request.</p>`
           : `<p>Your sign-in cannot push to ${name}. Making your fork lets Infinitary contribute changes to its maintainers.</p><p>Infinitary asks once for this project, reuses your fork, and leaves merging to the maintainers.</p>`,

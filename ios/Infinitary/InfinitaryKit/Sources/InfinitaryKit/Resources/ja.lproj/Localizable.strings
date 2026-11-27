@@ -2467,6 +2467,7 @@
 "policySourceParent" = "親タスク";
 "policySourceProject" = "プロジェクトの設定";
 "policySourceTask" = "このタスク";
+"projectsContributionClearsAdvisory" = "「%1$@」を選ぶと、このプロジェクトの参考ワークフローは消去されます。現在のリポジトリ用に選ばれたものだからです。";
 "projectsHost" = "プロジェクトのホスト";
 "projectsMoveAfterNew" = "単独のプロジェクト（%1$@）";
 "projectsMoveAfterRevive" = "再び単独のプロジェクト（%1$@）";

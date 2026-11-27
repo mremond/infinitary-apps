@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "選擇「{choice}」會清除這個專案的參考工作流程，因為它們是為目前的存放庫選的。",
   "projectsHost": "專案的主機",
   "projectsMoveAfterNew": "單獨的專案（{key}）",
   "projectsMoveAfterRevive": "重新成為單獨的專案（{key}）",

@@ -1609,6 +1609,7 @@
   {"said":{"m":"policySourceParent"},"words":"Parent task"},
   {"said":{"m":"policySourceProject"},"words":"Project setting"},
   {"said":{"m":"policySourceTask"},"words":"This task"},
+  {"said":{"m":"projectsContributionClearsAdvisory","a":{"choice":"‹choice›"}},"words":"‹choice› clears this project's advisory workflows, which were chosen for its current repository."},
   {"said":{"m":"projectsHost"},"words":"the project's host"},
   {"said":{"m":"projectsMoveAfterNew","a":{"key":"‹key›"}},"words":"A project of its own (‹key›)"},
   {"said":{"m":"projectsMoveAfterRevive","a":{"key":"‹key›"}},"words":"Its own project again (‹key›)"},

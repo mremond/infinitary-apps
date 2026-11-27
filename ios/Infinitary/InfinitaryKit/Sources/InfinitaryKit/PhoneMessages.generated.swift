@@ -2577,6 +2577,7 @@ public enum PhoneMessages {
     public static func `policySourceParent`() -> String { PhoneWords.format("policySourceParent", []) }
     public static func `policySourceProject`() -> String { PhoneWords.format("policySourceProject", []) }
     public static func `policySourceTask`() -> String { PhoneWords.format("policySourceTask", []) }
+    public static func `projectsContributionClearsAdvisory`(`choice`: String) -> String { PhoneWords.format("projectsContributionClearsAdvisory", [`choice`]) }
     public static func `projectsHost`() -> String { PhoneWords.format("projectsHost", []) }
     public static func `projectsMoveAfterNew`(`key`: String) -> String { PhoneWords.format("projectsMoveAfterNew", [`key`]) }
     public static func `projectsMoveAfterRevive`(`key`: String) -> String { PhoneWords.format("projectsMoveAfterRevive", [`key`]) }
@@ -7415,6 +7416,7 @@ extension PhoneWords {
         "policySourceParent": [],
         "policySourceProject": [],
         "policySourceTask": [],
+        "projectsContributionClearsAdvisory": ["choice"],
         "projectsHost": [],
         "projectsMoveAfterNew": ["key"],
         "projectsMoveAfterRevive": ["key"],

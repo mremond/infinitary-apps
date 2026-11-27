@@ -2467,6 +2467,7 @@
 "policySourceParent" = "المهمة الأم";
 "policySourceProject" = "إعداد المشروع";
 "policySourceTask" = "هذه المهمة";
+"projectsContributionClearsAdvisory" = "يمسح «%1$@» مساراتِ العمل الاستشارية لهذا المشروع، لأنها اختيرت لمستودعه الحالي.";
 "projectsHost" = "مستضيف المشروع";
 "projectsMoveAfterNew" = "مشروع مستقل (%1$@)";
 "projectsMoveAfterRevive" = "مشروعه المستقل مجددًا (%1$@)";

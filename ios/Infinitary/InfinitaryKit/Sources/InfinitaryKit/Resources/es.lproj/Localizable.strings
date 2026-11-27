@@ -2467,6 +2467,7 @@
 "policySourceParent" = "Tarea principal";
 "policySourceProject" = "Ajuste del proyecto";
 "policySourceTask" = "Esta tarea";
+"projectsContributionClearsAdvisory" = "«%1$@» borra los flujos de trabajo orientativos de este proyecto, que se eligieron para su repositorio actual.";
 "projectsHost" = "el sitio que aloja el proyecto";
 "projectsMoveAfterNew" = "Un proyecto propio (%1$@)";
 "projectsMoveAfterRevive" = "De nuevo su propio proyecto (%1$@)";

@@ -10,6 +10,7 @@ import {
   waitingForMaintainers,
 } from "@shared/contributions";
 import type { FmEvent } from "@shared/events";
+import * as m from "@shared/i18n/messages.generated";
 import { PULL_REQUEST_COMMENTS_WAKE } from "@shared/pullComments";
 import type { RepoView } from "@shared/repos";
 import { MERGE_WORDS } from "@shared/vocabulary";
@@ -1062,10 +1063,10 @@ describe("approved once-per-project contribution consent", () => {
     const service = world.make();
     await service.discover(world.repo.id);
     expect(world.offer().body).toContain(
-      CONTRIBUTION_WORDS.clearsAdvisory(CONTRIBUTION_WORDS.contribute),
+      m.projectsContributionClearsAdvisory({ choice: CONTRIBUTION_WORDS.contribute }),
     );
     expect(world.offer().body).not.toContain(
-      CONTRIBUTION_WORDS.clearsAdvisory(CONTRIBUTION_WORDS.keepFork),
+      m.projectsContributionClearsAdvisory({ choice: CONTRIBUTION_WORDS.keepFork }),
     );
     await service.answer(world.choose(world.offer(), "contribute-upstream"));
     expect(world.repos.get(world.repo.id)?.origin).toBe(world.upstream.origin);

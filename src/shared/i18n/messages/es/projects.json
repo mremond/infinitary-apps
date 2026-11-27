@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "«{choice}» borra los flujos de trabajo orientativos de este proyecto, que se eligieron para su repositorio actual.",
   "projectsHost": "el sitio que aloja el proyecto",
   "projectsMoveAfterNew": "Un proyecto propio ({key})",
   "projectsMoveAfterRevive": "De nuevo su propio proyecto ({key})",

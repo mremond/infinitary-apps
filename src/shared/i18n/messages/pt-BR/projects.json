@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "“{choice}” apaga os fluxos de trabalho informativos deste projeto, escolhidos para o repositório atual dele.",
   "projectsHost": "o host do projeto",
   "projectsMoveAfterNew": "Um projeto próprio ({key})",
   "projectsMoveAfterRevive": "Seu próprio projeto de novo ({key})",

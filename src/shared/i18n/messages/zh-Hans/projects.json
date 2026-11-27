@@ -1,4 +1,5 @@
 {
+  "projectsContributionClearsAdvisory": "选择“{choice}”会清除这个项目的参考工作流，因为它们是为当前仓库选的。",
   "projectsHost": "项目的托管平台",
   "projectsMoveAfterNew": "单独的项目（{key}）",
   "projectsMoveAfterRevive": "重新成为单独的项目（{key}）",

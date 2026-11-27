@@ -2467,6 +2467,7 @@
 "policySourceParent" = "Parent task";
 "policySourceProject" = "Project setting";
 "policySourceTask" = "This task";
+"projectsContributionClearsAdvisory" = "%1$@ clears this project's advisory workflows, which were chosen for its current repository.";
 "projectsHost" = "the project's host";
 "projectsMoveAfterNew" = "A project of its own (%1$@)";
 "projectsMoveAfterRevive" = "Its own project again (%1$@)";
