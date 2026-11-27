@@ -1,0 +1,9 @@
+{
+  "entries": [],
+  "exclusions": [
+    {
+      "id": "phone-keyboard-diagnostics",
+      "reason": "Adds diagnostic records to disposable native keyboard checks without changing the app, key routing, readiness or delivery behavior."
+    }
+  ]
+}

@@ -206,6 +206,16 @@ export const loadClock: LoadClock | undefined = (() => {
   return scope[CLOCK];
 })();
 
+export function budgetReading(milliseconds: number) {
+  const clock = scope[CLOCK];
+  return {
+    clock: clock ? "load" : "wall",
+    nowMs: clock?.now() ?? performance.now(),
+    budgetMs: milliseconds,
+    wallCapMs: clock ? waitCap(milliseconds) : milliseconds,
+  };
+}
+
 /**
  * A test's own failure timer, never a stimulus, a poll interval or a product
  * deadline: it fires after `milliseconds` of load time on an ordinary journey

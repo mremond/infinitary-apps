@@ -1343,6 +1343,13 @@ Closing the test home joins queued keyboard writes before removing its data or e
 The part bounds that join by the existing attachment and detachment command budgets; a deadline or failed write fails cleanup and still runs the remaining teardown.
 A recorded XCTest failure stops its phase before registration or delivery; its original reason takes precedence over a subsequent generic exception.
 Each phase checkpoints issues before it runs; a prior issue reports that no chord was sent, and only an attempted send can report unknown delivery.
+Keyboard diagnostics record each phase's monotonic elapsed time, cancellation state and typed underlying error chain without replacing the original error.
+The disposable home's keyboard requests share a diagnostic ID with the native caller; their records distinguish request abortion, response closure and eventual owner completion or failure.
+The native transport records which task-group child completed first, cancellation of the remaining child, and the deadline's existing counted time, processor share, nominal budget and wall cap; cancellation of a losing deadline child is not itself proof of external cancellation.
+The registration owner records the requested process/chord, observed registration identities and existing load-clock readings at acknowledgement, timeout or observer failure, without changing its deadline.
+After a Duo key's keyboard bracket has detached, a read-only process query retains OS accounting names for the app and the actual event destinations, alongside the event's focus display and token; unavailable identity reads stay explicit and never replace the press's result.
+Accounting names may be truncated by the OS and are labeled as such, never inferred into a fuller identity.
+These diagnostics retain no request URLs, bodies, authentication headers, full process paths or error descriptions.
 The fresh wait observes pending work after a page push; it is not an explicit UI-commit API, and never replaces the registration witness.
 The UI-test target's Objective-C bridge checks both private method signatures before calling them and converts exceptions from the wait or `typeKey` into contextual test failures.
 A snapshot failure leaves key delivery unknown and never authorizes another key; the keyboard tool tests exercise the bridge with the recorded alert-snapshot error reason.

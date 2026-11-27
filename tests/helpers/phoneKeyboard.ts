@@ -6,7 +6,8 @@ import { pipeline } from "node:stream/promises";
 import { createGzip } from "node:zlib";
 import { keepPhoneDiagnostic } from "../../scripts/phone-checks.ts";
 
-import { budgetTimer, waitCap } from "./budgets.ts";
+import { budgetReading, budgetTimer, waitCap } from "./budgets.ts";
+import { phoneKeyboardDiagnostic, phoneKeyboardError } from "./phoneKeyboardDiagnostics.ts";
 import { logTime } from "./phonePhotos.ts";
 
 export type PhoneChord = { key: string; modifiers: string[] };
@@ -74,6 +75,20 @@ export class PhoneKeyRegistrations {
   }
 
   wait(pid: number, chord: PhoneChord): Promise<PhoneKeyWitness> {
+    const budget = 30_000;
+    const diagnostic = phoneKeyboardDiagnostic("registration-witness");
+    const snapshot = () => ({
+      pid,
+      ...chord,
+      deadline: budgetReading(budget),
+      registrations: [...this.registrations.values()].map((entry) => ({
+        pid: entry.pid,
+        token: entry.token,
+        timestamp: entry.timestamp,
+        matchesChord: entry.keys.has(signature(chord)),
+      })),
+    });
+    diagnostic("start", snapshot());
     return new Promise((resolve, reject) => {
       const finish = () => {
         deadline.cancel();
@@ -82,6 +97,10 @@ export class PhoneKeyRegistrations {
       const check = () => {
         if (this.failure) {
           finish();
+          diagnostic("observer-failed", {
+            ...snapshot(),
+            errors: phoneKeyboardError(this.failure),
+          });
           reject(this.failure);
           return;
         }
@@ -90,14 +109,16 @@ export class PhoneKeyRegistrations {
         );
         if (registration) {
           finish();
+          diagnostic("acknowledged", snapshot());
           resolve({ pid, token: registration.token, timestamp: registration.timestamp, ...chord });
         }
       };
       // A failure deadline, not a delay before sending: only an observed acknowledgement resolves.
       const deadline = budgetTimer(() => {
         finish();
+        diagnostic("deadline-expired", snapshot());
         reject(new Error(`No backboard registration for app ${pid}, ${signature(chord)}`));
-      }, 30_000);
+      }, budget);
       this.listeners.add(check);
       check();
     });

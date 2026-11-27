@@ -1,5 +1,6 @@
-import type { IncomingMessage } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import type { PhoneChord, PhoneKeyWitness } from "./phoneKeyboard";
+import { phoneKeyboardDiagnostic, phoneKeyboardError } from "./phoneKeyboardDiagnostics";
 
 export type PhoneKeyboardControls = {
   keyboardClosed?(): Promise<void>;
@@ -9,6 +10,44 @@ export type PhoneKeyboardControls = {
 };
 
 export async function phoneKeyboardControl(
+  command: string | undefined,
+  request: IncomingMessage,
+  controls: PhoneKeyboardControls | undefined,
+  response: ServerResponse,
+): Promise<{ check: string; result: unknown }> {
+  const header = request.headers["x-phone-keyboard-diagnostic-id"];
+  const diagnostic = phoneKeyboardDiagnostic(
+    command ?? "unknown",
+    typeof header === "string" ? header : undefined,
+  );
+  const aborted = () => diagnostic("request-aborted");
+  const finished = () => diagnostic("response-finished", { status: response.statusCode });
+  const closed = () => {
+    diagnostic("response-closed", {
+      finished: response.writableFinished,
+      requestComplete: request.complete,
+    });
+    request.off("aborted", aborted);
+    response.off("finish", finished);
+  };
+  request.once("aborted", aborted);
+  response.once("finish", finished);
+  response.once("close", closed);
+  diagnostic("request-start");
+  try {
+    const result = await executePhoneKeyboardControl(command, request, controls);
+    diagnostic("owner-completed", { responseClosed: response.destroyed });
+    return result;
+  } catch (error) {
+    diagnostic("owner-failed", {
+      responseClosed: response.destroyed,
+      errors: phoneKeyboardError(error),
+    });
+    throw error;
+  }
+}
+
+async function executePhoneKeyboardControl(
   command: string | undefined,
   request: IncomingMessage,
   controls?: PhoneKeyboardControls,

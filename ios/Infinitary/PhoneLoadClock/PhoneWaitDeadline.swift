@@ -28,6 +28,12 @@ struct PhoneWaitDeadline {
         last = now
     }
 
+    func diagnosticReading() -> [String: Any] {
+        ["budgetSeconds": budget, "graded": graded, "countedSeconds": counted,
+         "elapsedSeconds": ProcessInfo.processInfo.systemUptime - started,
+         "processorShare": share, "wallCapSeconds": graded ? budget : phoneRequestBudget(budget)]
+    }
+
     mutating func expired(now: TimeInterval = ProcessInfo.processInfo.systemUptime,
                           load: Double = phoneLoad(), processors: Int = ProcessInfo.processInfo.activeProcessorCount) -> Bool {
         counted += min(max(0, now - last), 2 * Self.tick) * share

@@ -121,14 +121,22 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 @MainActor func phoneKeyPhase(
     _ phase: String, key: String?, failures: PhoneFailures = .shared, _ action: () -> String?
 ) throws {
-    let checkpoint = failures.count
-    try phoneKeyPriorFailure(failures, checkpoint: checkpoint)
-    let exception = action()
-    if let failure = failures.failure(since: checkpoint) ?? exception {
-        let message = key.map {
-            "XCTest could not complete key \($0.debugDescription): \(failure). Delivery is unknown; no retry was made."
-        } ?? "The requested chord was not sent: \(phase) failed: \(failure)"
-        throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey: message])
+    let diagnostic = PhoneKeyboardDiagnostic(phase: phase)
+    diagnostic.record("phase-start", ["issueCount": failures.count])
+    do {
+        let checkpoint = failures.count
+        try phoneKeyPriorFailure(failures, checkpoint: checkpoint)
+        let exception = action()
+        if let failure = failures.failure(since: checkpoint) ?? exception {
+            let message = key.map {
+                "XCTest could not complete key \($0.debugDescription): \(failure). Delivery is unknown; no retry was made."
+            } ?? "The requested chord was not sent: \(phase) failed: \(failure)"
+            throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey: message])
+        }
+        diagnostic.record("phase-completed", ["issueCount": failures.count])
+    } catch {
+        diagnostic.record("phase-failed", ["issueCount": failures.count], error: error)
+        throw error
     }
 }
 
@@ -143,17 +151,28 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     _ phase: String, failures: PhoneFailures, cleanup: Bool = false,
     _ action: @MainActor () async throws -> Void
 ) async throws {
-    let checkpoint = failures.count
-    // Cleanup still runs after a prior failure; its checkpoint prevents relabeling that failure as detachment.
-    if !cleanup { try phoneKeyPriorFailure(failures, checkpoint: checkpoint) }
-    let result: Result<Void, Error>
-    do { try await action(); result = .success(()) }
-    catch { result = .failure(error) }
-    if let failure = failures.failure(since: checkpoint) {
-        throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey:
-            "The requested chord was not sent: \(phase) failed: \(failure)"])
+    let diagnostic = PhoneKeyboardDiagnostic(phase: phase)
+    diagnostic.record("phase-start", ["issueCount": failures.count, "cleanup": cleanup])
+    do {
+        let checkpoint = failures.count
+        // Cleanup still runs after a prior failure; its checkpoint prevents relabeling that failure as detachment.
+        if !cleanup { try phoneKeyPriorFailure(failures, checkpoint: checkpoint) }
+        let result: Result<Void, Error>
+        do { try await action(); result = .success(()) }
+        catch {
+            diagnostic.record("action-failed", error: error)
+            result = .failure(error)
+        }
+        if let failure = failures.failure(since: checkpoint) {
+            throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey:
+                "The requested chord was not sent: \(phase) failed: \(failure)"])
+        }
+        try result.get()
+        diagnostic.record("phase-completed", ["issueCount": failures.count])
+    } catch {
+        diagnostic.record("phase-failed", ["issueCount": failures.count], error: error)
+        throw error
     }
-    try result.get()
 }
 
 /// INF-6074: on a starved simulator the system's keyboard can take back the caret a key put in a text field. The

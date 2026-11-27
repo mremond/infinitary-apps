@@ -757,7 +757,7 @@ export async function startPhoneHome(
         case "POST keyboard-attach":
         case "POST keyboard-detach":
         case "POST keyboard-ready": {
-          const observation = await phoneKeyboardControl(command, request, controls);
+          const observation = await phoneKeyboardControl(command, request, controls, response);
           result = observation.result;
           observations.push(observation);
           break;

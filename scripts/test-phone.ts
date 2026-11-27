@@ -14,6 +14,7 @@ import { capturePhoneWebStacks } from "../tests/helpers/phoneWebStacks.ts";
 import { libraryPhotoAdded, photosOpened } from "../tests/helpers/phonePhotos.ts";
 import { changePhoneTextSize, joinPhoneHardwareKeyboardWrites, setPhoneHardwareKeyboard, observePhoneKeyboard, type PhoneChord, type PhoneDisplayReport, type PhoneTextSize, phoneApplicationPid, phoneDisplayDeadline, phoneTouchDeadline, withPhoneHardwareKeyboard } from "../tests/helpers/phoneKeyboard.ts";
 import { removeScratchDirs, scratchDir } from "../tests/helpers/scratchDirs.ts";
+import { keepPhoneKeyRoutingDiagnostics } from "../tests/helpers/phoneKeyboardDiagnostics.ts";
 import { ciModeRefusal } from "./checks-mode.ts";
 import { openModuleRunner, REPO_ROOT } from "./moduleRunner.ts";
 import { takeHeavyRunPlace } from "./heavy-run-place.ts";
@@ -348,6 +349,9 @@ const recording = {
       const pid = phoneApplicationPid(services, phoneBundle);
       const pressed = await withPhoneHardwareKeyboard(run, owned, () => pressPhoneKey({ run, simulator: owned,
         helper: values["hinge-helper"]!, key, outcome: (since, until, deadline) => observer.keyOutcome(pid, since, until, deadline) }));
+      // Bound the diagnostic query without extending the caller's existing control timeout.
+      await keepPhoneKeyRoutingDiagnostics(
+        (command, args) => run(command, args, false, undefined, undefined, {}, 5_000), pid, pressed.proof);
       return { key, ...pressed };
     },
   } : {}),

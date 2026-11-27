@@ -2,6 +2,41 @@ import XCTest
 
 // The load clock, `PhoneWaitDeadline`, lives in PhoneLoadClock/, shared with the app-hosted tests.
 
+struct PhoneKeyboardDiagnostic: Sendable {
+    let id = UUID().uuidString
+    let phase: String
+    private let started = ProcessInfo.processInfo.systemUptime
+
+    init(phase: String) { self.phase = phase }
+
+    func record(_ event: String, _ fields: [String: Any] = [:], error: Error? = nil) {
+        var values = fields
+        values["id"] = id
+        values["phase"] = phase
+        values["event"] = event
+        values["uptimeSeconds"] = ProcessInfo.processInfo.systemUptime
+        values["elapsedSeconds"] = ProcessInfo.processInfo.systemUptime - started
+        values["cancelled"] = Task.isCancelled
+        if let error {
+            // Underlying transport descriptions can contain pairing URLs; preserve only typed error identity.
+            var chain: [[String: Any]] = []
+            var current: Error? = error
+            while let item = current, chain.count < 8 {
+                let native = item as NSError
+                chain.append(["type": String(reflecting: type(of: item)), "domain": native.domain, "code": native.code])
+                current = native.userInfo[NSUnderlyingErrorKey] as? Error
+            }
+            values["errors"] = chain
+        }
+        if let data = try? JSONSerialization.data(withJSONObject: values, options: .sortedKeys),
+           let line = String(data: data, encoding: .utf8) {
+            print("Phone keyboard diagnostic: \(line)")
+        } else {
+            print("Phone keyboard diagnostic serialization failed")
+        }
+    }
+}
+
 /// Test-control requests go only to the disposable home, never the app's transport.
 /// Race one request (never a retry) against the same load deadline as native observations.
 /// URLSession cancellation joins the request before the caller resumes.
@@ -12,18 +47,55 @@ enum phoneTestSession {
         var request = original
         let budget = request.timeoutInterval
         if !gradesBudgets { request.timeoutInterval = phoneRequestBudget(budget) }
+        let command = original.url?.lastPathComponent ?? ""
+        let diagnostic = ["keyboard-before-launch", "keyboard-attach", "keyboard-ready", "keyboard-detach"].contains(command)
+            ? PhoneKeyboardDiagnostic(phase: command) : nil
+        if let diagnostic { request.setValue(diagnostic.id, forHTTPHeaderField: "X-Phone-Keyboard-Diagnostic-ID") }
         let prepared = request
-        return try await withThrowingTaskGroup(of: (Data, URLResponse).self) { group in
-            group.addTask { try await session.data(for: prepared) }
-            group.addTask {
-                var deadline = PhoneWaitDeadline(budget)
-                while !deadline.expired() {
-                    try await Task.sleep(for: .seconds(PhoneWaitDeadline.tick))
+        diagnostic?.record("request-start", ["budgetSeconds": budget, "transportTimeoutSeconds": prepared.timeoutInterval])
+        do {
+            let result = try await withThrowingTaskGroup(of: (Data, URLResponse).self) { group in
+                group.addTask {
+                    do {
+                        let result = try await session.data(for: prepared)
+                        diagnostic?.record("transport-completed", ["status": (result.1 as? HTTPURLResponse)?.statusCode ?? 0])
+                        return result
+                    } catch {
+                        diagnostic?.record("transport-failed", error: error)
+                        throw error
+                    }
                 }
-                throw URLError(.timedOut)
+                group.addTask {
+                    var deadline = PhoneWaitDeadline(budget)
+                    do {
+                        while !deadline.expired() {
+                            try await Task.sleep(for: .seconds(PhoneWaitDeadline.tick))
+                        }
+                        diagnostic?.record("deadline-expired", deadline.diagnosticReading())
+                        throw URLError(.timedOut)
+                    } catch {
+                        diagnostic?.record("deadline-task-failed", deadline.diagnosticReading(), error: error)
+                        throw error
+                    }
+                }
+                defer {
+                    diagnostic?.record("group-cancelling-remaining-children")
+                    group.cancelAll()
+                }
+                do {
+                    let first = try await group.next()!
+                    diagnostic?.record("group-selected-response")
+                    return first
+                } catch {
+                    diagnostic?.record("group-selected-error", error: error)
+                    throw error
+                }
             }
-            defer { group.cancelAll() }
-            return try await group.next()!
+            diagnostic?.record("request-completed")
+            return result
+        } catch {
+            diagnostic?.record("request-failed", error: error)
+            throw error
         }
     }
 }
