@@ -1,8 +1,10 @@
-import { rmSync } from "node:fs";
+import { rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { ADVISORY_WORKFLOWS_RESET_REFUSAL } from "@shared/repos";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { fakeHost } from "../../tests/helpers/bootedCore";
 import { scratchDir } from "../../tests/helpers/scratchDirs";
+import { configureSettingsPath, resetLoginPathForTests } from "./hostEnv";
 import { type Core, startCore } from "./index";
 import { catalogRefreshesSettled } from "./pi/modelRuntime";
 import { git } from "./workspace/git";
@@ -18,7 +20,18 @@ describe("a project's address and target project, saved through the configure re
   let core: Core;
 
   beforeAll(async () => {
+    // Real local Git only: no shell's startup files, and no Git settings or
+    // credential tools of the person running the test.
+    const home = scratchDir("infinitary-core-address-home-");
+    const gitConfig = join(home, "gitconfig");
+    writeFileSync(gitConfig, "");
+    vi.stubEnv("HOME", home);
+    vi.stubEnv("CFFIXED_USER_HOME", home);
+    vi.stubEnv("XDG_CONFIG_HOME", join(home, ".config"));
+    vi.stubEnv("GIT_CONFIG_GLOBAL", gitConfig);
+    vi.stubEnv("GIT_CONFIG_NOSYSTEM", "1");
     vi.stubEnv("PI_OFFLINE", "1");
+    configureSettingsPath([]);
     userDataDir = scratchDir("infinitary-core-address-");
     core = await startCore(fakeHost(userDataDir).host);
   }, 60_000);
@@ -30,6 +43,7 @@ describe("a project's address and target project, saved through the configure re
     await catalogRefreshesSettled();
     rmSync(userDataDir, { recursive: true, force: true });
     vi.unstubAllEnvs();
+    resetLoginPathForTests();
   });
 
   // docs/forge.md, "Advisory workflows": a window older than the list sends
