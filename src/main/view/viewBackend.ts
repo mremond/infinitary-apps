@@ -60,6 +60,7 @@ import { skippedAnswersFor } from "./cardAnswerSkipped";
 import { noteWordsUnheard, pressInputFor } from "./cardPressInput";
 import { MacApprover, type MacApproverHost } from "./macApprover";
 import { namedCards, namedHere, namedHereError } from "./namedHere";
+import { shownResetFor } from "./projectMoveReset";
 import { projectsListedFrom } from "./projectsListed";
 import { ViewLook } from "./viewLook";
 import { ViewNotices } from "./viewNotices";
@@ -669,7 +670,7 @@ export class ViewBackend {
         ) as InvokeResponse<C>;
       const args = skippedAnswersFor(
         channel,
-        pressInputFor(channel, rawArgs, homeChanges),
+        pressInputFor(channel, shownResetFor(channel, rawArgs, homeChanges), homeChanges),
         homeChanges,
       );
       return namedHere(channel, await this.link.invoke(channel, args), name) as InvokeResponse<C>;

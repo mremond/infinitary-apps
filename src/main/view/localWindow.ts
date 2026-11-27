@@ -12,6 +12,7 @@ import type { CoreInvokeChannel, InvokeResponse, PushChannel } from "@shared/ipc
 import { answerKeyReminders, answerWindowAsk, type WindowKeyReminders } from "@shared/windowAnswer";
 import { WINDOW_ASK_LIVE, WINDOW_ASK_WORDS, WINDOW_ONLY_CHANNELS } from "@shared/windowAsks";
 import { BrowserWatches, isBrowserWatchChannel } from "./browserWatches";
+import { shownResetFor } from "./projectMoveReset";
 
 /**
  * The window on the first mate's own computer as a view of it
@@ -199,7 +200,8 @@ export class LocalWindow {
     if (viewer && isBrowserWatchChannel(channel))
       return (await this.browsers.view(channel, rawArgs, viewer)) as InvokeResponse<C>;
     // The window's preload reads the answer against the contract, as before.
-    return (await this.link.invoke(channel, rawArgs)) as InvokeResponse<C>;
+    const args = shownResetFor(channel, rawArgs, this.link.state().homeChanges);
+    return (await this.link.invoke(channel, args)) as InvokeResponse<C>;
   }
 
   close(): void {

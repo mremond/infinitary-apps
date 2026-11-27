@@ -12,6 +12,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import type { WebSocket } from "ws";
 import { home } from "../../../tests/helpers/connectionHome";
 import { scratchDir } from "../../../tests/helpers/scratchDirs";
+import { PROJECT_ADVISORY_WORKFLOWS } from "./projectMoveReset";
 import { ViewBackend } from "./viewBackend";
 
 const views: ViewBackend[] = [];
@@ -522,6 +523,41 @@ it("lists a host's projects through the older request only on a home without the
     "401",
   );
   expect(invoke.mock.calls).toEqual([["inf:forges:projects-listed", ["bitbucket.org"]]]);
+});
+
+// docs/forge.md, "Advisory workflows": Settings' address save and target
+// project choice carry the advisory reset they showed, which a home that does
+// not read it refuses with the whole save, while it keeps no list to clear.
+it("sends a project move's shown advisory reset only to a home that reads it", async () => {
+  let changes: HomeLinkState["homeChanges"] = null;
+  const invoke = vi.fn(async () => ({}));
+  const view = pressView("view-shown-reset-", () => changes, invoke);
+  const address = {
+    origin: "https://github.com/examples/project-next.git",
+    advisoryWorkflowsCleared: [".github/workflows/early-tests.yml"],
+  };
+  const target = { contributionDestination: "fork", advisoryWorkflowsCleared: [] };
+  const send = async () => {
+    invoke.mockClear();
+    await view.dispatch("inf:repos:configure", ["project-1", address] as never);
+    await view.dispatch("inf:repos:configure", ["project-1", target] as never);
+    return invoke.mock.calls;
+  };
+  for (const older of [
+    null,
+    CONTRACT_CHANGES.names.filter((name) => name !== PROJECT_ADVISORY_WORKFLOWS),
+  ]) {
+    changes = older;
+    expect(await send()).toEqual([
+      ["inf:repos:configure", ["project-1", { origin: address.origin }]],
+      ["inf:repos:configure", ["project-1", { contributionDestination: "fork" }]],
+    ]);
+  }
+  changes = [...CONTRACT_CHANGES.names];
+  expect(await send()).toEqual([
+    ["inf:repos:configure", ["project-1", address]],
+    ["inf:repos:configure", ["project-1", target]],
+  ]);
 });
 
 // INF-4207 piece 2: a window says it is catching up while a replay's missed pushes arrive, and live after.

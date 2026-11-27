@@ -9,7 +9,6 @@ import { useCutWords } from "../design/core/overflowTitle";
 import { isView } from "../devices/viewWords";
 import { AddProject } from "./AddProject";
 import { FOLDER_THERE_WORDS } from "./addProjectWords";
-import { configureProject } from "./configureProject";
 import { ProjectPage, type ProjectPageActions } from "./ProjectPage";
 import { type GroupProject, type ProjectEntry, projectEntries } from "./projectGroups";
 import {
@@ -184,7 +183,9 @@ export function ProjectsTab() {
       for (const timer of timers.current.values()) clearTimeout(timer);
       timers.current.clear();
       // Tab switch unmounts this section: flush pending patches so they land.
-      void drainPendingPolicy(pending.current, configureProject);
+      void drainPendingPolicy(pending.current, (id, changes) =>
+        window.infinitary.repos.configure(id, changes),
+      );
     };
   }, []);
 
@@ -196,7 +197,7 @@ export function ProjectsTab() {
     pending.current.delete(id);
     writing.current.add(id);
     void drainPendingPolicy(slice, (repoId, patch) =>
-      configureProject(repoId, patch).then(
+      window.infinitary.repos.configure(repoId, patch).then(
         (updated) => {
           setRepos((current) => current.map((repo) => (repo.id === updated.id ? updated : repo)));
           return updated;

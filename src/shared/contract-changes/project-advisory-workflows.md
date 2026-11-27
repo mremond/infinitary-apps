@@ -9,6 +9,6 @@ A patch's `contributionDestination` is the exception, since the home applies it 
 A change of address or target project that would clear another list than its `advisoryWorkflowsCleared` names changes nothing and is refused with its own reason; one that names none showed none, as a view without the change sends it.
 A check item in a task's or a change's check reading gains an optional `advisory`: the state the host reported for a check from one of those workflows, whose own `state` then reads `neutral`.
 A home without the change sends no `advisoryWorkflows`, so a view shows none, and every check holds as before.
-A view sends `advisoryWorkflowsCleared` only to a home that lists the change, so its change of address or target project reaches an older home as before.
+A view, the window beside a command included, sends `advisoryWorkflowsCleared` only to a home that lists the change, so its change of address or target project reaches an older home as before.
 A home without the change reads the patch strictly, so it refuses a view's `advisoryWorkflows` or `advisoryWorkflowsAt` with its reason and changes nothing.
 A view without the change ignores `advisoryWorkflows` and `advisory`, so it shows an advisory check as neutral.
