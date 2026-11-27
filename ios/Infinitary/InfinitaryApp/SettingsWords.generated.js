@@ -19468,19 +19468,15 @@ ${events}` : prompt;
     get disclosureLine() {
       return settingsProjectsDisclosureLine();
     },
-    /** The Advisory workflows row's name (docs/forge.md, "Advisory workflows"). */
     get advisoryTitle() {
       return settingsProjectsAdvisoryTitle();
     },
-    /** What the Advisory workflows row says under its name. */
     get advisory() {
       return settingsProjectsAdvisoryDescription();
     },
-    /** The name of the field holding the project's advisory workflow files. */
     get advisoryLabel() {
       return settingsProjectsAdvisoryLabel();
     },
-    /** Under the field when what it holds names no workflow file the project can run. */
     get advisoryInvalid() {
       return settingsProjectsAdvisoryInvalid();
     },
