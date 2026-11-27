@@ -572,7 +572,12 @@ export function tagGroupsOf(
  */
 export function tagGroupBarOf(group: TagGroup): PartSegment[] {
   return group.rows.map(({ task, group: home }) => ({
-    state: home === "waiting" ? "waiting" : home === "working" && nowCountGroupOf(task, home) === "working" ? "working" : "rest",
+    state:
+      home === "waiting"
+        ? "waiting"
+        : home === "working" && nowCountGroupOf(task, home) === "working"
+          ? "working"
+          : "rest",
     id: task.id,
   }));
 }
