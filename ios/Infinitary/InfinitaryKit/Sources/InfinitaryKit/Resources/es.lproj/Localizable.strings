@@ -1917,7 +1917,6 @@
 "phoneCardsTakePhoto" = "Tomar foto";
 "phoneCardsTaskKeyHint" = "Abre su registro";
 "phoneCharacterFirstMate" = "Tu primer oficial";
-"phoneChecksAdvisory" = "orientativo, %1$@";
 "phoneChecksAfterDuration" = "%2$@ tras %1$@";
 "phoneChecksAllowedToFail" = "fallo permitido";
 "phoneChecksCancelled" = "canceladas";
@@ -2498,6 +2497,17 @@
 "recordCareDefault" = "Predeterminado";
 "recordCareQuick" = "Rápido";
 "recordCheckAdvisory" = "orientativo, %1$@";
+"recordCheckStateCancelled" = "canceladas";
+"recordCheckStateDidNotStart" = "no se inició";
+"recordCheckStateError" = "error";
+"recordCheckStateFailed" = "fallidas";
+"recordCheckStateNeedsDecision" = "necesita una decisión";
+"recordCheckStateNeutral" = "neutras";
+"recordCheckStateOutOfDate" = "desactualizada";
+"recordCheckStatePassed" = "superadas";
+"recordCheckStateRunning" = "en curso";
+"recordCheckStateSkipped" = "omitidas";
+"recordCheckStateTimedOut" = "tiempo agotado";
 "recordComparedComputers" = "Computadoras comparadas al inicio";
 "recordContinue" = "Continuar";
 "recordCrewmateOnModel" = "%1$@ con %2$@";

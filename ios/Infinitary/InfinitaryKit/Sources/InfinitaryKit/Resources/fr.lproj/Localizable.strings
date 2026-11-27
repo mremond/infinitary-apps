@@ -1917,7 +1917,6 @@
 "phoneCardsTakePhoto" = "Prendre une photo";
 "phoneCardsTaskKeyHint" = "Ouvre sa fiche";
 "phoneCharacterFirstMate" = "Votre second";
-"phoneChecksAdvisory" = "indicatif, %1$@";
 "phoneChecksAfterDuration" = "%2$@ après %1$@";
 "phoneChecksAllowedToFail" = "échec autorisé";
 "phoneChecksCancelled" = "annulé";
@@ -2498,6 +2497,17 @@
 "recordCareDefault" = "Par défaut";
 "recordCareQuick" = "Rapide";
 "recordCheckAdvisory" = "indicatif, %1$@";
+"recordCheckStateCancelled" = "annulé";
+"recordCheckStateDidNotStart" = "non démarrée";
+"recordCheckStateError" = "anomalie";
+"recordCheckStateFailed" = "échoué";
+"recordCheckStateNeedsDecision" = "décision requise";
+"recordCheckStateNeutral" = "neutre";
+"recordCheckStateOutOfDate" = "obsolète";
+"recordCheckStatePassed" = "réussi";
+"recordCheckStateRunning" = "en cours";
+"recordCheckStateSkipped" = "ignoré";
+"recordCheckStateTimedOut" = "délai dépassé";
 "recordComparedComputers" = "Ordinateurs comparés au démarrage";
 "recordContinue" = "Poursuivre";
 "recordCrewmateOnModel" = "%1$@ avec %2$@";

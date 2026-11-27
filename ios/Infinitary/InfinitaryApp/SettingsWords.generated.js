@@ -14661,6 +14661,121 @@ ${events}` : prompt;
   function catalogEntry(id) {
     return PROVIDER_CATALOG.find((entry) => entry.id === id);
   }
+  const CHANGE_REQUEST_KINDS = ["github", "gitlab", "bitbucket"];
+  const CHANGE_REQUEST_HOSTS = {
+    github: {
+      kind: "github",
+      publicHost: "github.com",
+      serverIntegration: "github-enterprise",
+      serverIdPrefix: "ghe",
+      publicHostIsServerRow: false,
+      changeWord: "pull request",
+      handle: "pr",
+      numberPrefix: "#",
+      requestPath: "pull",
+      requestPaths: ["pull", "pulls"],
+      comparePath: "compare",
+      foldsNames: true,
+      quickActions: false,
+      holdsOnlyKnownHosts: false,
+      addressExample: "github.example.com",
+      // The same `repo workflow read:org` the code asks for on github.com.
+      keyPage: (host) => `https://${host}/settings/tokens/new?scopes=repo,workflow,read:org&description=Infinitary`,
+      batches: true
+    },
+    gitlab: {
+      kind: "gitlab",
+      publicHost: "gitlab.com",
+      serverIntegration: "gitlab",
+      serverIdPrefix: "gitlab",
+      publicHostIsServerRow: true,
+      changeWord: "merge request",
+      handle: "mr",
+      numberPrefix: "!",
+      requestPath: "-/merge_requests",
+      requestPaths: ["-/merge_requests"],
+      comparePath: "-/compare",
+      foldsNames: false,
+      draftTitlePrefix: "Draft: ",
+      quickActions: true,
+      holdsOnlyKnownHosts: true,
+      addressExample: "gitlab.com",
+      keyPage: (host) => `https://${host}/-/user_settings/personal_access_tokens?name=Infinitary&scopes=api`,
+      batches: true
+    },
+    /**
+     * Bitbucket Cloud (`docs/forge.md`, "Bitbucket pull requests"): an API
+     * token the person makes on their Atlassian account with Bitbucket's
+     * scopes, sent as a bearer token; its pull requests are `#N` under
+     * `pull-requests/`. The scopes are the ones the app reads and writes
+     * with once the crew's reach is built too, so one key serves them all.
+     */
+    bitbucket: {
+      kind: "bitbucket",
+      publicHost: "bitbucket.org",
+      serverIntegration: "bitbucket",
+      serverIdPrefix: "bitbucket",
+      publicHostIsServerRow: true,
+      changeWord: "pull request",
+      handle: "pr",
+      numberPrefix: "#",
+      requestPath: "pull-requests",
+      requestPaths: ["pull-requests"],
+      comparePath: "branches/compare",
+      // Bitbucket names the branch first, then the branch it builds on, split by a carriage return.
+      compareRange: (base, branch) => `${branch}%0D${base}`,
+      // Bitbucket's workspace and repository names are lower case in every address.
+      foldsNames: true,
+      quickActions: false,
+      holdsOnlyKnownHosts: true,
+      addressExample: "bitbucket.org",
+      // Atlassian keeps every Cloud API token on the person's account, not on
+      // bitbucket.org; a Data Center server keeps its HTTP access tokens itself.
+      keyPage: (host) => host === "bitbucket.org" ? "https://id.atlassian.com/manage-profile/security/api-tokens" : `https://${host}/plugins/servlet/access-tokens/manage`,
+      keyAccount: "your Atlassian account",
+      keyScopes: [
+        "read:user:bitbucket",
+        "read:workspace:bitbucket",
+        "read:repository:bitbucket",
+        "write:repository:bitbucket",
+        "read:pullrequest:bitbucket",
+        "write:pullrequest:bitbucket",
+        "read:pipeline:bitbucket",
+        "write:pipeline:bitbucket"
+      ],
+      batches: true,
+      // Bitbucket Data Center on the person's own server: its own pages and
+      // its own REST API (`docs/forge.md`, "Bitbucket Data Center").
+      server: {
+        projectPage: bitbucketServerProjectPage,
+        comparePage: (base, branch) => `compare/commits?sourceBranch=${encodeURIComponent(`refs/heads/${branch}`)}&targetBranch=${encodeURIComponent(`refs/heads/${base}`)}`,
+        batches: true,
+        api: "bitbucket-data-center"
+      }
+    }
+  };
+  function bitbucketServerProjectPage(owner, name) {
+    const segments = owner.split("/").filter(Boolean);
+    const key = (segments[0]?.toLowerCase() === "scm" ? segments.slice(1) : segments).join("/");
+    const slug = encodeURIComponent(name.toLowerCase());
+    if (key.startsWith("~"))
+      return `users/${encodeURIComponent(key.slice(1).toLowerCase())}/repos/${slug}`;
+    return `projects/${encodeURIComponent(key.toUpperCase())}/repos/${slug}`;
+  }
+  function changeRequestKind(kind) {
+    return CHANGE_REQUEST_KINDS.find((entry) => entry === kind);
+  }
+  function changeRequestHost(kind) {
+    const known = changeRequestKind(kind);
+    return known ? CHANGE_REQUEST_HOSTS[known] : void 0;
+  }
+  function serverFactsAt(kind, host) {
+    const facts = changeRequestHost(kind);
+    return facts && host && host !== facts.publicHost ? facts.server : void 0;
+  }
+  function hasChangeRequests(kind) {
+    return changeRequestKind(kind) !== void 0;
+  }
   const advisoryWorkflowSchema = string().trim().regex(/^\.github\/workflows\/[^/\s]+\.ya?ml$/, {
     // i18n-exempt: served to the first mate's model; Settings shows its own words
     message: "name a workflow file directly in .github/workflows, such as .github/workflows/early-tests.yml"
@@ -15067,121 +15182,6 @@ ${events}` : prompt;
       })
     )
   });
-  const CHANGE_REQUEST_KINDS = ["github", "gitlab", "bitbucket"];
-  const CHANGE_REQUEST_HOSTS = {
-    github: {
-      kind: "github",
-      publicHost: "github.com",
-      serverIntegration: "github-enterprise",
-      serverIdPrefix: "ghe",
-      publicHostIsServerRow: false,
-      changeWord: "pull request",
-      handle: "pr",
-      numberPrefix: "#",
-      requestPath: "pull",
-      requestPaths: ["pull", "pulls"],
-      comparePath: "compare",
-      foldsNames: true,
-      quickActions: false,
-      holdsOnlyKnownHosts: false,
-      addressExample: "github.example.com",
-      // The same `repo workflow read:org` the code asks for on github.com.
-      keyPage: (host) => `https://${host}/settings/tokens/new?scopes=repo,workflow,read:org&description=Infinitary`,
-      batches: true
-    },
-    gitlab: {
-      kind: "gitlab",
-      publicHost: "gitlab.com",
-      serverIntegration: "gitlab",
-      serverIdPrefix: "gitlab",
-      publicHostIsServerRow: true,
-      changeWord: "merge request",
-      handle: "mr",
-      numberPrefix: "!",
-      requestPath: "-/merge_requests",
-      requestPaths: ["-/merge_requests"],
-      comparePath: "-/compare",
-      foldsNames: false,
-      draftTitlePrefix: "Draft: ",
-      quickActions: true,
-      holdsOnlyKnownHosts: true,
-      addressExample: "gitlab.com",
-      keyPage: (host) => `https://${host}/-/user_settings/personal_access_tokens?name=Infinitary&scopes=api`,
-      batches: true
-    },
-    /**
-     * Bitbucket Cloud (`docs/forge.md`, "Bitbucket pull requests"): an API
-     * token the person makes on their Atlassian account with Bitbucket's
-     * scopes, sent as a bearer token; its pull requests are `#N` under
-     * `pull-requests/`. The scopes are the ones the app reads and writes
-     * with once the crew's reach is built too, so one key serves them all.
-     */
-    bitbucket: {
-      kind: "bitbucket",
-      publicHost: "bitbucket.org",
-      serverIntegration: "bitbucket",
-      serverIdPrefix: "bitbucket",
-      publicHostIsServerRow: true,
-      changeWord: "pull request",
-      handle: "pr",
-      numberPrefix: "#",
-      requestPath: "pull-requests",
-      requestPaths: ["pull-requests"],
-      comparePath: "branches/compare",
-      // Bitbucket names the branch first, then the branch it builds on, split by a carriage return.
-      compareRange: (base, branch) => `${branch}%0D${base}`,
-      // Bitbucket's workspace and repository names are lower case in every address.
-      foldsNames: true,
-      quickActions: false,
-      holdsOnlyKnownHosts: true,
-      addressExample: "bitbucket.org",
-      // Atlassian keeps every Cloud API token on the person's account, not on
-      // bitbucket.org; a Data Center server keeps its HTTP access tokens itself.
-      keyPage: (host) => host === "bitbucket.org" ? "https://id.atlassian.com/manage-profile/security/api-tokens" : `https://${host}/plugins/servlet/access-tokens/manage`,
-      keyAccount: "your Atlassian account",
-      keyScopes: [
-        "read:user:bitbucket",
-        "read:workspace:bitbucket",
-        "read:repository:bitbucket",
-        "write:repository:bitbucket",
-        "read:pullrequest:bitbucket",
-        "write:pullrequest:bitbucket",
-        "read:pipeline:bitbucket",
-        "write:pipeline:bitbucket"
-      ],
-      batches: true,
-      // Bitbucket Data Center on the person's own server: its own pages and
-      // its own REST API (`docs/forge.md`, "Bitbucket Data Center").
-      server: {
-        projectPage: bitbucketServerProjectPage,
-        comparePage: (base, branch) => `compare/commits?sourceBranch=${encodeURIComponent(`refs/heads/${branch}`)}&targetBranch=${encodeURIComponent(`refs/heads/${base}`)}`,
-        batches: true,
-        api: "bitbucket-data-center"
-      }
-    }
-  };
-  function bitbucketServerProjectPage(owner, name) {
-    const segments = owner.split("/").filter(Boolean);
-    const key = (segments[0]?.toLowerCase() === "scm" ? segments.slice(1) : segments).join("/");
-    const slug = encodeURIComponent(name.toLowerCase());
-    if (key.startsWith("~"))
-      return `users/${encodeURIComponent(key.slice(1).toLowerCase())}/repos/${slug}`;
-    return `projects/${encodeURIComponent(key.toUpperCase())}/repos/${slug}`;
-  }
-  function changeRequestKind(kind) {
-    return CHANGE_REQUEST_KINDS.find((entry) => entry === kind);
-  }
-  function changeRequestHost(kind) {
-    const known = changeRequestKind(kind);
-    return known ? CHANGE_REQUEST_HOSTS[known] : void 0;
-  }
-  function serverFactsAt(kind, host) {
-    const facts = changeRequestHost(kind);
-    return facts && host && host !== facts.publicHost ? facts.server : void 0;
-  }
-  function hasChangeRequests(kind) {
-    return changeRequestKind(kind) !== void 0;
-  }
   const contributionProjectSchema = strictObject({
     id: number().int().positive(),
     fullName: string().min(1),

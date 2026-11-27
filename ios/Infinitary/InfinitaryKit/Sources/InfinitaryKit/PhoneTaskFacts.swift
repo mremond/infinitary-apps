@@ -283,7 +283,7 @@ public struct PhoneTaskFacts: Sendable {
         // advisory one, with the state its host reported; every other check says its state.
         var order: [String] = [], counts: [String: Int] = [:]
         for check in reading.items {
-            let word = check.advisory.map { PhoneMessages.phoneChecksAdvisory(state: checkStateWords[$0] ?? $0) }
+            let word = check.advisory.map { PhoneMessages.recordCheckAdvisory(state: checkStateWords[$0] ?? $0) }
                 ?? (check.manual == true ? PhoneMessages.phoneChecksWaitingToStart()
                     : check.failureAllowed == true ? PhoneMessages.phoneChecksAllowedToFail()
                     : checkStateWords[check.state] ?? check.state)

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { checkSnapshotSummary } from "@shared/checkSnapshot";
 import type { MergeReview } from "@shared/mergeReview";
 import type { NoChecksChange } from "@shared/repos";
+import { inLanguage, setCurrentLanguage } from "@shared/i18n/current";
 import { describe, expect, it, vi } from "vitest";
 import { stub as githubStub } from "../../../tests/helpers/githubForgeStub";
 import {
@@ -1236,6 +1237,25 @@ describe("a check from an advisory workflow (INF-67)", () => {
       expect(forge.calls.some((call) => call.startsWith("putIn"))).toBe(false);
     },
   );
+
+  // docs/i18n.md: a person reads the label in their language; the crew's wake stays English.
+  it("words an advisory check in the reader's language, and in English for the crew", async () => {
+    const { delivery, service } = await readWith([
+      { name: "unit-tests", state: "success" },
+      early("pending"),
+    ]);
+    expect(inLanguage("fr", () => checkSnapshotSummary(delivery!.checks!).words)).toContain(
+      "indicatif, en cours",
+    );
+    setCurrentLanguage("fr");
+    const wake = await service.checks
+      .readWatched("ab12cd34")
+      .finally(() => setCurrentLanguage("en"));
+    expect(wake).toMatchObject({
+      kind: "finished",
+      checks: expect.arrayContaining([{ name: "early-tests", state: "advisory, running" }]),
+    });
+  });
 
   it("times the checks by the required ones alone", async () => {
     const at = (time: string) => Date.parse(`2026-11-27T${time}Z`);

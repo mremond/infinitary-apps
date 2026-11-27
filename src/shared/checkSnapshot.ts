@@ -135,9 +135,23 @@ export const CHECK_WAITING_TO_START_WORDS = "waiting to be started";
 
 export const CHECK_FAILURE_ALLOWED_WORDS = "allowed to fail";
 
+const WORDED_STATES: Record<ForgeCheckState, () => string> = {
+  success: m.recordCheckStatePassed,
+  failure: m.recordCheckStateFailed,
+  error: m.recordCheckStateError,
+  cancelled: m.recordCheckStateCancelled,
+  timed_out: m.recordCheckStateTimedOut,
+  action_required: m.recordCheckStateNeedsDecision,
+  startup_failure: m.recordCheckStateDidNotStart,
+  stale: m.recordCheckStateOutOfDate,
+  skipped: m.recordCheckStateSkipped,
+  neutral: m.recordCheckStateNeutral,
+  pending: m.recordCheckStateRunning,
+};
+
 /** An advisory check with the state the host reported, such as `advisory, running`. */
 export function advisoryCheckWords(state: ForgeCheckState): string {
-  return m.recordCheckAdvisory({ state: STATE_WORDS[state] });
+  return m.recordCheckAdvisory({ state: WORDED_STATES[state]() });
 }
 
 export const CHECKS_NOT_REPORTED_WORDS = "none reported";

@@ -1917,7 +1917,6 @@
 "phoneCardsTakePhoto" = "拍照";
 "phoneCardsTaskKeyHint" = "打开它的记录";
 "phoneCharacterFirstMate" = "你的大副";
-"phoneChecksAdvisory" = "参考，%1$@";
 "phoneChecksAfterDuration" = "%2$@，历时 %1$@";
 "phoneChecksAllowedToFail" = "允许失败";
 "phoneChecksCancelled" = "已取消";
@@ -2498,6 +2497,17 @@
 "recordCareDefault" = "默认";
 "recordCareQuick" = "快速";
 "recordCheckAdvisory" = "参考，%1$@";
+"recordCheckStateCancelled" = "已取消";
+"recordCheckStateDidNotStart" = "未开始";
+"recordCheckStateError" = "出错";
+"recordCheckStateFailed" = "未通过";
+"recordCheckStateNeedsDecision" = "需要决定";
+"recordCheckStateNeutral" = "中性";
+"recordCheckStateOutOfDate" = "已过时";
+"recordCheckStatePassed" = "已通过";
+"recordCheckStateRunning" = "运行中";
+"recordCheckStateSkipped" = "已跳过";
+"recordCheckStateTimedOut" = "已超时";
 "recordComparedComputers" = "开始时比较过的电脑";
 "recordContinue" = "继续";
 "recordCrewmateOnModel" = "%1$@，使用 %2$@";

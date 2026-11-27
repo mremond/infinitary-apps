@@ -51791,6 +51791,303 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     return `advisory, ${state2}`;
   }
+  function recordCheckStateCancelled() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `أُلغيت`;
+      case "de":
+        return `abgebrochen`;
+      case "es":
+        return `canceladas`;
+      case "fr":
+        return `annulé`;
+      case "ja":
+        return `キャンセル`;
+      case "ko":
+        return `취소됨`;
+      case "pt-BR":
+        return `cancelado`;
+      case "zh-Hans":
+        return `已取消`;
+      case "zh-Hant":
+        return `已取消`;
+      case "en-XA":
+        return `[çáñçéļļéð ~~~]`;
+      case "ar-XB":
+        return `‮cancelled‬`;
+    }
+    return `cancelled`;
+  }
+  function recordCheckStateDidNotStart() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `لم يبدأ`;
+      case "de":
+        return `nicht gestartet`;
+      case "es":
+        return `no se inició`;
+      case "fr":
+        return `non démarrée`;
+      case "ja":
+        return `開始されず`;
+      case "ko":
+        return `시작 안 됨`;
+      case "pt-BR":
+        return `não iniciou`;
+      case "zh-Hans":
+        return `未开始`;
+      case "zh-Hant":
+        return `未開始`;
+      case "en-XA":
+        return `[ðîð ñöţ šţáŕţ ~~~~~]`;
+      case "ar-XB":
+        return `‮did not start‬`;
+    }
+    return `did not start`;
+  }
+  function recordCheckStateError() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `خطأ`;
+      case "de":
+        return `Fehler`;
+      case "es":
+        return `error`;
+      case "fr":
+        return `anomalie`;
+      case "ja":
+        return `エラー`;
+      case "ko":
+        return `오류`;
+      case "pt-BR":
+        return `erro`;
+      case "zh-Hans":
+        return `出错`;
+      case "zh-Hant":
+        return `錯誤`;
+      case "en-XA":
+        return `[éŕŕöŕ ~~]`;
+      case "ar-XB":
+        return `‮error‬`;
+    }
+    return `error`;
+  }
+  function recordCheckStateFailed() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `فشلت`;
+      case "de":
+        return `fehlgeschlagen`;
+      case "es":
+        return `fallidas`;
+      case "fr":
+        return `échoué`;
+      case "ja":
+        return `失敗`;
+      case "ko":
+        return `실패`;
+      case "pt-BR":
+        return `com falha`;
+      case "zh-Hans":
+        return `未通过`;
+      case "zh-Hant":
+        return `未通過`;
+      case "en-XA":
+        return `[ƒáîļéð ~~]`;
+      case "ar-XB":
+        return `‮failed‬`;
+    }
+    return `failed`;
+  }
+  function recordCheckStateNeedsDecision() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `يحتاج إلى قرار`;
+      case "de":
+        return `braucht eine Entscheidung`;
+      case "es":
+        return `necesita una decisión`;
+      case "fr":
+        return `décision requise`;
+      case "ja":
+        return `判断が必要`;
+      case "ko":
+        return `결정 필요`;
+      case "pt-BR":
+        return `precisa de uma decisão`;
+      case "zh-Hans":
+        return `需要决定`;
+      case "zh-Hant":
+        return `需要決定`;
+      case "en-XA":
+        return `[ñééðš á ðéçîšîöñ ~~~~~~]`;
+      case "ar-XB":
+        return `‮needs a decision‬`;
+    }
+    return `needs a decision`;
+  }
+  function recordCheckStateNeutral() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `محايد`;
+      case "de":
+        return `neutral`;
+      case "es":
+        return `neutras`;
+      case "fr":
+        return `neutre`;
+      case "ja":
+        return `中立`;
+      case "ko":
+        return `중립`;
+      case "pt-BR":
+        return `neutro`;
+      case "zh-Hans":
+        return `中性`;
+      case "zh-Hant":
+        return `中性`;
+      case "en-XA":
+        return `[ñéûţŕáļ ~~~]`;
+      case "ar-XB":
+        return `‮neutral‬`;
+    }
+    return `neutral`;
+  }
+  function recordCheckStateOutOfDate() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `قديم`;
+      case "de":
+        return `veraltet`;
+      case "es":
+        return `desactualizada`;
+      case "fr":
+        return `obsolète`;
+      case "ja":
+        return `最新ではない`;
+      case "ko":
+        return `최신 아님`;
+      case "pt-BR":
+        return `desatualizado`;
+      case "zh-Hans":
+        return `已过时`;
+      case "zh-Hant":
+        return `已過時`;
+      case "en-XA":
+        return `[öûţ öƒ ðáţé ~~~~]`;
+      case "ar-XB":
+        return `‮out of date‬`;
+    }
+    return `out of date`;
+  }
+  function recordCheckStatePassed() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `نجحت`;
+      case "de":
+        return `erfolgreich`;
+      case "es":
+        return `superadas`;
+      case "fr":
+        return `réussi`;
+      case "ja":
+        return `合格`;
+      case "ko":
+        return `통과`;
+      case "pt-BR":
+        return `aprovado`;
+      case "zh-Hans":
+        return `已通过`;
+      case "zh-Hant":
+        return `已通過`;
+      case "en-XA":
+        return `[þáššéð ~~]`;
+      case "ar-XB":
+        return `‮passed‬`;
+    }
+    return `passed`;
+  }
+  function recordCheckStateRunning() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `قيد التشغيل`;
+      case "de":
+        return `laufend`;
+      case "es":
+        return `en curso`;
+      case "fr":
+        return `en cours`;
+      case "ja":
+        return `実行中`;
+      case "ko":
+        return `실행 중`;
+      case "pt-BR":
+        return `em execução`;
+      case "zh-Hans":
+        return `运行中`;
+      case "zh-Hant":
+        return `執行中`;
+      case "en-XA":
+        return `[ŕûññîñĝ ~~~]`;
+      case "ar-XB":
+        return `‮running‬`;
+    }
+    return `running`;
+  }
+  function recordCheckStateSkipped() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `متخطّى`;
+      case "de":
+        return `übersprungen`;
+      case "es":
+        return `omitidas`;
+      case "fr":
+        return `ignoré`;
+      case "ja":
+        return `スキップ`;
+      case "ko":
+        return `건너뜀`;
+      case "pt-BR":
+        return `pulado`;
+      case "zh-Hans":
+        return `已跳过`;
+      case "zh-Hant":
+        return `已略過`;
+      case "en-XA":
+        return `[šķîþþéð ~~~]`;
+      case "ar-XB":
+        return `‮skipped‬`;
+    }
+    return `skipped`;
+  }
+  function recordCheckStateTimedOut() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `انتهت مهلته`;
+      case "de":
+        return `Zeit überschritten`;
+      case "es":
+        return `tiempo agotado`;
+      case "fr":
+        return `délai dépassé`;
+      case "ja":
+        return `タイムアウト`;
+      case "ko":
+        return `시간 초과`;
+      case "pt-BR":
+        return `tempo esgotado`;
+      case "zh-Hans":
+        return `已超时`;
+      case "zh-Hant":
+        return `已逾時`;
+      case "en-XA":
+        return `[ţîɱéð öûţ ~~~]`;
+      case "ar-XB":
+        return `‮timed out‬`;
+    }
+    return `timed out`;
+  }
   function recordComparedComputers() {
     switch (currentLanguage()) {
       case "ar":
@@ -117979,6 +118276,17 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     recordCareDefault,
     recordCareQuick,
     recordCheckAdvisory,
+    recordCheckStateCancelled,
+    recordCheckStateDidNotStart,
+    recordCheckStateError,
+    recordCheckStateFailed,
+    recordCheckStateNeedsDecision,
+    recordCheckStateNeutral,
+    recordCheckStateOutOfDate,
+    recordCheckStatePassed,
+    recordCheckStateRunning,
+    recordCheckStateSkipped,
+    recordCheckStateTimedOut,
     recordComparedComputers,
     recordContinue,
     recordCrewmateOnModel,
@@ -121700,6 +122008,17 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "recordCareDefault": [],
     "recordCareQuick": [],
     "recordCheckAdvisory": ["state"],
+    "recordCheckStateCancelled": [],
+    "recordCheckStateDidNotStart": [],
+    "recordCheckStateError": [],
+    "recordCheckStateFailed": [],
+    "recordCheckStateNeedsDecision": [],
+    "recordCheckStateNeutral": [],
+    "recordCheckStateOutOfDate": [],
+    "recordCheckStatePassed": [],
+    "recordCheckStateRunning": [],
+    "recordCheckStateSkipped": [],
+    "recordCheckStateTimedOut": [],
     "recordComparedComputers": [],
     "recordContinue": [],
     "recordCrewmateOnModel": ["crewmate", "model"],

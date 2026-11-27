@@ -1917,7 +1917,6 @@
 "phoneCardsTakePhoto" = "Take photo";
 "phoneCardsTaskKeyHint" = "Opens its record";
 "phoneCharacterFirstMate" = "Your first mate";
-"phoneChecksAdvisory" = "advisory, %1$@";
 "phoneChecksAfterDuration" = "%2$@ after %1$@";
 "phoneChecksAllowedToFail" = "allowed to fail";
 "phoneChecksCancelled" = "cancelled";
@@ -2498,6 +2497,17 @@
 "recordCareDefault" = "Default";
 "recordCareQuick" = "Quick";
 "recordCheckAdvisory" = "advisory, %1$@";
+"recordCheckStateCancelled" = "cancelled";
+"recordCheckStateDidNotStart" = "did not start";
+"recordCheckStateError" = "error";
+"recordCheckStateFailed" = "failed";
+"recordCheckStateNeedsDecision" = "needs a decision";
+"recordCheckStateNeutral" = "neutral";
+"recordCheckStateOutOfDate" = "out of date";
+"recordCheckStatePassed" = "passed";
+"recordCheckStateRunning" = "running";
+"recordCheckStateSkipped" = "skipped";
+"recordCheckStateTimedOut" = "timed out";
 "recordComparedComputers" = "Compared computers at start";
 "recordContinue" = "Continue";
 "recordCrewmateOnModel" = "%1$@ on %2$@";

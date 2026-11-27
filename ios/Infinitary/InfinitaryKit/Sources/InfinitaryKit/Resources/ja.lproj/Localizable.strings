@@ -1917,7 +1917,6 @@
 "phoneCardsTakePhoto" = "写真を撮る";
 "phoneCardsTaskKeyHint" = "記録を開きます";
 "phoneCharacterFirstMate" = "一等航海士";
-"phoneChecksAdvisory" = "参考、%1$@";
 "phoneChecksAfterDuration" = "%2$@（%1$@後）";
 "phoneChecksAllowedToFail" = "失敗を許容";
 "phoneChecksCancelled" = "キャンセル";
@@ -2498,6 +2497,17 @@
 "recordCareDefault" = "標準";
 "recordCareQuick" = "クイック";
 "recordCheckAdvisory" = "参考、%1$@";
+"recordCheckStateCancelled" = "キャンセル";
+"recordCheckStateDidNotStart" = "開始されず";
+"recordCheckStateError" = "エラー";
+"recordCheckStateFailed" = "失敗";
+"recordCheckStateNeedsDecision" = "判断が必要";
+"recordCheckStateNeutral" = "中立";
+"recordCheckStateOutOfDate" = "最新ではない";
+"recordCheckStatePassed" = "合格";
+"recordCheckStateRunning" = "実行中";
+"recordCheckStateSkipped" = "スキップ";
+"recordCheckStateTimedOut" = "タイムアウト";
 "recordComparedComputers" = "開始時に比較したコンピューター";
 "recordContinue" = "続行";
 "recordCrewmateOnModel" = "%1$@（%2$@）";

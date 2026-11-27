@@ -1917,7 +1917,6 @@
 "phoneCardsTakePhoto" = "拍照";
 "phoneCardsTaskKeyHint" = "開啟它的紀錄";
 "phoneCharacterFirstMate" = "你的大副";
-"phoneChecksAdvisory" = "參考，%1$@";
 "phoneChecksAfterDuration" = "%1$@後%2$@";
 "phoneChecksAllowedToFail" = "允許失敗";
 "phoneChecksCancelled" = "已取消";
@@ -2498,6 +2497,17 @@
 "recordCareDefault" = "預設";
 "recordCareQuick" = "快速";
 "recordCheckAdvisory" = "參考，%1$@";
+"recordCheckStateCancelled" = "已取消";
+"recordCheckStateDidNotStart" = "未開始";
+"recordCheckStateError" = "錯誤";
+"recordCheckStateFailed" = "未通過";
+"recordCheckStateNeedsDecision" = "需要決定";
+"recordCheckStateNeutral" = "中性";
+"recordCheckStateOutOfDate" = "已過時";
+"recordCheckStatePassed" = "已通過";
+"recordCheckStateRunning" = "執行中";
+"recordCheckStateSkipped" = "已略過";
+"recordCheckStateTimedOut" = "已逾時";
 "recordComparedComputers" = "開始時比較過的電腦";
 "recordContinue" = "繼續";
 "recordCrewmateOnModel" = "%1$@，使用 %2$@";

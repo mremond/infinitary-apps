@@ -2009,7 +2009,6 @@ public enum PhoneMessages {
     public static func `phoneCardsTakePhoto`() -> String { PhoneWords.format("phoneCardsTakePhoto", []) }
     public static func `phoneCardsTaskKeyHint`() -> String { PhoneWords.format("phoneCardsTaskKeyHint", []) }
     public static func `phoneCharacterFirstMate`() -> String { PhoneWords.format("phoneCharacterFirstMate", []) }
-    public static func `phoneChecksAdvisory`(`state`: String) -> String { PhoneWords.format("phoneChecksAdvisory", [`state`]) }
     public static func `phoneChecksAfterDuration`(`duration`: String, `words`: String) -> String { PhoneWords.format("phoneChecksAfterDuration", [`duration`, `words`]) }
     public static func `phoneChecksAllowedToFail`() -> String { PhoneWords.format("phoneChecksAllowedToFail", []) }
     public static func `phoneChecksCancelled`() -> String { PhoneWords.format("phoneChecksCancelled", []) }
@@ -2617,6 +2616,17 @@ public enum PhoneMessages {
     public static func `recordCareDefault`() -> String { PhoneWords.format("recordCareDefault", []) }
     public static func `recordCareQuick`() -> String { PhoneWords.format("recordCareQuick", []) }
     public static func `recordCheckAdvisory`(`state`: String) -> String { PhoneWords.format("recordCheckAdvisory", [`state`]) }
+    public static func `recordCheckStateCancelled`() -> String { PhoneWords.format("recordCheckStateCancelled", []) }
+    public static func `recordCheckStateDidNotStart`() -> String { PhoneWords.format("recordCheckStateDidNotStart", []) }
+    public static func `recordCheckStateError`() -> String { PhoneWords.format("recordCheckStateError", []) }
+    public static func `recordCheckStateFailed`() -> String { PhoneWords.format("recordCheckStateFailed", []) }
+    public static func `recordCheckStateNeedsDecision`() -> String { PhoneWords.format("recordCheckStateNeedsDecision", []) }
+    public static func `recordCheckStateNeutral`() -> String { PhoneWords.format("recordCheckStateNeutral", []) }
+    public static func `recordCheckStateOutOfDate`() -> String { PhoneWords.format("recordCheckStateOutOfDate", []) }
+    public static func `recordCheckStatePassed`() -> String { PhoneWords.format("recordCheckStatePassed", []) }
+    public static func `recordCheckStateRunning`() -> String { PhoneWords.format("recordCheckStateRunning", []) }
+    public static func `recordCheckStateSkipped`() -> String { PhoneWords.format("recordCheckStateSkipped", []) }
+    public static func `recordCheckStateTimedOut`() -> String { PhoneWords.format("recordCheckStateTimedOut", []) }
     public static func `recordComparedComputers`() -> String { PhoneWords.format("recordComparedComputers", []) }
     public static func `recordContinue`() -> String { PhoneWords.format("recordContinue", []) }
     public static func `recordCrewmateOnModel`(`crewmate`: String, `model`: String) -> String { PhoneWords.format("recordCrewmateOnModel", [`crewmate`, `model`]) }
@@ -6835,7 +6845,6 @@ extension PhoneWords {
         "phoneCardsTakePhoto": [],
         "phoneCardsTaskKeyHint": [],
         "phoneCharacterFirstMate": [],
-        "phoneChecksAdvisory": ["state"],
         "phoneChecksAfterDuration": ["duration", "words"],
         "phoneChecksAllowedToFail": [],
         "phoneChecksCancelled": [],
@@ -7443,6 +7452,17 @@ extension PhoneWords {
         "recordCareDefault": [],
         "recordCareQuick": [],
         "recordCheckAdvisory": ["state"],
+        "recordCheckStateCancelled": [],
+        "recordCheckStateDidNotStart": [],
+        "recordCheckStateError": [],
+        "recordCheckStateFailed": [],
+        "recordCheckStateNeedsDecision": [],
+        "recordCheckStateNeutral": [],
+        "recordCheckStateOutOfDate": [],
+        "recordCheckStatePassed": [],
+        "recordCheckStateRunning": [],
+        "recordCheckStateSkipped": [],
+        "recordCheckStateTimedOut": [],
         "recordComparedComputers": [],
         "recordContinue": [],
         "recordCrewmateOnModel": ["crewmate", "model"],

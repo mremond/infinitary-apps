@@ -1917,7 +1917,6 @@
 "phoneCardsTakePhoto" = "التقاط صورة";
 "phoneCardsTaskKeyHint" = "يفتح سجلها";
 "phoneCharacterFirstMate" = "نائب القبطان";
-"phoneChecksAdvisory" = "استشاري، %1$@";
 "phoneChecksAfterDuration" = "%2$@ بعد %1$@";
 "phoneChecksAllowedToFail" = "مسموح بفشلها";
 "phoneChecksCancelled" = "أُلغيت";
@@ -2498,6 +2497,17 @@
 "recordCareDefault" = "افتراضي";
 "recordCareQuick" = "سريع";
 "recordCheckAdvisory" = "استشاري، %1$@";
+"recordCheckStateCancelled" = "أُلغيت";
+"recordCheckStateDidNotStart" = "لم يبدأ";
+"recordCheckStateError" = "خطأ";
+"recordCheckStateFailed" = "فشلت";
+"recordCheckStateNeedsDecision" = "يحتاج إلى قرار";
+"recordCheckStateNeutral" = "محايد";
+"recordCheckStateOutOfDate" = "قديم";
+"recordCheckStatePassed" = "نجحت";
+"recordCheckStateRunning" = "قيد التشغيل";
+"recordCheckStateSkipped" = "متخطّى";
+"recordCheckStateTimedOut" = "انتهت مهلته";
 "recordComparedComputers" = "الحواسيب التي قورنت عند البدء";
 "recordContinue" = "متابعة";
 "recordCrewmateOnModel" = "%1$@ باستخدام %2$@";
