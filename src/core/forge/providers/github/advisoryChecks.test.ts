@@ -178,4 +178,111 @@ describe("GitHubForge's advisory workflows", () => {
     });
     expect(overall(required)).toBe("pending");
   });
+
+  it("holds a check of another workflow, and a commit status, that share the advisory check's name", async () => {
+    // GitHub's answer for one version where the project's required workflow
+    // and its advisory one each run a job of the same name, and an outside
+    // service posts a commit status under that name too: only the advisory
+    // workflow's run makes its check advisory.
+    const head = "8d2f6a1c0b9e4d3f7a5c2e1b0f9d8c7b6a5e4d3c";
+    const name = "Pull request · Unit tests (Linux; group 1/3)";
+    const workflowRun = (
+      id: number,
+      file: string,
+      workflow_id: number,
+      check_suite_id: number,
+    ) => ({
+      id,
+      name: file.replace(/\.ya?ml$/, ""),
+      path: `.github/workflows/${file}`,
+      run_number: 1441,
+      workflow_id,
+      check_suite_id,
+      event: "pull_request",
+      status: "completed",
+      conclusion: "failure",
+      head_sha: head,
+    });
+    const ci = workflowRun(45970000101, "ci.yml", 424213310, 124340000101);
+    const early = workflowRun(45970000102, "early-tests.yml", 424213399, 124340000102);
+    const job = (suite: number, conclusion: string) => ({
+      name,
+      status: "completed",
+      conclusion,
+      started_at: "2026-11-27T09:12:04Z",
+      completed_at: "2026-11-27T09:19:41Z",
+      check_suite: { id: suite },
+    });
+    let required = "failure";
+    let posted = "success";
+    const { base } = await stub({
+      [`GET /repos/octo/meter/commits/${head}/check-runs`]: () => ({
+        json: {
+          total_count: 2,
+          check_runs: [job(ci.check_suite_id, required), job(early.check_suite_id, "failure")],
+        },
+      }),
+      [`GET /repos/octo/meter/commits/${head}/status`]: () => ({
+        json: {
+          statuses: [
+            {
+              context: name,
+              state: posted,
+              description: "Unit tests (Linux; group 1/3)",
+              target_url: "https://ci.example.com/builds/8812",
+              created_at: "2026-11-27T09:12:02Z",
+              updated_at: "2026-11-27T09:20:10Z",
+            },
+          ],
+        },
+      }),
+      "GET /repos/octo/meter/actions/runs": () => ({
+        json: { total_count: 2, workflow_runs: [ci, early] },
+      }),
+    });
+    const forge = new GitHubForge(
+      {
+        kind: "github",
+        host: "github.com",
+        owner: "octo",
+        name: "meter",
+        dir: "/r",
+        advisoryWorkflows: [early.path],
+      },
+      { token: async () => "gho_test", apiBaseUrl: base, namingRule: () => BUNDLED_NAMING },
+    );
+    const change = { number: 131, url: null, branch: "fm/task-2", headSha: head };
+    const read = async () => {
+      const reading = await forge.checks(change);
+      return {
+        items: reading.items.map(({ run, state, advisory }) => ({ run, state, advisory })),
+        overall: checkSnapshotSummary({ headSha: head, ...reading, absenceDeclared: false })
+          .overall,
+      };
+    };
+
+    // The required workflow's job failed: it holds, beside the advisory one.
+    expect(await read()).toEqual({
+      items: [
+        { run: ci.id, state: "failure", advisory: undefined },
+        { run: early.id, state: "neutral", advisory: "failure" },
+        { run: undefined, state: "success", advisory: undefined },
+      ],
+      overall: "red",
+    });
+    // The commit status failed: it holds as read, with no run to make it advisory.
+    required = "success";
+    posted = "failure";
+    expect(await read()).toEqual({
+      items: [
+        { run: ci.id, state: "success", advisory: undefined },
+        { run: early.id, state: "neutral", advisory: "failure" },
+        { run: undefined, state: "failure", advisory: undefined },
+      ],
+      overall: "red",
+    });
+    // Both passed: the advisory job's failure alone holds nothing.
+    posted = "success";
+    expect((await read()).overall).toBe("green");
+  });
 });
