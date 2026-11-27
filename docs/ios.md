@@ -1336,7 +1336,10 @@ It also photographs join, Home, Activity, the empty stage, details and Settings 
 Every native journey launch goes through `launchPhoneApp`, which renews the owned simulator's keyboard log subscription and waits for its startup before launching the app.
 A live subscription is not proof that it still supplies registrations after relaunch; the new subscription starts with no cached witnesses and observes both launch and the home's keyboard attachment.
 The runner joins the old output streams before appending the new subscription's gzip member, keeping all registrations in order.
-Hardware chords go through `pressPhoneKey`, which asks the test home for backboardd's acknowledgement of that chord's registration for the current app process, then sends the chord once.
+Hardware chords go through `pressPhoneKey`, which first asks the app's current process for a fresh main-run-loop quiescence wait without waiting for animations, then asks the test home for backboardd's acknowledgement of that chord's registration for the current app process and sends the chord once.
+The fresh wait observes pending work after a page push; it is not an explicit UI-commit API, and never replaces the registration witness.
+The UI-test target's Objective-C bridge checks both private method signatures before calling them and converts exceptions from the wait or `typeKey` into contextual test failures.
+A snapshot failure leaves key delivery unknown and never authorizes another key; the keyboard tool tests exercise the bridge with the recorded alert-snapshot error reason.
 The scene's Command-Shift-C entry command keeps that exact-chord/current-process acknowledgement.
 For its unmodified arrows, Tab and Space, the captain-approved contract instead observes app-owned browsing before one actual keypress and verifies the result on screen; BackBoard excludes these commands from its routable registrations.
 There is no native-focus wait, priming input or retry.

@@ -209,6 +209,7 @@ export function phoneAnimationWaits(output: string): { skipped: boolean; missed:
  * the crew reveal's geometry and the scene evidence recorder - rather than the app. The rest part skips them; the
  * `tools` selection runs them, on request from a change to those tools. */
 export const PHONE_TOOL_TESTS = [
+  "InfinitaryUITests/PhoneKeyActionTests",
   "InfinitaryUITests/PhoneWaitsTests",
   "InfinitaryUITests/PhoneTargetPixelsTests",
   `${PHONE_JOURNEY}/testCrewRevealRejectsRecordedClippingEdge`,

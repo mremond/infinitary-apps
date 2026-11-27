@@ -32,6 +32,10 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 /// No priming press, held modifier or delay: the requested chord is the only key event, sent once after the witness.
 /// App-side keyCommands, elapsed time and repeated key presses are not readiness witnesses.
 @MainActor func pressPhoneKey(_ key: String, modifiers: XCUIElement.KeyModifierFlags, in app: XCUIApplication) async throws {
+    if let failure = PhoneWaitForKeyQuiescence(app) {
+        throw NSError(domain: "PhoneKeyboard", code: 5, userInfo: [NSLocalizedDescriptionKey:
+            "The requested chord was not sent: the fresh main-run-loop wait failed: \(failure)"])
+    }
     let control = try XCTUnwrap(ProcessInfo.processInfo.environment["PHONE_TEST_HOME"])
     var request = URLRequest(url: try XCTUnwrap(URL(string: control + "/keyboard-ready")))
     request.httpMethod = "POST"
@@ -63,7 +67,18 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     // Xcode 26.4's typist generates no HID event for the Return constant (CR).
     // LF generates the actual Return key (usage page 7, code 0x28), routed as CR by backboardd.
     // Keep CR for the registration witness; send that physical key exactly once.
-    app.typeKey(canonicalKey == "\r" ? "\n" : canonicalKey == "\t" ? "\t" : key, modifierFlags: modifiers)
+    try phoneKeyEvent(canonicalKey) {
+        app.typeKey(canonicalKey == "\r" ? "\n" : canonicalKey == "\t" ? "\t" : key, modifierFlags: modifiers)
+    }
+}
+
+/// Swift cannot catch the Objective-C exceptions XCTest raises while resolving an alert snapshot.
+@MainActor func phoneKeyEvent(_ key: String, _ send: () -> Void) throws {
+    let exception = PhoneCatchKeyException(send)
+    if let failure = exception ?? PhoneFailures.failureDescription {
+        throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey:
+            "XCTest could not complete key \(key.debugDescription): \(failure). Delivery is unknown; no retry was made."])
+    }
 }
 
 /// INF-6074: on a starved simulator the system's keyboard can take back the caret a key put in a text field. The
@@ -148,8 +163,10 @@ final class PhoneFailures: NSObject, XCTestObservation, @unchecked Sendable {
     @MainActor private static var watching = false
     private let lock = NSLock()
     private var failed = false
+    private var lastFailure: String?
 
     static var recorded: Bool { shared.lock.withLock { shared.failed } }
+    static var failureDescription: String? { shared.lock.withLock { shared.lastFailure } }
 
     /// Before a part's first action (PhoneJourney.launchFresh); one observer serves every part in the process.
     @MainActor static func watch() {
@@ -158,11 +175,13 @@ final class PhoneFailures: NSObject, XCTestObservation, @unchecked Sendable {
         watching = true
     }
 
-    func testCaseWillStart(_ testCase: XCTestCase) { lock.withLock { failed = false } }
+    func testCaseWillStart(_ testCase: XCTestCase) {
+        lock.withLock { failed = false; lastFailure = nil }
+    }
 
     func testCase(_ testCase: XCTestCase, didRecord issue: XCTIssue) {
         guard issue.isFailure else { return }
-        lock.withLock { failed = true }
+        lock.withLock { failed = true; lastFailure = issue.compactDescription }
     }
 }
 
