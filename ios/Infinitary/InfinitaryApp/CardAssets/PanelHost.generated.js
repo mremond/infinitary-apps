@@ -85458,6 +85458,33 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     return `Advisory workflow files`;
   }
+  function settingsProjectsAdvisoryMovedRefusal() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `لم يُحفظ: ذُكرت مسارات العمل هذه لمستودع لم يعد هذا المشروع يستخدمه. اذكرها من جديد للمستودع الذي يستخدمه الآن.`;
+      case "de":
+        return `Nicht gespeichert: Diese Workflows wurden für ein Repository genannt, das dieses Projekt nicht mehr nutzt. Nenn sie erneut für das Repository, das es jetzt nutzt.`;
+      case "es":
+        return `No se guardó: estos flujos de trabajo se indicaron para un repositorio que este proyecto ya no usa. Indícalos de nuevo para el repositorio que usa ahora.`;
+      case "fr":
+        return `Non enregistré : ces workflows ont été indiqués pour un dépôt que ce projet n’utilise plus. Indiquez-les de nouveau pour le dépôt qu’il utilise maintenant.`;
+      case "ja":
+        return `保存されませんでした。これらのワークフローは、このプロジェクトがもう使っていないリポジトリ用に指定されたものです。現在使っているリポジトリ用にもう一度指定してください。`;
+      case "ko":
+        return `저장되지 않았어요. 이 워크플로는 이 프로젝트가 더 이상 쓰지 않는 저장소에 맞춰 적은 것이에요. 지금 쓰는 저장소에 맞춰 다시 적어 주세요.`;
+      case "pt-BR":
+        return `Não salvo: estes fluxos de trabalho foram informados para um repositório que este projeto não usa mais. Informe-os de novo para o repositório que ele usa agora.`;
+      case "zh-Hans":
+        return `未保存：这些工作流是为这个项目不再使用的仓库写的。请为它现在使用的仓库重新写出。`;
+      case "zh-Hant":
+        return `未儲存：這些工作流程是為這個專案不再使用的存放庫寫的。請為它現在使用的存放庫重新寫出。`;
+      case "en-XA":
+        return `[Ñöţ šáṽéð: ţĥéšé ŵöŕķƒļöŵš ŵéŕé ñáɱéð ƒöŕ á ŕéþöšîţöŕý ţĥîš þŕöĵéçţ ñö ļöñĝéŕ ûšéš. Ñáɱé ţĥéɱ áĝáîñ ƒöŕ ţĥé ŕéþöšîţöŕý îţ ûšéš ñöŵ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Not saved: these workflows were named for a repository this project no longer uses. Name them again for the repository it uses now.‬`;
+    }
+    return `Not saved: these workflows were named for a repository this project no longer uses. Name them again for the repository it uses now.`;
+  }
   function settingsProjectsAdvisoryNone() {
     switch (currentLanguage()) {
       case "ar":
@@ -85484,6 +85511,33 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
         return `‮None‬`;
     }
     return `None`;
+  }
+  function settingsProjectsAdvisoryTargetRefusal() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `لم يُحفظ: كان المشروع الهدف لهذا المشروع يتغيّر في ذلك الوقت. اذكر مسارات العمل الاستشارية له من جديد.`;
+      case "de":
+        return `Nicht gespeichert: Das Zielprojekt dieses Projekts wurde gerade geändert. Nenn seine unverbindlichen Workflows erneut.`;
+      case "es":
+        return `No se guardó: el proyecto de destino de este proyecto estaba cambiando. Indica de nuevo sus flujos de trabajo orientativos.`;
+      case "fr":
+        return `Non enregistré : le projet cible de ce projet était en train de changer. Indiquez de nouveau ses workflows indicatifs.`;
+      case "ja":
+        return `保存されませんでした。このプロジェクトの対象プロジェクトが変更中でした。参考ワークフローをもう一度指定してください。`;
+      case "ko":
+        return `저장되지 않았어요. 이 프로젝트의 대상 프로젝트가 바뀌는 중이었어요. 참고용 워크플로를 다시 적어 주세요.`;
+      case "pt-BR":
+        return `Não salvo: o projeto de destino deste projeto estava mudando. Informe de novo os fluxos de trabalho informativos dele.`;
+      case "zh-Hans":
+        return `未保存：这个项目的目标项目当时正在更改。请重新写出它的参考工作流。`;
+      case "zh-Hant":
+        return `未儲存：這個專案的目標專案當時正在變更。請重新寫出它的參考工作流程。`;
+      case "en-XA":
+        return `[Ñöţ šáṽéð: ţĥîš þŕöĵéçţ'š ţáŕĝéţ þŕöĵéçţ ŵáš çĥáñĝîñĝ áţ ţĥé ţîɱé. Ñáɱé îţš áðṽîšöŕý ŵöŕķƒļöŵš áĝáîñ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Not saved: this project's target project was changing at the time. Name its advisory workflows again.‬`;
+    }
+    return `Not saved: this project's target project was changing at the time. Name its advisory workflows again.`;
   }
   function settingsProjectsAdvisoryTitle() {
     switch (currentLanguage()) {
@@ -91086,6 +91140,33 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
       default:
         return `${count} tasks`;
     }
+  }
+  function settingsProjectsTargetResetRefusal() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `لم يتغيّر المشروع الهدف، لأن مسارات العمل الاستشارية لهذا المشروع تغيّرت في الوقت نفسه. اختره من جديد.`;
+      case "de":
+        return `Das Zielprojekt hat sich nicht geändert, weil sich die unverbindlichen Workflows dieses Projekts gleichzeitig geändert haben. Wähl es erneut.`;
+      case "es":
+        return `El proyecto de destino no cambió, porque los flujos de trabajo orientativos de este proyecto cambiaron al mismo tiempo. Vuelve a elegirlo.`;
+      case "fr":
+        return `Le projet cible n’a pas changé, car les workflows indicatifs de ce projet ont changé au même moment. Choisissez-le de nouveau.`;
+      case "ja":
+        return `対象プロジェクトは変更されませんでした。同時にこのプロジェクトの参考ワークフローが変更されたためです。もう一度選んでください。`;
+      case "ko":
+        return `대상 프로젝트가 바뀌지 않았어요. 같은 때에 이 프로젝트의 참고용 워크플로가 바뀌었기 때문이에요. 다시 골라 주세요.`;
+      case "pt-BR":
+        return `O projeto de destino não mudou, porque os fluxos de trabalho informativos deste projeto mudaram ao mesmo tempo. Escolha-o de novo.`;
+      case "zh-Hans":
+        return `目标项目没有更改，因为这个项目的参考工作流同时发生了更改。请重新选择。`;
+      case "zh-Hant":
+        return `目標專案沒有變更，因為這個專案的參考工作流程同時有了變更。請重新選擇。`;
+      case "en-XA":
+        return `[Ţĥé ţáŕĝéţ þŕöĵéçţ ðîð ñöţ çĥáñĝé, ƀéçáûšé ţĥîš þŕöĵéçţ'š áðṽîšöŕý ŵöŕķƒļöŵš çĥáñĝéð áţ ţĥé šáɱé ţîɱé. Çĥööšé îţ áĝáîñ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮The target project did not change, because this project's advisory workflows changed at the same time. Choose it again.‬`;
+    }
+    return `The target project did not change, because this project's advisory workflows changed at the same time. Choose it again.`;
   }
   function settingsProjectsTasksLabel() {
     switch (currentLanguage()) {
@@ -119499,7 +119580,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     settingsProjectsAdvisoryDescription,
     settingsProjectsAdvisoryInvalid,
     settingsProjectsAdvisoryLabel,
+    settingsProjectsAdvisoryMovedRefusal,
     settingsProjectsAdvisoryNone,
+    settingsProjectsAdvisoryTargetRefusal,
     settingsProjectsAdvisoryTitle,
     settingsProjectsAutonomyOff,
     settingsProjectsAutonomyOn,
@@ -119676,6 +119759,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     settingsProjectsTagsSuggestUnknown,
     settingsProjectsTagsSuggestWords,
     settingsProjectsTagsTasks,
+    settingsProjectsTargetResetRefusal,
     settingsProjectsTasksLabel,
     settingsProjectsWorkspace,
     settingsProjectsWorkspaceDescription,
@@ -123234,7 +123318,9 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "settingsProjectsAdvisoryDescription": [],
     "settingsProjectsAdvisoryInvalid": [],
     "settingsProjectsAdvisoryLabel": [],
+    "settingsProjectsAdvisoryMovedRefusal": [],
     "settingsProjectsAdvisoryNone": [],
+    "settingsProjectsAdvisoryTargetRefusal": [],
     "settingsProjectsAdvisoryTitle": [],
     "settingsProjectsAutonomyOff": [],
     "settingsProjectsAutonomyOn": [],
@@ -123411,6 +123497,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "settingsProjectsTagsSuggestUnknown": [],
     "settingsProjectsTagsSuggestWords": ["project"],
     "settingsProjectsTagsTasks": ["count"],
+    "settingsProjectsTargetResetRefusal": [],
     "settingsProjectsTasksLabel": [],
     "settingsProjectsWorkspace": [],
     "settingsProjectsWorkspaceDescription": [],

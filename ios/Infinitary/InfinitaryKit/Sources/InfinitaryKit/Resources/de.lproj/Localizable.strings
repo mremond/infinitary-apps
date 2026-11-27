@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "Überprüfungen aus diesen GitHub-Workflow-Dateien, etwa .github/workflows/early-tests.yml, erscheinen bei einer Änderung, halten aber nie ihr Zusammenführen oder ihr Bündel auf. Eine Überprüfung, die deine Branch-Regeln auf GitHub verlangen, hält das Zusammenführen auf GitHub weiterhin auf.";
 "settingsProjectsAdvisoryInvalid" = "Nenn jede Workflow-Datei einmal, direkt in .github/workflows.";
 "settingsProjectsAdvisoryLabel" = "Dateien unverbindlicher Workflows";
+"settingsProjectsAdvisoryMovedRefusal" = "Nicht gespeichert: Diese Workflows wurden für ein Repository genannt, das dieses Projekt nicht mehr nutzt. Nenn sie erneut für das Repository, das es jetzt nutzt.";
 "settingsProjectsAdvisoryNone" = "Keine";
+"settingsProjectsAdvisoryTargetRefusal" = "Nicht gespeichert: Das Zielprojekt dieses Projekts wurde gerade geändert. Nenn seine unverbindlichen Workflows erneut.";
 "settingsProjectsAdvisoryTitle" = "Unverbindliche Workflows";
 "settingsProjectsAutonomyOff" = "Fertige Arbeit wartet auf dein Wort.";
 "settingsProjectsAutonomyOn" = "Arbeit, die die Überprüfungen besteht, darf ohne Rückfrage zusammengeführt werden.";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "%1$@ hat jetzt ein Tag, daher wurde nichts gesendet.";
 "settingsProjectsTagsSuggestUnknown" = "Dieses Projekt gibt es nicht mehr, daher wurde nichts gesendet.";
 "settingsProjectsTagsSuggestWords" = "Schlag Tags für %1$@ vor";
+"settingsProjectsTargetResetRefusal" = "Das Zielprojekt hat sich nicht geändert, weil sich die unverbindlichen Workflows dieses Projekts gleichzeitig geändert haben. Wähl es erneut.";
 "settingsProjectsTasksLabel" = "Aufgaben";
 "settingsProjectsWorkspace" = "Arbeitsbereich";
 "settingsProjectsWorkspaceDescription" = "Baut direkt im Ordner: keine Arbeitskopie und kein Pull Request.";

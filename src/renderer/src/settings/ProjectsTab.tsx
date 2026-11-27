@@ -11,7 +11,12 @@ import { AddProject } from "./AddProject";
 import { FOLDER_THERE_WORDS } from "./addProjectWords";
 import { ProjectPage, type ProjectPageActions } from "./ProjectPage";
 import { type GroupProject, type ProjectEntry, projectEntries } from "./projectGroups";
-import { PROJECT_ROW_WORDS, projectRowWords } from "./projectsWords";
+import {
+  PROJECT_ROW_WORDS,
+  type ProjectRefusal,
+  projectRefusalOf,
+  projectRowWords,
+} from "./projectsWords";
 import { runsOnWhere, useWorkComputers } from "./RunsOn";
 import { LABEL_GAP, ROW_GAP, SettingError } from "./settingRows";
 import { useSettingSave } from "./useSettingSave";
@@ -150,6 +155,8 @@ export function ProjectsTab() {
   // Eligible projects expose Automatic even before another computer is added.
   const computers = useWorkComputers();
   const [runsOnError, setRunsOnError] = useState<string | null>(null);
+  // A refused save whose reason a control names, until the page changes or that project's next save.
+  const [refused, setRefused] = useState<{ repoId: string; refusal: ProjectRefusal } | null>(null);
   const folder = useProjectsFolder();
   const folderPath = folder.value?.path ?? null;
 
@@ -195,7 +202,9 @@ export function ProjectsTab() {
           setRepos((current) => current.map((repo) => (repo.id === updated.id ? updated : repo)));
           return updated;
         },
-        () => {
+        (caught: unknown) => {
+          const refusal = projectRefusalOf(caught);
+          if (refusal) setRefused({ repoId, refusal });
           void window.infinitary.repos.list().then(setRepos);
         },
       ),
@@ -205,6 +214,7 @@ export function ProjectsTab() {
   };
 
   const patch = (id: string, changes: RepoPolicyPatch) => {
+    setRefused((current) => (current?.repoId === id ? null : current));
     setRepos((current) =>
       current.map((repo) => (repo.id === id ? applyPatch(repo, changes) : repo)),
     );
@@ -225,6 +235,7 @@ export function ProjectsTab() {
     setAdding(false);
     setNotice(null);
     setRunsOnError(null);
+    setRefused(null);
   };
 
   // A project or repository just added. Its project is read first, so the
@@ -408,6 +419,7 @@ export function ProjectsTab() {
           moveTargets={moveTargets(projects, repos, shown.entry.project?.id ?? null)}
           computersFor={computersFor}
           runsOnError={runsOnError}
+          refused={refused?.repoId === shown.chosen.id ? refused.refusal : null}
           actions={actions}
         />
       </div>

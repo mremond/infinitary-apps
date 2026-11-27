@@ -1,7 +1,14 @@
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
-import type { RepoView } from "@shared/repos";
+import {
+  ADVISORY_WORKFLOWS_MOVED_REFUSAL,
+  ADVISORY_WORKFLOWS_REFUSAL,
+  ADVISORY_WORKFLOWS_RESET_REFUSAL,
+  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
+  type RepoView,
+} from "@shared/repos";
 import { describe, expect, it } from "vitest";
-import { PROJECT_ROW_WORDS, projectRowWords } from "./projectsWords";
+import { readableRequest } from "../../../preload/readableRequest";
+import { PROJECT_ROW_WORDS, projectRefusalOf, projectRowWords } from "./projectsWords";
 
 // INF-1495, the captain's approved direction A: a closed project row says only
 // what differs from a new project. The rows below are the shapes the captain's
@@ -79,5 +86,28 @@ describe("projectRowWords", () => {
       runsOn: null,
     };
     expect(projectRowWords(personal, FOLDER, null)).toEqual([PROJECT_ROW_WORDS.personal]);
+  });
+});
+
+// docs/forge.md, "Advisory workflows": Settings says a refused advisory save,
+// or a target change refused for it, beside its control. The app's reason
+// reaches Settings the way Electron hands back a handler's throw.
+describe("projectRefusalOf", () => {
+  const refusedSave = (reason: string) =>
+    readableRequest("inf:repos:configure", async () => {
+      throw new Error(`Error invoking remote method 'inf:repos:configure': Error: ${reason}`);
+    }).catch((error: unknown) => error);
+
+  it.each([
+    [ADVISORY_WORKFLOWS_MOVED_REFUSAL, "advisory-moved"],
+    [ADVISORY_WORKFLOWS_TARGET_REFUSAL, "advisory-changing"],
+    [ADVISORY_WORKFLOWS_RESET_REFUSAL, "target-reset"],
+  ])("names the control for %s", async (reason, refusal) => {
+    expect(projectRefusalOf(await refusedSave(reason))).toBe(refusal);
+  });
+
+  it("names none for a refusal whose reason no control says", async () => {
+    expect(projectRefusalOf(await refusedSave(ADVISORY_WORKFLOWS_REFUSAL))).toBeNull();
+    expect(projectRefusalOf(await refusedSave(""))).toBeNull();
   });
 });

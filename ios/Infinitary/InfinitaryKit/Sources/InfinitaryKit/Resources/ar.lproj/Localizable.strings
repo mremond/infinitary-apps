@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "تظهر فحوصات ملفات مسارات عمل GitHub هذه، مثل .github/workflows/early-tests.yml، على التغيير، لكنها لا تعلّق دمجه ولا دفعته أبدًا. ويظل الفحص الذي تشترطه قواعد الفروع في GitHub يعلّق الدمج على GitHub.";
 "settingsProjectsAdvisoryInvalid" = "اذكر كل ملف مسار عمل مرة واحدة، مباشرة في .github/workflows.";
 "settingsProjectsAdvisoryLabel" = "ملفات مسارات العمل الاستشارية";
+"settingsProjectsAdvisoryMovedRefusal" = "لم يُحفظ: ذُكرت مسارات العمل هذه لمستودع لم يعد هذا المشروع يستخدمه. اذكرها من جديد للمستودع الذي يستخدمه الآن.";
 "settingsProjectsAdvisoryNone" = "لا شيء";
+"settingsProjectsAdvisoryTargetRefusal" = "لم يُحفظ: كان المشروع الهدف لهذا المشروع يتغيّر في ذلك الوقت. اذكر مسارات العمل الاستشارية له من جديد.";
 "settingsProjectsAdvisoryTitle" = "مسارات عمل استشارية";
 "settingsProjectsAutonomyOff" = "العمل المنتهي ينتظر كلمتك.";
 "settingsProjectsAutonomyOn" = "العمل الذي يجتاز الفحوصات قد يُدمج دون سؤالك.";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "صار لـ %1$@ وسم الآن، لذا لم يُرسَل شيء.";
 "settingsProjectsTagsSuggestUnknown" = "لم يعد هذا المشروع موجودًا، لذا لم يُرسَل شيء.";
 "settingsProjectsTagsSuggestWords" = "اقترح وسومًا لـ %1$@";
+"settingsProjectsTargetResetRefusal" = "لم يتغيّر المشروع الهدف، لأن مسارات العمل الاستشارية لهذا المشروع تغيّرت في الوقت نفسه. اختره من جديد.";
 "settingsProjectsTasksLabel" = "المهام";
 "settingsProjectsWorkspace" = "مساحة العمل";
 "settingsProjectsWorkspaceDescription" = "يُبنى في مكانه: لا نسخة عمل ولا طلب سحب.";

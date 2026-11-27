@@ -1,6 +1,7 @@
 import {
   advisoryWorkflowsSchema,
   clearsAdvisoryWorkflows,
+  sameAdvisoryRepository,
   typedAdvisoryWorkflows,
 } from "@shared/advisoryWorkflows";
 import {
@@ -52,6 +53,7 @@ import {
   batchNoHostWords,
   PROJECT_POLICY_WORDS,
   PROJECT_ROW_WORDS,
+  type ProjectRefusal,
 } from "./projectsWords";
 import { RemoveProject } from "./RemoveProject";
 import { RunsOnControl, runsOnDescription } from "./RunsOn";
@@ -97,6 +99,7 @@ export function ProjectPage({
   moveTargets,
   computersFor,
   runsOnError,
+  refused,
   actions,
 }: {
   entry: ProjectEntry;
@@ -113,6 +116,8 @@ export function ProjectPage({
   /** Computers that run work for a repository, or null when Runs on is not drawn. */
   computersFor: (repo: RepoView) => DeviceSignIns[] | null;
   runsOnError: string | null;
+  /** The chosen repository's refused save that a control names. */
+  refused: ProjectRefusal | null;
   actions: ProjectPageActions;
 }) {
   const several = entry.kind === "several";
@@ -188,6 +193,7 @@ export function ProjectPage({
             repo={chosen}
             computers={computersFor(chosen)}
             runsOnError={runsOnError}
+            refused={refused}
             actions={actions}
             withName={false}
           />
@@ -239,6 +245,7 @@ export function ProjectPage({
             moveTargets={moveTargets}
             computersFor={computersFor}
             runsOnError={runsOnError}
+            refused={refused}
             withName={several}
             actions={actions}
           />
@@ -302,6 +309,7 @@ function RepositoryPanel({
   moveTargets,
   computersFor,
   runsOnError,
+  refused,
   withName,
   actions,
 }: {
@@ -314,6 +322,7 @@ function RepositoryPanel({
   moveTargets: GroupProject[];
   computersFor: (repo: RepoView) => DeviceSignIns[] | null;
   runsOnError: string | null;
+  refused: ProjectRefusal | null;
   withName: boolean;
   actions: ProjectPageActions;
 }) {
@@ -499,6 +508,7 @@ function RepositoryPanel({
             repo={chosen}
             computers={computersFor(chosen)}
             runsOnError={runsOnError}
+            refused={refused}
             actions={panelActions}
             withName={withName}
             move={{ targets: moveTargets, ownOffered: members.length > 1 }}
@@ -538,6 +548,7 @@ function RepositorySettings({
   repo,
   computers,
   runsOnError,
+  refused,
   actions,
   withName,
   move,
@@ -545,6 +556,7 @@ function RepositorySettings({
   repo: RepoView;
   computers: DeviceSignIns[] | null;
   runsOnError: string | null;
+  refused: ProjectRefusal | null;
   actions: ProjectPageActions;
   /** Details holds the repository's own Name: in a project of several. */
   withName: boolean;
@@ -619,6 +631,9 @@ function RepositorySettings({
           }
         />
       )}
+      {!personal && repo.contribution?.fork && refused === "target-reset" && (
+        <SettingError error={PROJECT_POLICY_WORDS.refused(refused)} surface="contribution-target" />
+      )}
       {!personal &&
         repo.contribution?.fork &&
         [repo.contribution.upstream, repo.contribution.fork].some((project) =>
@@ -669,7 +684,13 @@ function RepositorySettings({
         />
       )}
       {/* Beside Require pull request checks: both say which checks hold a merge. */}
-      {namesAdvisoryWorkflows(repo) && <AdvisoryWorkflows repo={repo} onPatch={onPatch} />}
+      {namesAdvisoryWorkflows(repo) && (
+        <AdvisoryWorkflows
+          repo={repo}
+          refused={refused === "target-reset" ? null : refused}
+          onPatch={onPatch}
+        />
+      )}
       <PolicyRow
         title={AUTONOMY_SWITCH_NAME}
         description={PROJECT_POLICY_WORDS.asks(personal, repo.autonomy)}
@@ -1119,23 +1140,33 @@ function ContributorDisclosure({
 }
 
 /**
- * docs/forge.md, "Advisory workflows". A refused patch reaches this page
- * with no reason a person reads, so the field checks the list before saving.
- * Each save names the address this page showed: one queued behind a change
- * of target project is refused rather than saved for the new repository.
+ * docs/forge.md, "Advisory workflows". The field checks the list before
+ * saving; the app's refusals that name this list come back as `refused`.
+ * A draft keeps the address and the saved list it was typed over, and its
+ * save names that repository, so one sent after the project moved is
+ * refused; a draft typed for another repository, or over another list, is
+ * not offered here: the field shows the saved list until it is typed again.
  */
 function AdvisoryWorkflows({
   repo,
+  refused,
   onPatch,
 }: {
   repo: RepoView;
+  refused: ProjectRefusal | null;
   onPatch: (changes: RepoPolicyPatch) => void;
 }) {
   const saved = (repo.advisoryWorkflows ?? []).join(", ");
-  const [draft, setDraft] = useState(saved);
-  useEffect(() => setDraft(saved), [saved]);
-  const typed = advisoryWorkflowsSchema.safeParse(typedAdvisoryWorkflows(draft));
-  const changed = typed.success && typed.data.join(", ") !== saved;
+  const [draft, setDraft] = useState<{ text: string; at: string | null; over: string } | null>(
+    null,
+  );
+  const own =
+    draft?.over === saved &&
+    (draft.at === repo.origin || sameAdvisoryRepository(draft.at, repo.origin))
+      ? draft
+      : null;
+  const typed = advisoryWorkflowsSchema.safeParse(typedAdvisoryWorkflows(own?.text ?? saved));
+  const changed = own !== null && typed.success && typed.data.join(", ") !== saved;
   return (
     <>
       <PolicyRow
@@ -1148,14 +1179,15 @@ function AdvisoryWorkflows({
         style={{ display: "flex", gap: "var(--space-2)", paddingBottom: "var(--space-2)" }}
         onSubmit={(event) => {
           event.preventDefault();
-          if (changed) onPatch({ advisoryWorkflows: typed.data, advisoryWorkflowsAt: repo.origin });
+          if (changed && own && typed.success)
+            onPatch({ advisoryWorkflows: typed.data, advisoryWorkflowsAt: own.at });
         }}
       >
         <Input
           aria-label={PROJECT_POLICY_WORDS.advisoryLabel}
-          value={draft}
+          value={own?.text ?? saved}
           spellCheck={false}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) => setDraft({ text: event.target.value, at: repo.origin, over: saved })}
           style={{ flex: 1, fontFamily: "var(--font-mono)" }}
         />
         <Button type="submit" size="sm" variant="secondary" disabled={!changed}>
@@ -1163,7 +1195,13 @@ function AdvisoryWorkflows({
         </Button>
       </form>
       <SettingError
-        error={typed.success ? null : PROJECT_POLICY_WORDS.advisoryInvalid}
+        error={
+          !typed.success
+            ? PROJECT_POLICY_WORDS.advisoryInvalid
+            : refused
+              ? PROJECT_POLICY_WORDS.refused(refused)
+              : null
+        }
         surface="advisory-workflows"
       />
     </>

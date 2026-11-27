@@ -899,7 +899,9 @@
   "settingsProjectsAdvisoryDescription": "이 GitHub 워크플로 파일(예: .github/workflows/early-tests.yml)의 검사는 변경에 표시되지만, 병합이나 일괄 끌어오기 요청을 막지 않아요. GitHub 분기 규칙에서 필수인 검사는 여전히 GitHub에서 병합을 막아요.",
   "settingsProjectsAdvisoryInvalid": "각 워크플로 파일을 .github/workflows 바로 아래에서 한 번씩 적어 주세요.",
   "settingsProjectsAdvisoryLabel": "참고용 워크플로 파일",
+  "settingsProjectsAdvisoryMovedRefusal": "저장되지 않았어요. 이 워크플로는 이 프로젝트가 더 이상 쓰지 않는 저장소에 맞춰 적은 것이에요. 지금 쓰는 저장소에 맞춰 다시 적어 주세요.",
   "settingsProjectsAdvisoryNone": "없음",
+  "settingsProjectsAdvisoryTargetRefusal": "저장되지 않았어요. 이 프로젝트의 대상 프로젝트가 바뀌는 중이었어요. 참고용 워크플로를 다시 적어 주세요.",
   "settingsProjectsAdvisoryTitle": "참고용 워크플로",
   "settingsProjectsAutonomyOff": "끝난 작업은 선장님의 말을 기다려요.",
   "settingsProjectsAutonomyOn": "검사를 통과한 작업은 묻지 않고 병합될 수 있어요.",
@@ -1106,6 +1108,7 @@
     "plural": "count",
     "other": "작업 {count}개"
   },
+  "settingsProjectsTargetResetRefusal": "대상 프로젝트가 바뀌지 않았어요. 같은 때에 이 프로젝트의 참고용 워크플로가 바뀌었기 때문이에요. 다시 골라 주세요.",
   "settingsProjectsTasksLabel": "작업",
   "settingsProjectsWorkspace": "작업 공간",
   "settingsProjectsWorkspaceDescription": "그 자리에서 만들어요: 작업 사본도, 끌어오기 요청도 없어요.",

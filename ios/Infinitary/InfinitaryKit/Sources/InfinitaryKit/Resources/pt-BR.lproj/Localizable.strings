@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "As verificações destes arquivos de fluxo de trabalho do GitHub, como .github/workflows/early-tests.yml, aparecem em uma alteração, mas nunca seguram a mesclagem nem o lote. Uma verificação exigida pelas suas regras de branch do GitHub ainda segura a mesclagem no GitHub.";
 "settingsProjectsAdvisoryInvalid" = "Informe cada arquivo de fluxo de trabalho uma vez, diretamente em .github/workflows.";
 "settingsProjectsAdvisoryLabel" = "Arquivos de fluxos de trabalho informativos";
+"settingsProjectsAdvisoryMovedRefusal" = "Não salvo: estes fluxos de trabalho foram informados para um repositório que este projeto não usa mais. Informe-os de novo para o repositório que ele usa agora.";
 "settingsProjectsAdvisoryNone" = "Nenhum";
+"settingsProjectsAdvisoryTargetRefusal" = "Não salvo: o projeto de destino deste projeto estava mudando. Informe de novo os fluxos de trabalho informativos dele.";
 "settingsProjectsAdvisoryTitle" = "Fluxos de trabalho informativos";
 "settingsProjectsAutonomyOff" = "O trabalho concluído espera sua palavra.";
 "settingsProjectsAutonomyOn" = "O trabalho que passa nas verificações pode ser mesclado sem perguntar a você.";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "%1$@ já tem uma etiqueta, então nada foi enviado.";
 "settingsProjectsTagsSuggestUnknown" = "Este projeto não existe mais, então nada foi enviado.";
 "settingsProjectsTagsSuggestWords" = "Sugira etiquetas para %1$@";
+"settingsProjectsTargetResetRefusal" = "O projeto de destino não mudou, porque os fluxos de trabalho informativos deste projeto mudaram ao mesmo tempo. Escolha-o de novo.";
 "settingsProjectsTasksLabel" = "Tarefas";
 "settingsProjectsWorkspace" = "Espaço de trabalho";
 "settingsProjectsWorkspaceDescription" = "Feito no local: sem cópia de trabalho e sem solicitação de pull.";

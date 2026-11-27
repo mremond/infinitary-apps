@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch. A check your GitHub branch rules require still holds the merge on GitHub.";
 "settingsProjectsAdvisoryInvalid" = "Name each workflow file once, directly in .github/workflows.";
 "settingsProjectsAdvisoryLabel" = "Advisory workflow files";
+"settingsProjectsAdvisoryMovedRefusal" = "Not saved: these workflows were named for a repository this project no longer uses. Name them again for the repository it uses now.";
 "settingsProjectsAdvisoryNone" = "None";
+"settingsProjectsAdvisoryTargetRefusal" = "Not saved: this project's target project was changing at the time. Name its advisory workflows again.";
 "settingsProjectsAdvisoryTitle" = "Advisory workflows";
 "settingsProjectsAutonomyOff" = "Finished work waits for your word.";
 "settingsProjectsAutonomyOn" = "Work that passes the checks may merge without asking you.";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "%1$@ has a tag now, so nothing was sent.";
 "settingsProjectsTagsSuggestUnknown" = "This project is gone, so nothing was sent.";
 "settingsProjectsTagsSuggestWords" = "Suggest tags for %1$@";
+"settingsProjectsTargetResetRefusal" = "The target project did not change, because this project's advisory workflows changed at the same time. Choose it again.";
 "settingsProjectsTasksLabel" = "Tasks";
 "settingsProjectsWorkspace" = "Workspace";
 "settingsProjectsWorkspaceDescription" = "Builds in place: no working copy and no pull request.";

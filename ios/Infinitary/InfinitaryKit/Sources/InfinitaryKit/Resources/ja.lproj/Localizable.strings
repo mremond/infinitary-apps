@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "これらの GitHub ワークフローファイル（.github/workflows/early-tests.yml など）のチェックは変更に表示されますが、マージや一括プルリクエストを止めることはありません。GitHub のブランチルールで必須のチェックは、引き続き GitHub 上でマージを止めます。";
 "settingsProjectsAdvisoryInvalid" = "各ワークフローファイルを .github/workflows の直下で一度ずつ指定してください。";
 "settingsProjectsAdvisoryLabel" = "参考ワークフローのファイル";
+"settingsProjectsAdvisoryMovedRefusal" = "保存されませんでした。これらのワークフローは、このプロジェクトがもう使っていないリポジトリ用に指定されたものです。現在使っているリポジトリ用にもう一度指定してください。";
 "settingsProjectsAdvisoryNone" = "なし";
+"settingsProjectsAdvisoryTargetRefusal" = "保存されませんでした。このプロジェクトの対象プロジェクトが変更中でした。参考ワークフローをもう一度指定してください。";
 "settingsProjectsAdvisoryTitle" = "参考ワークフロー";
 "settingsProjectsAutonomyOff" = "完了した作業はあなたの承認を待ちます。";
 "settingsProjectsAutonomyOn" = "チェックに合格した作業は、確認なしでマージされることがあります。";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "%1$@ にはもうタグがあるため、何も送信していません。";
 "settingsProjectsTagsSuggestUnknown" = "このプロジェクトはもうないため、何も送信していません。";
 "settingsProjectsTagsSuggestWords" = "%1$@ のタグを提案して";
+"settingsProjectsTargetResetRefusal" = "対象プロジェクトは変更されませんでした。同時にこのプロジェクトの参考ワークフローが変更されたためです。もう一度選んでください。";
 "settingsProjectsTasksLabel" = "タスク";
 "settingsProjectsWorkspace" = "ワークスペース";
 "settingsProjectsWorkspaceDescription" = "その場で作成：作業コピーもプルリクエストもありません。";

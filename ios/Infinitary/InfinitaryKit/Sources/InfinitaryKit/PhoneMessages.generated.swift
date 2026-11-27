@@ -3757,7 +3757,9 @@ public enum PhoneMessages {
     public static func `settingsProjectsAdvisoryDescription`() -> String { PhoneWords.format("settingsProjectsAdvisoryDescription", []) }
     public static func `settingsProjectsAdvisoryInvalid`() -> String { PhoneWords.format("settingsProjectsAdvisoryInvalid", []) }
     public static func `settingsProjectsAdvisoryLabel`() -> String { PhoneWords.format("settingsProjectsAdvisoryLabel", []) }
+    public static func `settingsProjectsAdvisoryMovedRefusal`() -> String { PhoneWords.format("settingsProjectsAdvisoryMovedRefusal", []) }
     public static func `settingsProjectsAdvisoryNone`() -> String { PhoneWords.format("settingsProjectsAdvisoryNone", []) }
+    public static func `settingsProjectsAdvisoryTargetRefusal`() -> String { PhoneWords.format("settingsProjectsAdvisoryTargetRefusal", []) }
     public static func `settingsProjectsAdvisoryTitle`() -> String { PhoneWords.format("settingsProjectsAdvisoryTitle", []) }
     public static func `settingsProjectsAutonomyOff`() -> String { PhoneWords.format("settingsProjectsAutonomyOff", []) }
     public static func `settingsProjectsAutonomyOn`() -> String { PhoneWords.format("settingsProjectsAutonomyOn", []) }
@@ -3934,6 +3936,7 @@ public enum PhoneMessages {
     public static func `settingsProjectsTagsSuggestUnknown`() -> String { PhoneWords.format("settingsProjectsTagsSuggestUnknown", []) }
     public static func `settingsProjectsTagsSuggestWords`(`project`: String) -> String { PhoneWords.format("settingsProjectsTagsSuggestWords", [`project`]) }
     public static func `settingsProjectsTagsTasks`(`count`: Int) -> String { PhoneWords.format("settingsProjectsTagsTasks", [`count`]) }
+    public static func `settingsProjectsTargetResetRefusal`() -> String { PhoneWords.format("settingsProjectsTargetResetRefusal", []) }
     public static func `settingsProjectsTasksLabel`() -> String { PhoneWords.format("settingsProjectsTasksLabel", []) }
     public static func `settingsProjectsWorkspace`() -> String { PhoneWords.format("settingsProjectsWorkspace", []) }
     public static func `settingsProjectsWorkspaceDescription`() -> String { PhoneWords.format("settingsProjectsWorkspaceDescription", []) }
@@ -8596,7 +8599,9 @@ extension PhoneWords {
         "settingsProjectsAdvisoryDescription": [],
         "settingsProjectsAdvisoryInvalid": [],
         "settingsProjectsAdvisoryLabel": [],
+        "settingsProjectsAdvisoryMovedRefusal": [],
         "settingsProjectsAdvisoryNone": [],
+        "settingsProjectsAdvisoryTargetRefusal": [],
         "settingsProjectsAdvisoryTitle": [],
         "settingsProjectsAutonomyOff": [],
         "settingsProjectsAutonomyOn": [],
@@ -8773,6 +8778,7 @@ extension PhoneWords {
         "settingsProjectsTagsSuggestUnknown": [],
         "settingsProjectsTagsSuggestWords": ["project"],
         "settingsProjectsTagsTasks": ["count"],
+        "settingsProjectsTargetResetRefusal": [],
         "settingsProjectsTasksLabel": [],
         "settingsProjectsWorkspace": [],
         "settingsProjectsWorkspaceDescription": [],

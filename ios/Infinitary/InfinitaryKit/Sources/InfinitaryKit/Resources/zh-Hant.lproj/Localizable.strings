@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "這些 GitHub 工作流程檔案（如 .github/workflows/early-tests.yml）的檢查會顯示在變更上，但從不擋下它的合併或批次。GitHub 分支規則要求的檢查仍會在 GitHub 上擋下合併。";
 "settingsProjectsAdvisoryInvalid" = "請直接在 .github/workflows 中寫出每個工作流程檔案，每個只寫一次。";
 "settingsProjectsAdvisoryLabel" = "參考工作流程檔案";
+"settingsProjectsAdvisoryMovedRefusal" = "未儲存：這些工作流程是為這個專案不再使用的存放庫寫的。請為它現在使用的存放庫重新寫出。";
 "settingsProjectsAdvisoryNone" = "無";
+"settingsProjectsAdvisoryTargetRefusal" = "未儲存：這個專案的目標專案當時正在變更。請重新寫出它的參考工作流程。";
 "settingsProjectsAdvisoryTitle" = "參考工作流程";
 "settingsProjectsAutonomyOff" = "完成的工作會等你同意。";
 "settingsProjectsAutonomyOn" = "通過檢查的工作可以不問你就合併。";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "%1$@ 現在已有標籤，因此沒有傳送任何內容。";
 "settingsProjectsTagsSuggestUnknown" = "這個專案已不存在，因此沒有傳送任何內容。";
 "settingsProjectsTagsSuggestWords" = "為 %1$@ 建議標籤";
+"settingsProjectsTargetResetRefusal" = "目標專案沒有變更，因為這個專案的參考工作流程同時有了變更。請重新選擇。";
 "settingsProjectsTasksLabel" = "任務";
 "settingsProjectsWorkspace" = "工作區";
 "settingsProjectsWorkspaceDescription" = "就地建置：沒有工作副本，也沒有 pull request。";

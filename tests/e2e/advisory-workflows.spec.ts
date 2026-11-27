@@ -334,7 +334,9 @@ for (const batchCase of [
  * contributes to its original (`contributionWorld.ts`) offers both: its
  * address and its Target project. Completion signals are the two notes and
  * the saved project's address and list. A list saved with a target change
- * names the repository the page showed, so it never lands on the other one.
+ * names the repository the page showed, so it never lands on the other one,
+ * and Settings says beside the field that the app refused it; a draft typed
+ * for one repository is not offered for the other.
  */
 test("Settings says before the change that another repository clears the advisory workflows", async () => {
   const world = await startContributionWorld(true);
@@ -416,6 +418,26 @@ test("Settings says before the change that another repository clears the advisor
     );
     await expect.poll(async () => (await saved())?.origin).toBe(world.forge.upstream.clone_url);
     expect((await saved())?.advisoryWorkflows).toBeUndefined();
+    await expect(
+      row.getByText(PROJECT_POLICY_WORDS.refused("advisory-moved"), { exact: true }),
+    ).toBeVisible();
+
+    // Neither repository has a list saved, so only the draft's own
+    // repository tells them apart.
+    await advisory.fill(ADVISORY);
+    await focusOn(original, { focusVisible: true });
+    await pressKey(original, "ArrowRight");
+    await expect.poll(async () => (await saved())?.origin).toBe(world.forge.fork.clone_url);
+    await expect(advisory).toHaveValue("");
+    await expect(
+      row
+        .locator("form")
+        .filter({ has: page.getByRole("textbox", { name: PROJECT_POLICY_WORDS.advisoryLabel }) })
+        .getByRole("button", { name: m.settingsProjectsFolderSave(), exact: true }),
+    ).toBeDisabled();
+    await advisory.fill(ADVISORY);
+    await advisory.press("Enter");
+    await expect.poll(async () => (await saved())?.advisoryWorkflows).toEqual([ADVISORY]);
   } finally {
     await world.close();
   }

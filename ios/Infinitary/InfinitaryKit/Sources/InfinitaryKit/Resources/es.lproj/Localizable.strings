@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "Las comprobaciones de estos archivos de flujo de trabajo de GitHub, como .github/workflows/early-tests.yml, aparecen en un cambio, pero nunca retienen su fusión ni su lote. Una comprobación que exigen tus reglas de rama de GitHub sigue reteniendo la fusión en GitHub.";
 "settingsProjectsAdvisoryInvalid" = "Indica cada archivo de flujo de trabajo una sola vez, directamente en .github/workflows.";
 "settingsProjectsAdvisoryLabel" = "Archivos de flujos de trabajo orientativos";
+"settingsProjectsAdvisoryMovedRefusal" = "No se guardó: estos flujos de trabajo se indicaron para un repositorio que este proyecto ya no usa. Indícalos de nuevo para el repositorio que usa ahora.";
 "settingsProjectsAdvisoryNone" = "Ninguno";
+"settingsProjectsAdvisoryTargetRefusal" = "No se guardó: el proyecto de destino de este proyecto estaba cambiando. Indica de nuevo sus flujos de trabajo orientativos.";
 "settingsProjectsAdvisoryTitle" = "Flujos de trabajo orientativos";
 "settingsProjectsAutonomyOff" = "El trabajo terminado espera tu palabra.";
 "settingsProjectsAutonomyOn" = "El trabajo que supera las comprobaciones puede fusionarse sin preguntarte.";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "%1$@ ya tiene una etiqueta, así que no se envió nada.";
 "settingsProjectsTagsSuggestUnknown" = "Este proyecto ya no existe, así que no se envió nada.";
 "settingsProjectsTagsSuggestWords" = "Sugiere etiquetas para %1$@";
+"settingsProjectsTargetResetRefusal" = "El proyecto de destino no cambió, porque los flujos de trabajo orientativos de este proyecto cambiaron al mismo tiempo. Vuelve a elegirlo.";
 "settingsProjectsTasksLabel" = "Tareas";
 "settingsProjectsWorkspace" = "Espacio de trabajo";
 "settingsProjectsWorkspaceDescription" = "Se construye en el lugar: sin copia de trabajo y sin solicitud de incorporación de cambios.";

@@ -3601,7 +3601,9 @@
 "settingsProjectsAdvisoryDescription" = "这些 GitHub 工作流文件（如 .github/workflows/early-tests.yml）的检查会显示在改动上，但从不阻止它合并，也不阻止这批改动合并。GitHub 分支规则要求的检查仍会在 GitHub 上阻止合并。";
 "settingsProjectsAdvisoryInvalid" = "请直接在 .github/workflows 中写出每个工作流文件，每个只写一次。";
 "settingsProjectsAdvisoryLabel" = "参考工作流文件";
+"settingsProjectsAdvisoryMovedRefusal" = "未保存：这些工作流是为这个项目不再使用的仓库写的。请为它现在使用的仓库重新写出。";
 "settingsProjectsAdvisoryNone" = "无";
+"settingsProjectsAdvisoryTargetRefusal" = "未保存：这个项目的目标项目当时正在更改。请重新写出它的参考工作流。";
 "settingsProjectsAdvisoryTitle" = "参考工作流";
 "settingsProjectsAutonomyOff" = "完成的工作会等你确认。";
 "settingsProjectsAutonomyOn" = "通过检查的工作可以不经询问直接合并。";
@@ -3766,6 +3768,7 @@
 "settingsProjectsTagsSuggestTagged" = "%1$@ 现在已有标签，因此没有发送任何内容。";
 "settingsProjectsTagsSuggestUnknown" = "这个项目已不存在，因此没有发送任何内容。";
 "settingsProjectsTagsSuggestWords" = "为 %1$@ 建议标签";
+"settingsProjectsTargetResetRefusal" = "目标项目没有更改，因为这个项目的参考工作流同时发生了更改。请重新选择。";
 "settingsProjectsTasksLabel" = "任务";
 "settingsProjectsWorkspace" = "工作区";
 "settingsProjectsWorkspaceDescription" = "就地构建：没有工作副本，也没有拉取请求。";

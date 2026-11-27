@@ -2,9 +2,38 @@ import type { BatchHoldState } from "@shared/batches";
 import { formatDate, formatList } from "@shared/i18n/format";
 import * as m from "@shared/i18n/messages.generated";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
-import { type NoChecksRecord, type RepoView, readsPullRequestChecks } from "@shared/repos";
+import {
+  ADVISORY_WORKFLOWS_MOVED_REFUSAL,
+  ADVISORY_WORKFLOWS_RESET_REFUSAL,
+  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
+  type NoChecksRecord,
+  type RepoView,
+  readsPullRequestChecks,
+} from "@shared/repos";
 import { type DeviceSignIns, devicePlace, wordedPlace } from "@shared/signIns";
 import { AUTONOMY_WORDS, PROJECT_DELIVERY_WORDS, RIGOR_WORDS } from "@shared/vocabulary";
+
+/**
+ * A save Settings sent that the app refused for a reason a control names
+ * (docs/forge.md, "Advisory workflows"): the list was named for a repository
+ * the project left, or was sent while its target project changed, or the
+ * target project was refused because the list changed while it was read.
+ */
+export type ProjectRefusal = "advisory-moved" | "advisory-changing" | "target-reset";
+
+const PROJECT_REFUSALS = new Map<string, ProjectRefusal>([
+  [ADVISORY_WORKFLOWS_MOVED_REFUSAL, "advisory-moved"],
+  [ADVISORY_WORKFLOWS_TARGET_REFUSAL, "advisory-changing"],
+  [ADVISORY_WORKFLOWS_RESET_REFUSAL, "target-reset"],
+]);
+
+/**
+ * Which of those a refused save met, by the app's own reason for it, which
+ * reaches Settings whole (`readableRequest`); any other refusal is none.
+ */
+export function projectRefusalOf(error: unknown): ProjectRefusal | null {
+  return (error instanceof Error && PROJECT_REFUSALS.get(error.message)) || null;
+}
 
 /**
  * Words of a project's policy rows in Settings -> Projects (`ProjectsTab`),
@@ -95,6 +124,13 @@ export const PROJECT_POLICY_WORDS = {
   get advisoryClearsTarget() {
     return m.settingsProjectsAdvisoryClearsTarget();
   },
+  /** Beside the control a refused save came from (`projectRefusalOf`). */
+  refused: (refusal: ProjectRefusal) =>
+    refusal === "advisory-moved"
+      ? m.settingsProjectsAdvisoryMovedRefusal()
+      : refusal === "advisory-changing"
+        ? m.settingsProjectsAdvisoryTargetRefusal()
+        : m.settingsProjectsTargetResetRefusal(),
   /** Under the rows of a project that merges locally and asks for Careful. */
   get carefulLocal() {
     return m.settingsProjectsLocalCareful();
