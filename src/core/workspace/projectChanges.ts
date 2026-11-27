@@ -10,7 +10,7 @@ import { type CostLimit, formatUsd } from "@shared/costLimit";
 import type { DeviceView } from "@shared/devices";
 import { deviceRunsWork } from "@shared/devices";
 import * as m from "@shared/i18n/messages.generated";
-import { cardWordsMark, englishOf, said, saidMark } from "@shared/i18n/said";
+import { cardWordsMark, englishOf, type Said, said, saidMark } from "@shared/i18n/said";
 import type { CoreInvokeChannel } from "@shared/ipc";
 import { AUTOMATIC_COMPUTER, AUTOMATIC_WORD, type PlacementRequirements } from "@shared/placement";
 import {
@@ -407,7 +407,7 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     clearsAdvisoryWorkflows(previous, changes.origin as string | null)
   )
     changes.advisoryWorkflows = [];
-  const labels: Record<string, string> = {
+  const labels: Record<string, string | Said> = {
     name: "Name",
     scope: "Scope",
     path: "Folder",
@@ -421,13 +421,13 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     requireChecks: "Require pull request checks",
     batchGap: BATCH_GAP_WORDS.title,
     contributorDisclosure: m.settingsProjectsDisclosure(),
-    advisoryWorkflows: m.settingsProjectsAdvisoryTitle(),
+    advisoryWorkflows: said("settingsProjectsAdvisoryTitle"),
   };
   // Each detail as the project has it now; the project keeps Require pull
   // request checks as its record that it runs none.
   const now = (key: string): unknown =>
     key === "requireChecks" ? !previous.noChecks : previous[key as keyof typeof previous];
-  const words = (key: string, value: unknown): string => {
+  const words = (key: string, value: unknown): string | Said => {
     if (key === "costLimit") {
       const limit = value as CostLimit | null | undefined;
       return !limit ? "Follow the app" : "usd" in limit ? formatUsd(limit.usd) : "No limit";
@@ -448,7 +448,7 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
           : String(value);
     if (key === "advisoryWorkflows") {
       const paths = (value as readonly string[] | undefined) ?? [];
-      return paths.length ? paths.join(", ") : m.settingsProjectsAdvisoryNone();
+      return paths.length ? paths.join(", ") : said("settingsProjectsAdvisoryNone");
     }
     if (key === "runsOn")
       return value === AUTOMATIC_COMPUTER
@@ -476,12 +476,14 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     }
     return String(value);
   };
+  const cell = (text: string | Said): string =>
+    typeof text === "string" ? escapeCardText(text) : saidMark(text);
   return `<table><thead><tr><th>Detail</th><th>Now</th><th>After your click</th></tr></thead><tbody>${Object.entries(
     changes,
   )
     .map(
       ([key, value]) =>
-        `<tr><th>${escapeCardText(labels[key] ?? key)}</th><td class="inf-mono">${escapeCardText(words(key, now(key)))}</td><td class="inf-mono">${escapeCardText(words(key, value))}</td></tr>`,
+        `<tr><th>${cell(labels[key] ?? key)}</th><td class="inf-mono">${cell(words(key, now(key)))}</td><td class="inf-mono">${cell(words(key, value))}</td></tr>`,
     )
     .join("")}</tbody></table>`;
 }

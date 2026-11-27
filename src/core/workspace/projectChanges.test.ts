@@ -1,7 +1,9 @@
 import { tmpdir } from "node:os";
 import type { Card } from "@shared/cards";
 import type { DeviceView } from "@shared/devices";
+import { inLanguage } from "@shared/i18n/current";
 import * as m from "@shared/i18n/messages.generated";
+import { wordSaidMarks } from "@shared/i18n/said";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import type { RepoView } from "@shared/repos";
 import { describe, expect, it } from "vitest";
@@ -127,18 +129,27 @@ describe("the app's exact-change card", () => {
       if (channel === "inf:repos:list") return [project];
       throw new Error(`No ${channel} here.`);
     }) as CoreDispatch);
-    const advisoryRow = (body: string | undefined) =>
-      body
-        ?.match(
-          new RegExp(
-            `<tr><th>${m.settingsProjectsAdvisoryTitle()}</th><td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td></tr>`,
-          ),
-        )
-        ?.slice(1);
+    // The row as a reader in `language` sees the saved card: the window
+    // words its runs of the app's own words as it draws it.
+    const advisoryRow = (body: string | undefined, language = "en") =>
+      inLanguage(language, () =>
+        [...wordSaidMarks(body ?? "").matchAll(/<tr>(.*?)<\/tr>/g)]
+          .map(([, row]) =>
+            [...(row ?? "").matchAll(/<t[hd][^>]*>(.*?)<\/t[hd]>/g)].map(([, cell]) =>
+              (cell ?? "").replace(/<[^>]+>/g, ""),
+            ),
+          )
+          .find(([label]) => label === m.settingsProjectsAdvisoryTitle())
+          ?.slice(1),
+      );
     await changes.inspect(project.id);
     expect(advisoryRow(raised[0]?.body)).toEqual([
       ".github/workflows/early-tests.yml",
       m.settingsProjectsAdvisoryNone(),
+    ]);
+    expect(advisoryRow(raised[0]?.body, "fr")).toEqual([
+      ".github/workflows/early-tests.yml",
+      "Aucun",
     ]);
     await changes.request(
       "project-settings",
