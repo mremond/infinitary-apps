@@ -10,7 +10,7 @@ import {
   waitingForMaintainers,
 } from "@shared/contributions";
 import type { FmEvent } from "@shared/events";
-import * as m from "@shared/i18n/messages.generated";
+import { said, saidMark } from "@shared/i18n/said";
 import { PULL_REQUEST_COMMENTS_WAKE } from "@shared/pullComments";
 import type { RepoView } from "@shared/repos";
 import { MERGE_WORDS } from "@shared/vocabulary";
@@ -1053,7 +1053,11 @@ describe("approved once-per-project contribution consent", () => {
   });
 
   // docs/forge.md, "Advisory workflows": a list stays with the repository it
-  // was chosen for, so the choice that moves the project says so first.
+  // was chosen for, so the choice that moves the project says so first, as a
+  // saved fact each reader words in their own language.
+  const clears = (choice: string) =>
+    saidMark(said("projectsContributionClearsAdvisory", { choice }), "p");
+
   it("says which target clears an imported fork's advisory workflows, and that choice clears them", async () => {
     const world = await fixture();
     world.repos.configure(world.repo.id, {
@@ -1062,13 +1066,33 @@ describe("approved once-per-project contribution consent", () => {
     });
     const service = world.make();
     await service.discover(world.repo.id);
-    expect(world.offer().body).toContain(
-      m.projectsContributionClearsAdvisory({ choice: CONTRIBUTION_WORDS.contribute }),
-    );
-    expect(world.offer().body).not.toContain(
-      m.projectsContributionClearsAdvisory({ choice: CONTRIBUTION_WORDS.keepFork }),
-    );
+    expect(world.offer().body).toContain(clears(CONTRIBUTION_WORDS.contribute));
+    expect(world.offer().body).not.toContain(clears(CONTRIBUTION_WORDS.keepFork));
     await service.answer(world.choose(world.offer(), "contribute-upstream"));
+    expect(world.repos.get(world.repo.id)?.origin).toBe(world.upstream.origin);
+    expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
+  });
+
+  it("shows the choice again before clearing an advisory list saved after its card went up", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    const opened = world.offer();
+    expect(opened.body).not.toContain(clears(CONTRIBUTION_WORDS.contribute));
+    world.repos.configure(world.repo.id, {
+      advisoryWorkflows: [".github/workflows/early-tests.yml"],
+    });
+    await service.answer(world.choose(opened, "contribute-upstream"));
+    expect(world.repos.get(world.repo.id)?.origin).toBe(world.fork.origin);
+    expect(world.repos.get(world.repo.id)?.contribution?.destination).toBeNull();
+    expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toEqual([
+      ".github/workflows/early-tests.yml",
+    ]);
+    const shown = world.offer();
+    expect(shown).not.toBe(opened);
+    expect(shown.body).toContain(clears(CONTRIBUTION_WORDS.contribute));
+    await service.answer(world.choose(shown, "contribute-upstream"));
     expect(world.repos.get(world.repo.id)?.origin).toBe(world.upstream.origin);
     expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
   });

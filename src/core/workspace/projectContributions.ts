@@ -11,7 +11,7 @@ import {
 } from "@shared/contributions";
 import type { FmEvent } from "@shared/events";
 import { forgeOf } from "@shared/forge";
-import * as m from "@shared/i18n/messages.generated";
+import { said, saidMark } from "@shared/i18n/said";
 import { deliveryForRecord, opensPullRequest, type RepoView } from "@shared/repos";
 import { type Forge, ForgeAllowanceSpent, ForgeError, ForgeWriteError } from "../forge";
 import { escapeCardText } from "../orchestrator/cardText";
@@ -22,6 +22,24 @@ import type { RepoRegistry } from "./repoRegistry";
 type HostCard = Omit<Card, "author" | "priority" | "status" | "createdAt">;
 const stamp = (route: ContributionRoute) =>
   createHash("sha256").update(JSON.stringify(route)).digest("hex");
+
+/**
+ * The destination card's choices that would clear the project's advisory
+ * workflows, as the card names them. Each click carries the list its card
+ * showed, so a list saved after the card went up is shown before any write.
+ */
+function clearingChoices(repo: RepoView): string[] {
+  const route = repo.contribution;
+  if (!route) return [];
+  return (
+    [
+      [route.upstream, CONTRIBUTION_WORDS.contribute],
+      [route.fork, CONTRIBUTION_WORDS.keepFork],
+    ] as const
+  ).flatMap(([project, label]) =>
+    project && clearsAdvisoryWorkflows(repo, project.origin) ? [label] : [],
+  );
+}
 
 /** Project-owned fork routing, with creation reachable only from an app-authored consent card. */
 export class ProjectContributions {
@@ -170,16 +188,9 @@ export class ProjectContributions {
     if (!route) return;
     const name = escapeCardText(repo.name);
     const choice = route.destination === null;
-    const clearing = (
-      [
-        [route.upstream, CONTRIBUTION_WORDS.contribute],
-        [route.fork, CONTRIBUTION_WORDS.keepFork],
-      ] as const
-    ).flatMap(([project, label]) =>
-      project && clearsAdvisoryWorkflows(repo, project.origin) ? [label] : [],
-    );
+    const clearing = clearingChoices(repo);
     const arg = (action: string) =>
-      `contribution:${JSON.stringify({ repo: repo.id, action, before: stamp(route) })}`;
+      `contribution:${JSON.stringify({ repo: repo.id, action, before: stamp(route), clears: clearing })}`;
     const action = (id: string, label: string, picked: string, primary = false) => ({
       id,
       label,
@@ -193,7 +204,7 @@ export class ProjectContributions {
         : CONTRIBUTION_WORDS.consentTitle(repo.name),
       meta: FIRSTMATE_CARD_META,
       body: choice
-        ? `<p>${name} is your fork of <span class="inf-mono">${escapeCardText(route.upstream.fullName)}</span>.</p><p>Contribute to the original project, or keep changes in your fork.</p>${clearing.map((label) => `<p>${escapeCardText(m.projectsContributionClearsAdvisory({ choice: label }))}</p>`).join("")}<p>You can change Target project in Settings → Projects later.</p>`
+        ? `<p>${name} is your fork of <span class="inf-mono">${escapeCardText(route.upstream.fullName)}</span>.</p><p>Contribute to the original project, or keep changes in your fork.</p>${clearing.map((label) => saidMark(said("projectsContributionClearsAdvisory", { choice: label }), "p")).join("")}<p>You can change Target project in Settings → Projects later.</p>`
         : route.creationAttempted
           ? `<p>The host has not confirmed your fork of ${name} yet.</p><p>Infinitary will read the result before sending anything else. It will not repeat an uncertain request.</p>`
           : `<p>Your sign-in cannot push to ${name}. Making your fork lets Infinitary contribute changes to its maintainers.</p><p>Infinitary asks once for this project, reuses your fork, and leaves merging to the maintainers.</p>`,
@@ -222,6 +233,7 @@ export class ProjectContributions {
         repo: string;
         action: string;
         before: string;
+        clears?: string[];
       } | null;
       if (!ask) return;
       const repo = this.options.repos.get(ask.repo);
@@ -231,6 +243,11 @@ export class ProjectContributions {
         );
       this.checkHost(repo, repo.contribution);
       if (ask.action === "upstream" || ask.action === "fork") {
+        // A card raised before its clicks carried the list showed none.
+        if (JSON.stringify(clearingChoices(repo)) !== JSON.stringify(ask.clears ?? [])) {
+          this.offer(repo);
+          return;
+        }
         await this.choose(repo.id, ask.action);
         return;
       }
