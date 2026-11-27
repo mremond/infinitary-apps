@@ -378,6 +378,15 @@ test("Settings says before the change that another repository clears the advisor
     await expect(addressNote).toHaveCount(0);
     await address.fill(world.forge.fork.clone_url);
     await expect(addressNote).toBeVisible();
+    // An escape typed halfway names no repository yet: the page keeps taking
+    // keys, and nothing is saved.
+    await address.fill("https://github.com/examples/project%");
+    await expect(addressNote).toBeVisible();
+    await address.press("Backspace");
+    await expect(address).toHaveValue("https://github.com/examples/project");
+    await expect(addressNote).toHaveCount(0);
+    expect((await saved())?.origin).toBe(world.forge.upstream.clone_url);
+    expect((await saved())?.advisoryWorkflows).toEqual([ADVISORY]);
     await address.fill(world.forge.upstream.clone_url);
     await expect(addressNote).toHaveCount(0);
 

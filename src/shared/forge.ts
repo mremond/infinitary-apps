@@ -191,7 +191,13 @@ function locate(raw: string): { host: string; path: string } | undefined {
       return undefined;
     }
     if (url.protocol === "file:" || !url.hostname) return undefined;
-    return { host: url.hostname, path: decodeURIComponent(url.pathname) };
+    // An unfinished escape, such as a trailing % typed midway, makes the
+    // decode throw; such an address names no repository yet.
+    try {
+      return { host: url.hostname, path: decodeURIComponent(url.pathname) };
+    } catch {
+      return undefined;
+    }
   }
   // A Windows drive letter ("C:\\...") is a local path, not host:path.
   if (/^[a-z]:[\\/]/i.test(raw)) return undefined;

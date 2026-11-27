@@ -35,6 +35,20 @@ describe("forgeOf", () => {
     }
   });
 
+  // Settings reads the address field as it is typed, so an escape half typed
+  // must read as no repository rather than stop the page.
+  it("reads an address with an unfinished escape as naming no repository", () => {
+    for (const draft of ["https://github.com/o/r%", "https://github.com/o/r%2"]) {
+      expect(forgeOf(draft), draft).toEqual({ kind: "git", host: null });
+    }
+    expect(forgeOf("https://github.com/o/r%2E")).toEqual({
+      kind: "github",
+      host: "github.com",
+      owner: "o",
+      name: "r.",
+    });
+  });
+
   it("names GitLab and Bitbucket by their public hosts, nested groups included", () => {
     expect(forgeOf("https://gitlab.com/group/sub/r.git")).toEqual({
       kind: "gitlab",
