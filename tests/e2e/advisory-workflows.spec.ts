@@ -149,10 +149,12 @@ test("a project names an advisory workflow by keys, and a change merges while th
 
     const facts = factsStrip(cardBody(page, MOCK_GITHUB_CHANGE_CARD_TITLE));
     await expect(facts.checks).toHaveText(CHECK_WORDS.green);
-    // The checks cell's counts, on rest, name the advisory check and its own state.
+    // The checks cell's counts, on rest, name the advisory check and its own
+    // state. Its unfinished workflow run is a row of its own, as any
+    // unfinished run is, so the running advisory workflow counts twice.
     await pressKey(facts.change.locator("a"), "Shift+Tab");
     await untilFocused(facts.cell("checks"));
-    await expect(facts.rest("checks")).toContainText("1 passed · 1 advisory, running");
+    await expect(facts.rest("checks")).toContainText("1 passed · 2 advisory, running");
     const merge = page.getByRole("button", { name: MERGE_WORDS["merge-pr"], exact: true });
     await expect(merge).toBeVisible();
     await expect(
