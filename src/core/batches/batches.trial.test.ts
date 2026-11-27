@@ -210,6 +210,44 @@ describe("a held batch's early run with its declared fix", () => {
     expect(home.heard.trialFailed).toHaveLength(1);
   });
 
+  // docs/forge.md, "Advisory workflows": a project's advisory workflows decide
+  // nothing at the early run's version either; its required checks still do.
+  it("merges the run's commit past a failed advisory workflow once the fix is approved", async () => {
+    const { home } = await heldWithFix();
+    await confirm(home, FIX);
+    const trial = home.open().trial;
+    home.host.report([
+      passed("build"),
+      passed("unit-tests"),
+      { name: "early-tests", state: "neutral", advisory: "failure" },
+    ]);
+    home.host.ready("clean");
+    await home.pass();
+    expect(home.heard.trialFailed).toEqual([]);
+
+    await home.approve(FIX);
+    await home.pass();
+    expect(home.host.merges).toEqual([expect.objectContaining({ number: 31, head: trial?.head })]);
+  });
+
+  it("keeps the hold on a failed required check beside a passed advisory workflow, merging nothing", async () => {
+    const { home, held } = await heldWithFix();
+    await confirm(home, FIX);
+    home.host.report([
+      passed("build"),
+      failed("unit-tests"),
+      { name: "early-tests", state: "neutral", advisory: "success" },
+    ]);
+    home.host.ready("clean");
+    await home.pass();
+    expect(home.heard.trialFailed).toEqual([{ task: FIX.taskId, failed: ["unit-tests"] }]);
+
+    await home.approve(FIX);
+    await home.pass();
+    expect(home.host.merges).toEqual([]);
+    expect(home.open()).toMatchObject({ head: held.head, hold: { head: held.head } });
+  });
+
   it("starts a new run for a new version of the fix in place of the earlier one", async () => {
     const { home, held } = await heldWithFix();
     await confirm(home, FIX);
