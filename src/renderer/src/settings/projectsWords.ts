@@ -77,19 +77,15 @@ export const PROJECT_POLICY_WORDS = {
   get disclosureLine() {
     return m.settingsProjectsDisclosureLine();
   },
-  /** The Advisory workflows row's name (docs/forge.md, "Advisory workflows"). */
   get advisoryTitle() {
     return m.settingsProjectsAdvisoryTitle();
   },
-  /** What the Advisory workflows row says under its name. */
   get advisory() {
     return m.settingsProjectsAdvisoryDescription();
   },
-  /** The name of the field holding the project's advisory workflow files. */
   get advisoryLabel() {
     return m.settingsProjectsAdvisoryLabel();
   },
-  /** Under the field when what it holds names no workflow file the project can run. */
   get advisoryInvalid() {
     return m.settingsProjectsAdvisoryInvalid();
   },

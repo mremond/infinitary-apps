@@ -1085,10 +1085,8 @@ function ContributorDisclosure({
 }
 
 /**
- * Advisory workflows (docs/forge.md, "Advisory workflows"): the GitHub
- * workflow files whose checks show on a change but never hold it, typed
- * separated by commas and saved by their own Save. The app refuses a list
- * it cannot keep without saying why, so the field checks it first.
+ * docs/forge.md, "Advisory workflows". A refused patch reaches this page
+ * with no reason a person reads, so the field checks the list before saving.
  */
 function AdvisoryWorkflows({
   repo,

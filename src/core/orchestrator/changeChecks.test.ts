@@ -1025,7 +1025,7 @@ describe('a project with no checks (docs/forge.md, "A project with no checks")',
     expect(repos.get(repoId)?.noChecks).toBeUndefined();
   });
 
-  // INF-67: an advisory workflow's check decides nothing (docs/forge.md, "Advisory workflows").
+  // docs/forge.md, "Advisory workflows".
   it("keeps the record while only an advisory check runs", async () => {
     const { tasks, repos, service, forge, task, repoId, headSha } = await noCiProject();
     repos.configure(repoId, { requireChecks: false });
@@ -1178,13 +1178,10 @@ describe("a neutral check by each host's own rule (INF-4552)", () => {
 });
 
 /**
- * INF-67, from the captain's choice to update Infinitary before a project's
- * branch pilot starts (docs/forge.md, "Advisory workflows"): a check from one
- * of the project's advisory workflows, as the GitHub reader marks it, holds
- * nothing whether it runs, fails or never finishes; every other check holds
- * as it always has, and advisory checks alone never pass a change.
+ * docs/forge.md, "Advisory workflows". Each reading is one the GitHub reader
+ * already marked (`asAdvisory`), so these start past the reader.
  */
-describe("a check from an advisory workflow (INF-67)", () => {
+describe("a check from an advisory workflow", () => {
   const HEAD = "feedbeef";
   const early = (state: ForgeCheckState) =>
     ({ name: "early-tests", state: "neutral", advisory: state }) as ForgeCheck;

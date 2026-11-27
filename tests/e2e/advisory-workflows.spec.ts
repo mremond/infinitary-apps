@@ -53,11 +53,7 @@ const savedAdvisory = (userDataDir: string) =>
   });
 
 /**
- * The goal of INF-67, from the captain's choice to update Infinitary before
- * a project's branch pilot starts: a project names advisory GitHub
- * workflows in Settings → Projects, and their checks stay out of the merge
- * card's readiness and the batch's admission while they run, fail or never
- * finish, while every other check keeps holding.
+ * docs/forge.md, "Advisory workflows".
  *
  * A project on GitHub stands in through a local stand-in GitHub that serves
  * the app's real sign-in, forge, workflow runs and merge, and every push

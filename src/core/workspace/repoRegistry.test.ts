@@ -399,14 +399,7 @@ describe("RepoRegistry's record that a project runs no pull request checks", () 
   });
 });
 
-/**
- * Advisory workflows (INF-67, from the captain's choice to update Infinitary
- * before a project's branch pilot starts; docs/forge.md, "Advisory
- * workflows"): a GitHub project's list of workflow files whose checks hold
- * nothing, kept across reloads and other settings, cleared by an empty list,
- * and refused for a project whose changes do not go through GitHub pull
- * requests, which name no workflow file.
- */
+// docs/forge.md, "Advisory workflows".
 describe("RepoRegistry's advisory workflows", () => {
   it("keeps a GitHub project's advisory workflow files, clears them, and refuses them where no pull request names its workflow", async () => {
     const { db, registry } = setup();

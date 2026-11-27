@@ -967,12 +967,11 @@ describe("GitHubForge", () => {
     ]);
   });
 
-  // INF-67, from the captain's choice to update Infinitary before a
-  // project's branch pilot starts (docs/forge.md, "Advisory workflows").
+  // docs/forge.md, "Advisory workflows".
   it("reads every check of a project's advisory workflow as holding nothing, matched by the workflow file GitHub names on its run", async () => {
-    // A pull request's reading on this project's own repository, trimmed to
-    // its three pull request workflows and two checks of each: GitHub's own
-    // answer, with its run, workflow and suite ids.
+    // GitHub's answer for one pull request version, trimmed to three
+    // workflows and two checks of each, keeping its run, workflow and suite
+    // ids, since the reader joins checks to runs by them.
     const head = "24f40659406048965e39450ce0eaf096201beaa0";
     const run = (
       id: number,
