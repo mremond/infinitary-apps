@@ -80,6 +80,7 @@ export type {
 } from "./forge";
 export {
   allowanceResetOf,
+  asReported,
   BATCH_CHECK,
   BATCH_WAITING_WORDS,
   changeTitle,

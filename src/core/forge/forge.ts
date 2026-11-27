@@ -117,6 +117,11 @@ export function asAdvisory(check: ForgeCheck): ForgeCheck {
   return { ...check, state: "neutral", advisory: check.advisory ?? check.state };
 }
 
+/** A check in the state the host reported, an advisory one's included. */
+export function asReported({ advisory, ...check }: ForgeCheck): ForgeCheck {
+  return advisory ? { ...check, state: advisory } : check;
+}
+
 /**
  * One check's state, normalised: `success`, `skipped` and a finished
  * `neutral` permit green, as GitHub's required checks pass on them; terminal

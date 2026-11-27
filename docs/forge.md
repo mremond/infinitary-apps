@@ -889,6 +889,7 @@ It is offered only for a project that ships through pull requests on GitHub (`na
 
 The GitHub reader marks each check whose workflow run's file is on the list (`asAdvisory` in `src/core/forge/forge.ts`): its state reads `neutral`, and `advisory` keeps the state GitHub reported.
 Every reader of a check reading follows with no path of its own, because each one already treats `neutral` as holding nothing: the merge card's checks hold, the check watch and its wakes, the merge's own reading, a batch's admission and its trial, and a reviewed pull request's merge.
+A merge past the branch rules is the one exception: GitHub's own merge reaches past the list, so its review reads each advisory check as GitHub reported it (`asReported`), waits for it to finish and names it among the failed checks ("A merge past the branch rules").
 The crew's check facts give such a check's own state and say it holds nothing, and the task's checks and the check watch's wakes say `advisory, running` or `advisory, failed`, so a crewmate still sees the workflow's result and can read its log with `read_workflow`.
 A check whose workflow run is still unfinished before it registers carries the run, so it is marked as soon as it is read.
 A reading where only advisory or skipped checks ran is treated as an empty one: it waits for the required checks to register, or for the crew to declare their absence ("Check facts and crew judgment" above), and an advisory check never ends a project's no-checks record ("A project with no checks" above).

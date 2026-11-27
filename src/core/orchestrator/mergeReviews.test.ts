@@ -15,6 +15,7 @@ import {
   type ForgeApi,
   ForgeBaseMoved,
   type ForgeChange,
+  type ForgeCheck,
   ForgeError,
   type ForgePull,
   type ForgeReadiness,
@@ -885,6 +886,25 @@ describe("preparing a merge past the branch rules (FI3-1571 piece 2)", () => {
       "It may skip these rules, each of which GitHub says your sign-in may skip: required checks (main checks); a review before merging (reviews).",
     );
     expect(lines).toContain("It merges with these checks failed: critical-path.");
+  });
+
+  // docs/forge.md, "Advisory workflows": a merge past the rules waits on and
+  // names an advisory workflow's check as GitHub reported it.
+  it("waits on an advisory check and names a failed one, as GitHub reported them", async () => {
+    const { service, task, host, forge, skipInput, reviews } = await onGitHub();
+    host.pull = openPull({ readiness: "blocked" });
+    let early: ForgeCheck = { name: "early-tests", state: "neutral", advisory: "pending" };
+    forge.checks = async () => ({
+      items: [{ name: "typecheck-lint-build", state: "success" }, early],
+    });
+    expect(await service.checkTool.checkForCrew(task.id, skipInput())).toBe(
+      "Merge review refused: The checks have not finished. Wait for their final results before preparing or sending a rule-bypass review.",
+    );
+    expect(reviews()).toEqual([]);
+    early = { name: "early-tests", state: "neutral", advisory: "failure" };
+    expect((await service.checkTool.checkForCrew(task.id, skipInput())).split("\n")).toContain(
+      "It merges with these checks failed: early-tests.",
+    );
   });
 });
 

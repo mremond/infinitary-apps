@@ -12,6 +12,7 @@ import {
 } from "@shared/presentationDestination";
 import { deliveryForRecord, opensPullRequest, type RepoView } from "@shared/repos";
 import {
+  asReported,
   BATCH_WAITING_WORDS,
   type Forge,
   ForgeBaseMoved,
@@ -1246,7 +1247,9 @@ export class ChangeMerge {
       return { ok: false, text: `The checks cannot be read. ${checks.problem}`, stop: "checks" };
     const record = this.options.tasks.get(taskId);
     const absent = record && this.checks.absenceDeclared(record, { forge, change, ...project });
-    const items = checks.items;
+    // A merge past the rules is GitHub's own merge, which no advisory list
+    // reaches: its review waits on every check and names each failed one.
+    const items = checks.items.map(asReported);
     if (
       checks.complete === false ||
       items.some((item) => item.state === "pending") ||
