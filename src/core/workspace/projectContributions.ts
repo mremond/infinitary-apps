@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { clearsAdvisoryWorkflows } from "@shared/advisoryWorkflows";
+import { advisoryWorkflowsCleared } from "@shared/advisoryWorkflows";
 import { type Card, FIRSTMATE_CARD_META } from "@shared/cards";
 import {
   CONTRIBUTION_WORDS,
@@ -16,6 +16,7 @@ import {
   ADVISORY_WORKFLOWS_RESET_REFUSAL,
   deliveryForRecord,
   opensPullRequest,
+  type RepoPolicyPatch,
   type RepoView,
 } from "@shared/repos";
 import { type Forge, ForgeAllowanceSpent, ForgeError, ForgeWriteError } from "../forge";
@@ -29,21 +30,13 @@ const stamp = (route: ContributionRoute) =>
   createHash("sha256").update(JSON.stringify(route)).digest("hex");
 
 /**
- * The destination card's choices that would clear the project's advisory
- * workflows, as the card names them. Each click carries the list its card
- * showed, so a list saved after the card went up is shown before any write.
+ * The advisory workflows choosing `destination` clears, as the destination
+ * card shows them: each click carries its choice's, so a list saved after the
+ * card went up is shown before any write.
  */
-function clearingChoices(repo: RepoView): string[] {
-  const route = repo.contribution;
-  if (!route) return [];
-  return (
-    [
-      [route.upstream, CONTRIBUTION_WORDS.contribute],
-      [route.fork, CONTRIBUTION_WORDS.keepFork],
-    ] as const
-  ).flatMap(([project, label]) =>
-    project && clearsAdvisoryWorkflows(repo, project.origin) ? [label] : [],
-  );
+function clearedBy(repo: RepoView, destination: "upstream" | "fork"): string[] {
+  const project = repo.contribution?.[destination];
+  return project ? advisoryWorkflowsCleared(repo, project.origin) : [];
 }
 
 /** A target switch whose advisory reset changed after it was shown; it wrote nothing. */
@@ -55,7 +48,7 @@ export class ProjectContributions {
     return arg?.startsWith("contribution:") === true;
   }
   private readonly pending = new Map<string, Promise<void>>();
-  private readonly choosing = new Map<string, Promise<RepoView>>();
+  private readonly choosing = new Map<string, Promise<unknown>>();
   constructor(
     private readonly options: {
       repos: RepoRegistry;
@@ -196,9 +189,19 @@ export class ProjectContributions {
     if (!route) return;
     const name = escapeCardText(repo.name);
     const choice = route.destination === null;
-    const clearing = clearingChoices(repo);
+    const clearing = (
+      [
+        ["upstream", CONTRIBUTION_WORDS.contribute],
+        ["fork", CONTRIBUTION_WORDS.keepFork],
+      ] as const
+    ).flatMap(([destination, label]) => (clearedBy(repo, destination).length ? [label] : []));
     const arg = (action: string) =>
-      `contribution:${JSON.stringify({ repo: repo.id, action, before: stamp(route), clears: clearing })}`;
+      `contribution:${JSON.stringify({
+        repo: repo.id,
+        action,
+        before: stamp(route),
+        ...(action === "upstream" || action === "fork" ? { clears: clearedBy(repo, action) } : {}),
+      })}`;
     const action = (id: string, label: string, picked: string, primary = false) => ({
       id,
       label,
@@ -377,9 +380,29 @@ export class ProjectContributions {
   }
 
   /**
+   * Run `write` after the project's earlier target and address writes. A new
+   * task reads its route after them (`finishChoice`) and hears a failed
+   * target switch's refusal when `heard`; a refused address change wrote
+   * nothing it would read.
+   */
+  private inLine(
+    repoId: string,
+    write: () => Promise<RepoView>,
+    heard: boolean,
+  ): Promise<RepoView> {
+    const previous = this.choosing.get(repoId);
+    const run = (previous ? previous.catch(() => {}).then(write) : write()).finally(() => {
+      if (this.choosing.get(repoId) === waited) this.choosing.delete(repoId);
+    });
+    const waited: Promise<unknown> = heard ? run : run.catch(() => {});
+    this.choosing.set(repoId, waited);
+    return run;
+  }
+
+  /**
    * Serialize target writes; a new task waits before reading its branch's
-   * route. `shown` is the reset its card showed (`clearingChoices`); a
-   * Settings switch showed the project's as it starts.
+   * route. `shown` is the advisory workflows its place showed this choice
+   * clearing (`clearedBy`); an internal switch shows the project's as it starts.
    */
   choose(
     repoId: string,
@@ -387,15 +410,32 @@ export class ProjectContributions {
     notify = true,
     shown?: readonly string[],
   ): Promise<RepoView> {
-    const previous = this.choosing.get(repoId);
-    const next = previous
-      ? previous.catch(() => {}).then(() => this.chooseOnce(repoId, destination, notify, shown))
-      : this.chooseOnce(repoId, destination, notify, shown);
-    const run = next.finally(() => {
-      if (this.choosing.get(repoId) === run) this.choosing.delete(repoId);
-    });
-    this.choosing.set(repoId, run);
-    return run;
+    return this.inLine(repoId, () => this.chooseOnce(repoId, destination, notify, shown), true);
+  }
+
+  /**
+   * Change a project's address on the line its target switches take: the
+   * change's last check, the advisory reset it showed included, comes before
+   * its first write, which releases its push address and pins prepared
+   * tasks' routes, and the project refuses advisory saves from that check
+   * until its address is saved.
+   */
+  changeAddress(repoId: string, changes: RepoPolicyPatch): Promise<RepoView> {
+    return this.inLine(repoId, () => this.changeAddressOnce(repoId, changes), false);
+  }
+
+  private async changeAddressOnce(repoId: string, changes: RepoPolicyPatch): Promise<RepoView> {
+    await this.options.repos.checkDetails(repoId, changes);
+    // The Git reads above wait, and a list saved meanwhile was never shown as cleared.
+    this.options.repos.checkConfigure(repoId, changes);
+    const release = this.options.repos.holdAdvisoryWorkflows(repoId);
+    try {
+      await this.clearPushAddress(repoId);
+    } finally {
+      release();
+    }
+    // Released in the same step as the save, so the patch's own list is not refused.
+    return this.options.repos.configure(repoId, changes);
   }
 
   private async chooseOnce(
@@ -407,7 +447,7 @@ export class ProjectContributions {
     const repo = this.options.repos.get(repoId);
     const route = repo?.contribution;
     if (!repo || !route?.fork) throw new Error("This project has no confirmed fork to choose.");
-    const reset = JSON.stringify(shown ?? clearingChoices(repo));
+    const reset = JSON.stringify(shown ?? clearedBy(repo, destination));
     this.checkHost(repo, route);
     const project = destination === "upstream" ? route.upstream : route.fork;
     const same = contributionOriginMatches(project, repo.origin, repo.host?.kind);
@@ -427,7 +467,7 @@ export class ProjectContributions {
     // tasks' routes, then hold the project's advisory saves until its
     // address is written.
     const current = this.options.repos.get(repoId);
-    if (!current || JSON.stringify(clearingChoices(current)) !== reset)
+    if (!current || JSON.stringify(clearedBy(current, destination)) !== reset)
       throw new ResetChanged(ADVISORY_WORKFLOWS_RESET_REFUSAL);
     const release = this.options.repos.holdAdvisoryWorkflows(repoId);
     let updated: RepoView;

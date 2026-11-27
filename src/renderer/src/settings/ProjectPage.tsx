@@ -1,4 +1,5 @@
 import {
+  advisoryWorkflowsCleared,
   advisoryWorkflowsSchema,
   clearsAdvisoryWorkflows,
   sameAdvisoryRepository,
@@ -54,6 +55,7 @@ import {
   PROJECT_POLICY_WORDS,
   PROJECT_ROW_WORDS,
   type ProjectRefusal,
+  projectRefusalOf,
 } from "./projectsWords";
 import { RemoveProject } from "./RemoveProject";
 import { RunsOnControl, runsOnDescription } from "./RunsOn";
@@ -625,13 +627,20 @@ function RepositorySettings({
                 { value: "fork", label: CONTRIBUTION_WORDS.fork },
               ]}
               onChange={(contributionDestination) => {
-                if (contributionDestination) onPatch({ contributionDestination });
+                const target = contributionDestination
+                  ? repo.contribution?.[contributionDestination]
+                  : undefined;
+                if (contributionDestination && target)
+                  onPatch({
+                    contributionDestination,
+                    advisoryWorkflowsCleared: advisoryWorkflowsCleared(repo, target.origin),
+                  });
               }}
             />
           }
         />
       )}
-      {!personal && repo.contribution?.fork && refused === "target-reset" && (
+      {!personal && repo.contribution?.fork && refused === "advisory-reset" && (
         <SettingError error={PROJECT_POLICY_WORDS.refused(refused)} surface="contribution-target" />
       )}
       {!personal &&
@@ -687,7 +696,7 @@ function RepositorySettings({
       {namesAdvisoryWorkflows(repo) && (
         <AdvisoryWorkflows
           repo={repo}
-          refused={refused === "target-reset" ? null : refused}
+          refused={refused === "advisory-reset" ? null : refused}
           onPatch={onPatch}
         />
       )}
@@ -907,11 +916,21 @@ function ProjectDetails({ repo, withName }: { repo: RepoView; withName: boolean 
         ...((scope || null) !== (repo.scope ?? null) ? { scope: scope || null } : {}),
         ...(path !== repo.path ? { path } : {}),
         ...((origin || null) !== repo.origin
-          ? { origin: origin || null, ...(!origin ? { delivery: "local-only" as const } : {}) }
+          ? {
+              origin: origin || null,
+              advisoryWorkflowsCleared: advisoryWorkflowsCleared(repo, origin || null),
+              ...(!origin ? { delivery: "local-only" as const } : {}),
+            }
           : {}),
       });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
+      setError(
+        projectRefusalOf(caught) === "advisory-reset"
+          ? PROJECT_POLICY_WORDS.addressReset
+          : caught instanceof Error
+            ? caught.message
+            : String(caught),
+      );
     } finally {
       setSaving(false);
     }

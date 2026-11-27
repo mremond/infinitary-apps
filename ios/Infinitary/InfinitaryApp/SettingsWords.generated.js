@@ -9819,6 +9819,33 @@ ${events}` : prompt;
     }
     return `Recent tasks and each model's detail are in Settings → Usage on ${home}.`;
   }
+  function settingsProjectsAddressResetRefusal() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `لم يُحفظ العنوان، لأن مسارات العمل الاستشارية لهذا المشروع تغيّرت في الوقت نفسه. احفظه من جديد.`;
+      case "de":
+        return `Die Adresse wurde nicht gespeichert, weil sich die unverbindlichen Workflows dieses Projekts gleichzeitig geändert haben. Speichere sie erneut.`;
+      case "es":
+        return `La dirección no se guardó, porque los flujos de trabajo orientativos de este proyecto cambiaron al mismo tiempo. Vuelve a guardarla.`;
+      case "fr":
+        return `L’adresse n’a pas été enregistrée, car les workflows indicatifs de ce projet ont changé au même moment. Enregistrez-la de nouveau.`;
+      case "ja":
+        return `アドレスは保存されませんでした。同時にこのプロジェクトの参考ワークフローが変更されたためです。もう一度保存してください。`;
+      case "ko":
+        return `주소가 저장되지 않았어요. 같은 때에 이 프로젝트의 참고용 워크플로가 바뀌었기 때문이에요. 다시 저장해 주세요.`;
+      case "pt-BR":
+        return `O endereço não foi salvo, porque os fluxos de trabalho informativos deste projeto mudaram ao mesmo tempo. Salve-o de novo.`;
+      case "zh-Hans":
+        return `地址没有保存，因为这个项目的参考工作流同时发生了更改。请重新保存。`;
+      case "zh-Hant":
+        return `位址沒有儲存，因為這個專案的參考工作流程同時有了變更。請重新儲存。`;
+      case "en-XA":
+        return `[Ţĥé áððŕéšš ŵáš ñöţ šáṽéð, ƀéçáûšé ţĥîš þŕöĵéçţ'š áðṽîšöŕý ŵöŕķƒļöŵš çĥáñĝéð áţ ţĥé šáɱé ţîɱé. Šáṽé îţ áĝáîñ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮The address was not saved, because this project's advisory workflows changed at the same time. Save it again.‬`;
+    }
+    return `The address was not saved, because this project's advisory workflows changed at the same time. Save it again.`;
+  }
   function settingsProjectsAdvisoryClearsAddress() {
     switch (currentLanguage()) {
       case "ar":
@@ -9981,32 +10008,32 @@ ${events}` : prompt;
     }
     return `Not saved: these workflows were named for a repository this project no longer uses. Name them again for the repository it uses now.`;
   }
-  function settingsProjectsAdvisoryTargetRefusal() {
+  function settingsProjectsAdvisoryMovingRefusal() {
     switch (currentLanguage()) {
       case "ar":
-        return `لم يُحفظ: كان المشروع الهدف لهذا المشروع يتغيّر في ذلك الوقت. اذكر مسارات العمل الاستشارية له من جديد.`;
+        return `لم يُحفظ: كان مكان استضافة هذا المشروع يتغيّر في ذلك الوقت. اذكر مسارات العمل الاستشارية له من جديد.`;
       case "de":
-        return `Nicht gespeichert: Das Zielprojekt dieses Projekts wurde gerade geändert. Nenn seine unverbindlichen Workflows erneut.`;
+        return `Nicht gespeichert: Wo dieses Projekt liegt, wurde gerade geändert. Nenn seine unverbindlichen Workflows erneut.`;
       case "es":
-        return `No se guardó: el proyecto de destino de este proyecto estaba cambiando. Indica de nuevo sus flujos de trabajo orientativos.`;
+        return `No se guardó: el lugar donde se aloja este proyecto estaba cambiando. Indica de nuevo sus flujos de trabajo orientativos.`;
       case "fr":
-        return `Non enregistré : le projet cible de ce projet était en train de changer. Indiquez de nouveau ses workflows indicatifs.`;
+        return `Non enregistré : l’endroit où ce projet est hébergé était en train de changer. Indiquez de nouveau ses workflows indicatifs.`;
       case "ja":
-        return `保存されませんでした。このプロジェクトの対象プロジェクトが変更中でした。参考ワークフローをもう一度指定してください。`;
+        return `保存されませんでした。このプロジェクトの保管先が変更中でした。参考ワークフローをもう一度指定してください。`;
       case "ko":
-        return `저장되지 않았어요. 이 프로젝트의 대상 프로젝트가 바뀌는 중이었어요. 참고용 워크플로를 다시 적어 주세요.`;
+        return `저장되지 않았어요. 이 프로젝트가 있는 곳이 바뀌는 중이었어요. 참고용 워크플로를 다시 적어 주세요.`;
       case "pt-BR":
-        return `Não salvo: o projeto de destino deste projeto estava mudando. Informe de novo os fluxos de trabalho informativos dele.`;
+        return `Não salvo: o lugar onde este projeto fica estava mudando. Informe de novo os fluxos de trabalho informativos dele.`;
       case "zh-Hans":
-        return `未保存：这个项目的目标项目当时正在更改。请重新写出它的参考工作流。`;
+        return `未保存：这个项目的托管处当时正在更改。请重新写出它的参考工作流。`;
       case "zh-Hant":
-        return `未儲存：這個專案的目標專案當時正在變更。請重新寫出它的參考工作流程。`;
+        return `未儲存：這個專案的所在處當時正在變更。請重新寫出它的參考工作流程。`;
       case "en-XA":
-        return `[Ñöţ šáṽéð: ţĥîš þŕöĵéçţ'š ţáŕĝéţ þŕöĵéçţ ŵáš çĥáñĝîñĝ áţ ţĥé ţîɱé. Ñáɱé îţš áðṽîšöŕý ŵöŕķƒļöŵš áĝáîñ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+        return `[Ñöţ šáṽéð: ŵĥéŕé ţĥîš þŕöĵéçţ ļîṽéš ŵáš çĥáñĝîñĝ áţ ţĥé ţîɱé. Ñáɱé îţš áðṽîšöŕý ŵöŕķƒļöŵš áĝáîñ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
       case "ar-XB":
-        return `‮Not saved: this project's target project was changing at the time. Name its advisory workflows again.‬`;
+        return `‮Not saved: where this project lives was changing at the time. Name its advisory workflows again.‬`;
     }
-    return `Not saved: this project's target project was changing at the time. Name its advisory workflows again.`;
+    return `Not saved: where this project lives was changing at the time. Name its advisory workflows again.`;
   }
   function settingsProjectsAdvisoryTitle() {
     switch (currentLanguage()) {
@@ -17675,7 +17702,13 @@ ${events}` : prompt;
      * the place naming it read the project: a save is refused once the
      * project uses another repository, however it was queued.
      */
-    advisoryWorkflowsAt: string().max(4096).nullable().optional()
+    advisoryWorkflowsAt: string().max(4096).nullable().optional(),
+    /**
+     * The advisory workflows the place offering this patch's move showed it
+     * clearing (`advisoryWorkflowsCleared`), [] when it showed none: the move
+     * is refused before its first write once it would clear others.
+     */
+    advisoryWorkflowsCleared: advisoryWorkflowsSchema.optional()
   }).strict().refine((patch) => Object.values(patch).some((value) => value !== void 0), {
     message: "pass delivery, autonomy, rigor, costLimit, scope, name, path, origin, requireChecks, batchGap, contributorDisclosure, advisoryWorkflows, or several"
   });
@@ -19627,8 +19660,15 @@ ${events}` : prompt;
     get advisoryClearsTarget() {
       return settingsProjectsAdvisoryClearsTarget();
     },
-    /** Beside the control a refused save came from (`projectRefusalOf`). */
-    refused: (refusal) => refusal === "advisory-moved" ? settingsProjectsAdvisoryMovedRefusal() : refusal === "advisory-changing" ? settingsProjectsAdvisoryTargetRefusal() : settingsProjectsTargetResetRefusal(),
+    /**
+     * Beside the control a refused save came from (`projectRefusalOf`); a
+     * policy save resets the list only through Target project.
+     */
+    refused: (refusal) => refusal === "advisory-moved" ? settingsProjectsAdvisoryMovedRefusal() : refusal === "advisory-changing" ? settingsProjectsAdvisoryMovingRefusal() : settingsProjectsTargetResetRefusal(),
+    /** Under the project's address, when its save was refused for the same reason. */
+    get addressReset() {
+      return settingsProjectsAddressResetRefusal();
+    },
     /** Under the rows of a project that merges locally and asks for Careful. */
     get carefulLocal() {
       return settingsProjectsLocalCareful();

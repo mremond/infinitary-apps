@@ -3596,14 +3596,15 @@
 "settingsPhoneStoppedThere" = "%2$@ Escolha a integração dela de novo em Ajustes → Automação em %1$@.";
 "settingsPhoneTodayPartial" = "Hoje está incompleto";
 "settingsPhoneUsageThere" = "As tarefas recentes e os detalhes de cada modelo estão em Ajustes → Uso em %1$@.";
+"settingsProjectsAddressResetRefusal" = "O endereço não foi salvo, porque os fluxos de trabalho informativos deste projeto mudaram ao mesmo tempo. Salve-o de novo.";
 "settingsProjectsAdvisoryClearsAddress" = "Salvar o endereço de outro repositório apaga os fluxos de trabalho informativos deste projeto, escolhidos para o repositório atual dele.";
 "settingsProjectsAdvisoryClearsTarget" = "Escolher o outro projeto de destino apaga os fluxos de trabalho informativos deste projeto, escolhidos para o repositório atual dele.";
 "settingsProjectsAdvisoryDescription" = "As verificações destes arquivos de fluxo de trabalho do GitHub, como .github/workflows/early-tests.yml, aparecem em uma alteração, mas nunca seguram a mesclagem nem o lote. Uma verificação exigida pelas suas regras de branch do GitHub ainda segura a mesclagem no GitHub.";
 "settingsProjectsAdvisoryInvalid" = "Informe cada arquivo de fluxo de trabalho uma vez, diretamente em .github/workflows.";
 "settingsProjectsAdvisoryLabel" = "Arquivos de fluxos de trabalho informativos";
 "settingsProjectsAdvisoryMovedRefusal" = "Não salvo: estes fluxos de trabalho foram informados para um repositório que este projeto não usa mais. Informe-os de novo para o repositório que ele usa agora.";
+"settingsProjectsAdvisoryMovingRefusal" = "Não salvo: o lugar onde este projeto fica estava mudando. Informe de novo os fluxos de trabalho informativos dele.";
 "settingsProjectsAdvisoryNone" = "Nenhum";
-"settingsProjectsAdvisoryTargetRefusal" = "Não salvo: o projeto de destino deste projeto estava mudando. Informe de novo os fluxos de trabalho informativos dele.";
 "settingsProjectsAdvisoryTitle" = "Fluxos de trabalho informativos";
 "settingsProjectsAutonomyOff" = "O trabalho concluído espera sua palavra.";
 "settingsProjectsAutonomyOn" = "O trabalho que passa nas verificações pode ser mesclado sem perguntar a você.";

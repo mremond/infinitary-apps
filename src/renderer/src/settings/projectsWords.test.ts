@@ -1,9 +1,9 @@
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import {
   ADVISORY_WORKFLOWS_MOVED_REFUSAL,
+  ADVISORY_WORKFLOWS_MOVING_REFUSAL,
   ADVISORY_WORKFLOWS_REFUSAL,
   ADVISORY_WORKFLOWS_RESET_REFUSAL,
-  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
   type RepoView,
 } from "@shared/repos";
 import { describe, expect, it } from "vitest";
@@ -100,8 +100,8 @@ describe("projectRefusalOf", () => {
 
   it.each([
     [ADVISORY_WORKFLOWS_MOVED_REFUSAL, "advisory-moved"],
-    [ADVISORY_WORKFLOWS_TARGET_REFUSAL, "advisory-changing"],
-    [ADVISORY_WORKFLOWS_RESET_REFUSAL, "target-reset"],
+    [ADVISORY_WORKFLOWS_MOVING_REFUSAL, "advisory-changing"],
+    [ADVISORY_WORKFLOWS_RESET_REFUSAL, "advisory-reset"],
   ])("names the control for %s", async (reason, refusal) => {
     expect(projectRefusalOf(await refusedSave(reason))).toBe(refusal);
   });

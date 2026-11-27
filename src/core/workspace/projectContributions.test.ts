@@ -13,8 +13,8 @@ import type { FmEvent } from "@shared/events";
 import { said, saidMark } from "@shared/i18n/said";
 import { PULL_REQUEST_COMMENTS_WAKE } from "@shared/pullComments";
 import {
+  ADVISORY_WORKFLOWS_MOVING_REFUSAL,
   ADVISORY_WORKFLOWS_RESET_REFUSAL,
-  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
   type RepoView,
 } from "@shared/repos";
 import { MERGE_WORDS } from "@shared/vocabulary";
@@ -1227,11 +1227,182 @@ describe("approved once-per-project contribution consent", () => {
     } finally {
       spy.mockRestore();
     }
-    expect(refusals).toEqual([ADVISORY_WORKFLOWS_TARGET_REFUSAL]);
+    expect(refusals).toEqual([ADVISORY_WORKFLOWS_MOVING_REFUSAL]);
     expect(world.repos.get(world.repo.id)).toMatchObject({
       origin: world.upstream.origin,
       contribution: { destination: "upstream" },
     });
+    expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
+  });
+
+  // Each click carries its own choice's reset, so a list saved after the card
+  // went up holds back only a choice that would clear it.
+  it("takes the card's choice that keeps the repository after a list was saved, and keeps the list", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    const opened = world.offer();
+    world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+    await service.answer(world.choose(opened, "keep-fork"));
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.fork.origin,
+      advisoryWorkflows: pilot,
+      contribution: { destination: "fork" },
+    });
+  });
+
+  // Settings sends the list its page showed the choice clearing; a list saved
+  // after that, before the host takes the change, was never shown.
+  it("refuses a Settings target change whose shown reset is no longer the project's, and takes it shown as it is", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+    await expect(service.choose(world.repo.id, "upstream", false, [])).rejects.toThrow(
+      ADVISORY_WORKFLOWS_RESET_REFUSAL,
+    );
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.fork.origin,
+      advisoryWorkflows: pilot,
+      contribution: { destination: null },
+    });
+    expect(await git(world.folder, ["config", "--get", "remote.origin.url"])).toBe(
+      world.fork.origin,
+    );
+
+    await service.choose(world.repo.id, "upstream", false, pilot);
+    expect(world.repos.get(world.repo.id)?.origin).toBe(world.upstream.origin);
+    expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
+  });
+
+  // An address change reads the folder before its first write, which releases
+  // the project's push address and pins prepared tasks' routes; a list saved
+  // during that read was never shown as cleared.
+  it("leaves the push address and a prepared task's route alone when an address change is refused after its folder read", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const tasks = new TaskService({ db: world.db, strict: true });
+    const workspace = new WorkspaceService(world.paths, { pool: false });
+    const service = world.make(undefined, tasks);
+    await service.discover(world.repo.id);
+    await service.choose(world.repo.id, "upstream", false);
+    const pushAddress = () =>
+      git(world.folder, ["config", "--get", "remote.origin.pushurl"]).catch(() => "");
+    expect(await pushAddress()).toBe(world.fork.origin);
+    const prepared = await workspace.createTaskWorktree("prepared-before-address", world.folder);
+    const task = seedTask(tasks, {
+      id: prepared.taskId,
+      title: "Prepared contribution",
+      repoId: world.repo.id,
+      repoDir: world.folder,
+      worktreeDir: prepared.cwd,
+      branch: prepared.branch,
+      status: "idle",
+    });
+    const remotes = () =>
+      git(prepared.cwd, ["config", "--get-regexp", "^(remote|branch)\\."]).catch(() => "");
+    const next = "https://github.com/examples/project-next.git";
+    await git(world.folder, ["remote", "set-url", "origin", next]);
+    const before = await remotes();
+    let saved = false;
+    const run = gitProcesses.runGitProcess;
+    const spy = vi
+      .spyOn(gitProcesses, "runGitProcess")
+      .mockImplementation((file, args, options) => {
+        if (!saved && args.includes("remote.origin.url")) {
+          saved = true;
+          world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+        }
+        return run(file, args, options);
+      });
+    try {
+      await expect(
+        service.changeAddress(world.repo.id, { origin: next, advisoryWorkflowsCleared: [] }),
+      ).rejects.toThrow(ADVISORY_WORKFLOWS_RESET_REFUSAL);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(saved).toBe(true);
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.upstream.origin,
+      advisoryWorkflows: pilot,
+    });
+    expect(await pushAddress()).toBe(world.fork.origin);
+    expect(tasks.get(task.id)?.delivery?.publicationOrigin).toBeUndefined();
+    expect(await remotes()).toBe(before);
+
+    const moved = await service.changeAddress(world.repo.id, {
+      origin: next,
+      advisoryWorkflowsCleared: pilot,
+    });
+    expect(moved.origin).toBe(next);
+    expect(moved.advisoryWorkflows).toBeUndefined();
+    expect(await pushAddress()).toBe("");
+    expect(tasks.get(task.id)?.delivery?.publicationOrigin).toBe(world.upstream.origin);
+    await workspace.removeTaskWorktree(prepared);
+    await workspace.deletionsSettled();
+  });
+
+  // Address changes take the line target changes take, so neither writes
+  // between the other's last check and its address write.
+  it("holds an address and list change sent during a target change until that ends, then refuses it before writing", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    const respelled = "git@github.com:contributor/project.git";
+    await git(world.folder, ["remote", "set-url", "origin", respelled]);
+    const read = pauseBranchRead(world);
+    const switching = service.choose(world.repo.id, "upstream", false);
+    await read.reading;
+    const addressing = service.changeAddress(world.repo.id, {
+      origin: respelled,
+      advisoryWorkflows: pilot,
+      advisoryWorkflowsAt: world.fork.origin,
+    });
+    read.resume();
+    await switching;
+    await expect(addressing).rejects.toThrow("Where the folder points changed.");
+    expect(world.repos.get(world.repo.id)).toMatchObject({
+      origin: world.upstream.origin,
+      contribution: { destination: "upstream" },
+    });
+    expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
+    expect(await git(world.folder, ["config", "--get", "remote.origin.pushurl"])).toBe(
+      world.fork.origin,
+    );
+  });
+
+  it("refuses a list saved while an address change releases the project's push address", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    await service.choose(world.repo.id, "upstream", false);
+    const next = "https://github.com/examples/project-next.git";
+    await git(world.folder, ["remote", "set-url", "origin", next]);
+    const refusals: string[] = [];
+    const run = gitProcesses.runGitProcess;
+    const spy = vi
+      .spyOn(gitProcesses, "runGitProcess")
+      .mockImplementation((file, args, options) => {
+        if (refusals.length === 0 && args.includes("remote.origin.pushurl"))
+          try {
+            world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+          } catch (error) {
+            refusals.push(error instanceof Error ? error.message : String(error));
+          }
+        return run(file, args, options);
+      });
+    try {
+      await service.changeAddress(world.repo.id, { origin: next, advisoryWorkflowsCleared: [] });
+    } finally {
+      spy.mockRestore();
+    }
+    expect(refusals).toEqual([ADVISORY_WORKFLOWS_MOVING_REFUSAL]);
+    expect(world.repos.get(world.repo.id)?.origin).toBe(next);
     expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
   });
 

@@ -5225,6 +5225,13 @@
                     "type": "null"
                   }
                 ]
+              },
+              "advisoryWorkflowsCleared": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\.github\\/workflows\\/[^/\\s]+\\.ya?ml$"
+                }
               }
             },
             "additionalProperties": false

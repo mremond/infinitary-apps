@@ -424,11 +424,12 @@ export function createCoreDispatcher(options: CoreDispatcherOptions): CoreDispat
       }),
     "inf:repos:configure": async (repoId, changes) => {
       if (changes.contributionDestination !== undefined) {
-        const { contributionDestination, ...rest } = changes;
+        const { contributionDestination, advisoryWorkflowsCleared, ...rest } = changes;
         const updated = await services.projectContributions.choose(
           repoId,
           contributionDestination,
           false,
+          advisoryWorkflowsCleared,
         );
         if (Object.keys(rest).length === 0) return updated;
         changes = rest;
@@ -438,7 +439,9 @@ export function createCoreDispatcher(options: CoreDispatcherOptions): CoreDispat
           "Finish or drop the project’s planned and working tasks before changing its folder.",
         );
       try {
-        await services.repos.checkDetails(repoId, changes);
+        const moving =
+          changes.origin !== undefined && changes.origin !== services.repos.get(repoId)?.origin;
+        if (!moving) await services.repos.checkDetails(repoId, changes);
         const current = services.repos.get(repoId);
         if (
           opensPullRequest(changes.delivery ?? current?.delivery) &&
@@ -447,8 +450,9 @@ export function createCoreDispatcher(options: CoreDispatcherOptions): CoreDispat
           throw new Error(
             "This project is kept on this computer. Approve where it lives before choosing pull requests.",
           );
-        if (changes.origin !== undefined && changes.origin !== current?.origin)
-          await services.projectContributions.clearPushAddress(repoId);
+        // Checked and written on the project's target-write line, after any
+        // target switch already asked for.
+        if (moving) return await services.projectContributions.changeAddress(repoId, changes);
         // A batch keeps one commit for each change, so a project that allows
         // only squash merges is refused batched pull requests with its reason.
         const batched = changes.delivery === "queue-pr" && current?.delivery !== "queue-pr";

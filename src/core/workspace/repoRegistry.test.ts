@@ -17,8 +17,9 @@ import { contributorDisclosureLine } from "@shared/contributorDisclosure";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import {
   ADVISORY_WORKFLOWS_MOVED_REFUSAL,
+  ADVISORY_WORKFLOWS_MOVING_REFUSAL,
   ADVISORY_WORKFLOWS_REFUSAL,
-  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
+  ADVISORY_WORKFLOWS_RESET_REFUSAL,
   BATCH_HOST_REFUSAL,
   BATCHES_OFF_REFUSAL,
   NO_CHECKS_REFUSAL,
@@ -495,8 +496,39 @@ describe("RepoRegistry's advisory workflows", () => {
     ).toEqual(pilot);
   });
 
-  // A target change compares the clearing it showed before its first write,
-  // so from then until its address write the list waits.
+  // A move clears the list its place showed it clearing, however long the
+  // move waited after it was shown.
+  it("refuses a move that would clear another list than the one shown, and takes one shown as it is", async () => {
+    const { registry } = setup();
+    const { repo } = await registry.setup({ kind: "init", name: "meter" });
+    const pilot = [".github/workflows/early-tests.yml"];
+    const original = "https://github.com/example-studio/meter.git";
+    const fork = "https://github.com/someone/meter.git";
+    registry.configure(repo.id, {
+      origin: original,
+      delivery: "direct-pr",
+      advisoryWorkflows: pilot,
+    });
+    // Shown before the list was saved, and shown with a list saved since replaced.
+    for (const shown of [[], [".github/workflows/early-lint.yml"]])
+      expect(() =>
+        registry.configure(repo.id, { origin: fork, advisoryWorkflowsCleared: shown }),
+      ).toThrow(ADVISORY_WORKFLOWS_RESET_REFUSAL);
+    expect(registry.get(repo.id)).toMatchObject({ origin: original, advisoryWorkflows: pilot });
+    // The same repository spelled another way clears nothing, as shown.
+    expect(
+      registry.configure(repo.id, {
+        origin: "git@github.com:Example-Studio/meter.git",
+        advisoryWorkflowsCleared: [],
+      }).advisoryWorkflows,
+    ).toEqual(pilot);
+    const moved = registry.configure(repo.id, { origin: fork, advisoryWorkflowsCleared: pilot });
+    expect(moved.origin).toBe(fork);
+    expect(moved.advisoryWorkflows).toBeUndefined();
+  });
+
+  // A target switch or an address change compares the reset it showed before
+  // its first write, so from then until its address write the list waits.
   it("refuses an advisory save while a target change holds the project, and still takes its address", async () => {
     const { registry } = setup();
     const { repo } = await registry.setup({ kind: "init", name: "meter" });
@@ -507,7 +539,7 @@ describe("RepoRegistry's advisory workflows", () => {
     });
     const release = registry.holdAdvisoryWorkflows(repo.id);
     expect(() => registry.configure(repo.id, { advisoryWorkflows: pilot })).toThrow(
-      ADVISORY_WORKFLOWS_TARGET_REFUSAL,
+      ADVISORY_WORKFLOWS_MOVING_REFUSAL,
     );
     expect(
       registry.configure(repo.id, { origin: "https://github.com/example-studio/meter.git" }).origin,

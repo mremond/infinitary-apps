@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import { ACTIONS, type ActionActor, type ActionName, isProjectChange } from "@shared/actions";
-import { clearsAdvisoryWorkflows } from "@shared/advisoryWorkflows";
+import { advisoryWorkflowsCleared } from "@shared/advisoryWorkflows";
 import { BATCH_GAP_WORDS } from "@shared/batches";
 import { type Card, FIRSTMATE_CARD_META } from "@shared/cards";
 import { DEFAULT_CONTRIBUTOR_DISCLOSURE } from "@shared/contributorDisclosure";
@@ -85,6 +85,10 @@ export class ProjectChanges {
       // The list is named for the repository read here, however long its card waits.
       if (patch.advisoryWorkflows !== undefined)
         patch.advisoryWorkflowsAt ??= (before as RepoView).origin;
+      // The reset the card shows is the one its click may make, however long
+      // the host then reads the folder.
+      else if (patch.origin !== undefined)
+        patch.advisoryWorkflowsCleared = advisoryWorkflowsCleared(before as RepoView, patch.origin);
       if (
         opensPullRequest(patch.delivery ?? (before as RepoView).delivery) &&
         !(patch.origin === undefined ? (before as RepoView).origin : patch.origin)
@@ -394,8 +398,11 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     offer.action === "project-settings"
       ? { ...(offer.value.changes as Record<string, unknown>) }
       : { runsOn: offer.value.deviceId };
-  // The repository the list was named for binds its save; the card shows no row for it.
+  // What binds the save gets no row of its own: the repository the list was
+  // named for, and the reset the card shows as the list's row.
+  const cleared = changes.advisoryWorkflowsCleared as readonly string[] | undefined;
   delete changes.advisoryWorkflowsAt;
+  delete changes.advisoryWorkflowsCleared;
   if (offer.action === "project-settings" && changes.origin === null && previous.runsOn)
     changes.runsOn = null;
   if (
@@ -407,9 +414,8 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     changes.runsOn = AUTOMATIC_COMPUTER;
   if (
     offer.action === "project-settings" &&
-    changes.origin !== undefined &&
     changes.advisoryWorkflows === undefined &&
-    clearsAdvisoryWorkflows(previous, changes.origin as string | null)
+    cleared?.length
   )
     changes.advisoryWorkflows = [];
   const labels: Record<string, string | Said> = {

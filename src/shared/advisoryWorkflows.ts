@@ -64,3 +64,16 @@ export function clearsAdvisoryWorkflows(
 ): boolean {
   return !!repo.advisoryWorkflows?.length && !sameAdvisoryRepository(repo.origin, origin);
 }
+
+/**
+ * The advisory workflows moving `repo` to `origin` clears: its list, or none.
+ * A place that offers the move sends what it showed
+ * (`RepoPolicyPatch.advisoryWorkflowsCleared`), and the move is refused
+ * before its first write once the project's own answer differs.
+ */
+export function advisoryWorkflowsCleared(
+  repo: { origin?: string | null; advisoryWorkflows?: readonly string[] },
+  origin: string | null | undefined,
+): string[] {
+  return clearsAdvisoryWorkflows(repo, origin) ? [...(repo.advisoryWorkflows ?? [])] : [];
+}

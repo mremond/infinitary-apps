@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
 import {
+  advisoryWorkflowsCleared,
   advisoryWorkflowsSchema,
   clearsAdvisoryWorkflows,
   sameAdvisoryRepository,
@@ -28,8 +29,9 @@ import { changeRequestHost } from "@shared/forgeKinds";
 import { AUTOMATIC_COMPUTER, placementRequirementsSchema } from "@shared/placement";
 import {
   ADVISORY_WORKFLOWS_MOVED_REFUSAL,
+  ADVISORY_WORKFLOWS_MOVING_REFUSAL,
   ADVISORY_WORKFLOWS_REFUSAL,
-  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
+  ADVISORY_WORKFLOWS_RESET_REFUSAL,
   BATCH_HOST_REFUSAL,
   BATCHES_OFF_REFUSAL,
   deliveryChoices,
@@ -332,8 +334,8 @@ export class RepoRegistry {
   private readonly batchListeners = new Set<(repo: RepoView) => void>();
   /** Who hears the app start or end a project's no-checks record (`onNoChecks`). */
   private readonly noChecksListeners = new Set<(repo: RepoView, change: NoChecksChange) => void>();
-  /** Projects whose addresses a target switch is writing (`holdAdvisoryWorkflows`). */
-  private readonly targetWrites = new Set<string>();
+  /** Projects whose addresses a target switch or an address change is writing (`holdAdvisoryWorkflows`). */
+  private readonly addressWrites = new Set<string>();
 
   constructor(
     private readonly db: AppDatabase,
@@ -648,12 +650,13 @@ export class RepoRegistry {
 
   /**
    * Refuse the project's advisory saves until the returned release: a target
-   * switch checks the reset it showed before its first write, and its address
-   * write would clear a list saved after that check unshown.
+   * switch or an address change checks the reset it showed before its first
+   * write, and its address write would clear a list saved after that check
+   * unshown.
    */
   holdAdvisoryWorkflows(id: string): () => void {
-    this.targetWrites.add(id);
-    return () => this.targetWrites.delete(id);
+    this.addressWrites.add(id);
+    return () => this.addressWrites.delete(id);
   }
 
   /** JSON null records a successful inspection without a contribution route; SQL null is undiscovered. */
@@ -863,8 +866,15 @@ export class RepoRegistry {
       !sameAdvisoryRepository(changes.advisoryWorkflowsAt, origin)
     )
       throw new Error(ADVISORY_WORKFLOWS_MOVED_REFUSAL);
-    if (changes.advisoryWorkflows !== undefined && this.targetWrites.has(id))
-      throw new Error(ADVISORY_WORKFLOWS_TARGET_REFUSAL);
+    if (changes.advisoryWorkflows !== undefined && this.addressWrites.has(id))
+      throw new Error(ADVISORY_WORKFLOWS_MOVING_REFUSAL);
+    if (
+      changes.advisoryWorkflowsCleared !== undefined &&
+      changes.advisoryWorkflows === undefined &&
+      JSON.stringify(advisoryWorkflowsCleared(repo, origin)) !==
+        JSON.stringify(changes.advisoryWorkflowsCleared)
+    )
+      throw new Error(ADVISORY_WORKFLOWS_RESET_REFUSAL);
     if (
       name !== repo.name &&
       (!/^[\w][\w.-]*$/.test(name) || this.nameTaken(name, undefined, ownFolder))

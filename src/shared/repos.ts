@@ -298,12 +298,12 @@ export const ADVISORY_WORKFLOWS_MOVED_REFUSAL =
   "These advisory workflows were named for a repository this project no longer uses. Read the project again and name them for the repository it uses now.";
 
 // i18n-exempt: served to the first mate's model
-export const ADVISORY_WORKFLOWS_TARGET_REFUSAL =
-  "This project's target project is changing. Name its advisory workflows again once the change is done.";
+export const ADVISORY_WORKFLOWS_MOVING_REFUSAL =
+  "Where this project lives is changing. Name its advisory workflows again once the change is done.";
 
 // i18n-exempt: served to the first mate's model
 export const ADVISORY_WORKFLOWS_RESET_REFUSAL =
-  "The project's advisory workflows changed while its target project was read. Nothing changed; choose its target project again.";
+  "The advisory workflows this change clears are no longer the ones shown when it was chosen. Nothing changed; read the project and choose again.";
 
 export const NO_CHECKS_REFUSAL =
   "Require pull request checks can be turned off only for a project whose changes go through pull requests on GitHub, GitLab or Bitbucket. This project's changes do not, so no check holds its merge.";
@@ -392,6 +392,12 @@ export const repoPolicyPatchSchema = z
      * project uses another repository, however it was queued.
      */
     advisoryWorkflowsAt: z.string().max(4096).nullable().optional(),
+    /**
+     * The advisory workflows the place offering this patch's move showed it
+     * clearing (`advisoryWorkflowsCleared`), [] when it showed none: the move
+     * is refused before its first write once it would clear others.
+     */
+    advisoryWorkflowsCleared: advisoryWorkflowsSchema.optional(),
   })
   .strict()
   .refine((patch) => Object.values(patch).some((value) => value !== undefined), {

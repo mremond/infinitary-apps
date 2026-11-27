@@ -3596,14 +3596,15 @@
 "settingsPhoneStoppedThere" = "%2$@ 请在 %1$@ 上的“设置” → “自动化”中重新选择它的集成。";
 "settingsPhoneTodayPartial" = "今天尚未结束";
 "settingsPhoneUsageThere" = "最近的任务和各模型的明细在 %1$@ 上的“设置” → “用量”中。";
+"settingsProjectsAddressResetRefusal" = "地址没有保存，因为这个项目的参考工作流同时发生了更改。请重新保存。";
 "settingsProjectsAdvisoryClearsAddress" = "保存另一个仓库的地址会清除这个项目的参考工作流，因为它们是为当前仓库选的。";
 "settingsProjectsAdvisoryClearsTarget" = "选择另一个目标项目会清除这个项目的参考工作流，因为它们是为当前仓库选的。";
 "settingsProjectsAdvisoryDescription" = "这些 GitHub 工作流文件（如 .github/workflows/early-tests.yml）的检查会显示在改动上，但从不阻止它合并，也不阻止这批改动合并。GitHub 分支规则要求的检查仍会在 GitHub 上阻止合并。";
 "settingsProjectsAdvisoryInvalid" = "请直接在 .github/workflows 中写出每个工作流文件，每个只写一次。";
 "settingsProjectsAdvisoryLabel" = "参考工作流文件";
 "settingsProjectsAdvisoryMovedRefusal" = "未保存：这些工作流是为这个项目不再使用的仓库写的。请为它现在使用的仓库重新写出。";
+"settingsProjectsAdvisoryMovingRefusal" = "未保存：这个项目的托管处当时正在更改。请重新写出它的参考工作流。";
 "settingsProjectsAdvisoryNone" = "无";
-"settingsProjectsAdvisoryTargetRefusal" = "未保存：这个项目的目标项目当时正在更改。请重新写出它的参考工作流。";
 "settingsProjectsAdvisoryTitle" = "参考工作流";
 "settingsProjectsAutonomyOff" = "完成的工作会等你确认。";
 "settingsProjectsAutonomyOn" = "通过检查的工作可以不经询问直接合并。";

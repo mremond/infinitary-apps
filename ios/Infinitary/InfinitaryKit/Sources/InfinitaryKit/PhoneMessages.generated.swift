@@ -3752,14 +3752,15 @@ public enum PhoneMessages {
     public static func `settingsPhoneStoppedThere`(`home`: String, `reason`: String) -> String { PhoneWords.format("settingsPhoneStoppedThere", [`home`, `reason`]) }
     public static func `settingsPhoneTodayPartial`() -> String { PhoneWords.format("settingsPhoneTodayPartial", []) }
     public static func `settingsPhoneUsageThere`(`home`: String) -> String { PhoneWords.format("settingsPhoneUsageThere", [`home`]) }
+    public static func `settingsProjectsAddressResetRefusal`() -> String { PhoneWords.format("settingsProjectsAddressResetRefusal", []) }
     public static func `settingsProjectsAdvisoryClearsAddress`() -> String { PhoneWords.format("settingsProjectsAdvisoryClearsAddress", []) }
     public static func `settingsProjectsAdvisoryClearsTarget`() -> String { PhoneWords.format("settingsProjectsAdvisoryClearsTarget", []) }
     public static func `settingsProjectsAdvisoryDescription`() -> String { PhoneWords.format("settingsProjectsAdvisoryDescription", []) }
     public static func `settingsProjectsAdvisoryInvalid`() -> String { PhoneWords.format("settingsProjectsAdvisoryInvalid", []) }
     public static func `settingsProjectsAdvisoryLabel`() -> String { PhoneWords.format("settingsProjectsAdvisoryLabel", []) }
     public static func `settingsProjectsAdvisoryMovedRefusal`() -> String { PhoneWords.format("settingsProjectsAdvisoryMovedRefusal", []) }
+    public static func `settingsProjectsAdvisoryMovingRefusal`() -> String { PhoneWords.format("settingsProjectsAdvisoryMovingRefusal", []) }
     public static func `settingsProjectsAdvisoryNone`() -> String { PhoneWords.format("settingsProjectsAdvisoryNone", []) }
-    public static func `settingsProjectsAdvisoryTargetRefusal`() -> String { PhoneWords.format("settingsProjectsAdvisoryTargetRefusal", []) }
     public static func `settingsProjectsAdvisoryTitle`() -> String { PhoneWords.format("settingsProjectsAdvisoryTitle", []) }
     public static func `settingsProjectsAutonomyOff`() -> String { PhoneWords.format("settingsProjectsAutonomyOff", []) }
     public static func `settingsProjectsAutonomyOn`() -> String { PhoneWords.format("settingsProjectsAutonomyOn", []) }
@@ -8594,14 +8595,15 @@ extension PhoneWords {
         "settingsPhoneStoppedThere": ["home", "reason"],
         "settingsPhoneTodayPartial": [],
         "settingsPhoneUsageThere": ["home"],
+        "settingsProjectsAddressResetRefusal": [],
         "settingsProjectsAdvisoryClearsAddress": [],
         "settingsProjectsAdvisoryClearsTarget": [],
         "settingsProjectsAdvisoryDescription": [],
         "settingsProjectsAdvisoryInvalid": [],
         "settingsProjectsAdvisoryLabel": [],
         "settingsProjectsAdvisoryMovedRefusal": [],
+        "settingsProjectsAdvisoryMovingRefusal": [],
         "settingsProjectsAdvisoryNone": [],
-        "settingsProjectsAdvisoryTargetRefusal": [],
         "settingsProjectsAdvisoryTitle": [],
         "settingsProjectsAutonomyOff": [],
         "settingsProjectsAutonomyOn": [],

@@ -206,6 +206,51 @@ describe("the app's exact-change card", () => {
     ]);
   });
 
+  // docs/forge.md, "Advisory workflows": an address change carries the reset
+  // its card showed, whatever the first mate sent, so the host refuses it if
+  // a list saved before the click would be cleared unshown.
+  it("sends an address with the advisory workflows its card showed it clearing", async () => {
+    const advisoryWorkflows = [".github/workflows/early-tests.yml"];
+    const current: RepoView = { ...WEBSITE, advisoryWorkflows };
+    const sent: unknown[] = [];
+    const raised: Omit<Card, "author" | "priority" | "status" | "createdAt">[] = [];
+    const changes = new ProjectChanges({
+      repos: { get: () => current, checkDetails: async () => {} } as unknown as RepoRegistry,
+      devices: () => [],
+      raiseCard: (card) => raised.push(card),
+      tell: () => {},
+    });
+    changes.bindDispatch((async (channel: string, args: unknown[]) => {
+      if (channel === "inf:repos:list") return [current];
+      if (channel === "inf:repos:configure") {
+        sent.push(args[1]);
+        return current;
+      }
+      throw new Error(`No ${channel} here.`);
+    }) as CoreDispatch);
+    for (const origin of [
+      "https://github.com/someone-else/website.git",
+      "git@github.com:Someone/Website.git",
+    ])
+      await changes.request(
+        "project-settings",
+        { repoId: WEBSITE.id, changes: { origin, advisoryWorkflowsCleared: [] } },
+        { kind: "firstmate", wake: "other" },
+      );
+    expect(raised[0]?.body).not.toContain("advisoryWorkflowsCleared");
+    for (const card of raised)
+      await changes.apply(
+        card.actions[0]?.effect?.kind === "host" ? card.actions[0].effect.arg : undefined,
+      );
+    expect(sent).toEqual([
+      {
+        origin: "https://github.com/someone-else/website.git",
+        advisoryWorkflowsCleared: advisoryWorkflows,
+      },
+      { origin: "git@github.com:Someone/Website.git", advisoryWorkflowsCleared: [] },
+    ]);
+  });
+
   it("offers a primary Apply change as the default and a ghost Not now", async () => {
     const raised: Omit<Card, "author" | "priority" | "status" | "createdAt">[] = [];
     const changes = new ProjectChanges({

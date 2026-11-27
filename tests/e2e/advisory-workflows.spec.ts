@@ -30,6 +30,7 @@ import { focusOn, pressKey, untilFocused } from "./windowKeys";
 const git = (...args: string[]) => execFileSync("git", args, { stdio: "pipe" }).toString().trim();
 
 const ADVISORY = ".github/workflows/early-tests.yml";
+const LINT = ".github/workflows/early-lint.yml";
 /**
  * The project's required workflow passed at the version while its advisory
  * one, a pilot it is still trying out, has not finished: each check names
@@ -336,7 +337,10 @@ for (const batchCase of [
  * the saved project's address and list. A list saved with a target change
  * names the repository the page showed, so it never lands on the other one,
  * and Settings says beside the field that the app refused it; a draft typed
- * for one repository is not offered for the other.
+ * for one repository is not offered for the other. A target or address
+ * change clears only the list the page showed it clearing: a list saved
+ * after the click and before the app takes the change refuses it, the
+ * project's push address as it was.
  */
 test("Settings says before the change that another repository clears the advisory workflows", async () => {
   const world = await startContributionWorld(true);
@@ -438,6 +442,75 @@ test("Settings says before the change that another repository clears the advisor
     await advisory.fill(ADVISORY);
     await advisory.press("Enter");
     await expect.poll(async () => (await saved())?.advisoryWorkflows).toEqual([ADVISORY]);
+
+    // The list changes after the click, before Settings sends its batched change.
+    const toFork = row.getByRole("radio", { name: CONTRIBUTION_WORDS.fork, exact: true });
+    await page.evaluate(
+      ({ choosing, id, listed, at }) => {
+        (choosing as HTMLInputElement | null)?.click();
+        void window.infinitary.repos.configure(id, {
+          advisoryWorkflows: listed,
+          advisoryWorkflowsAt: at,
+        });
+      },
+      {
+        choosing: await original.elementHandle(),
+        id: world.repo.id,
+        listed: [ADVISORY, LINT],
+        at: world.forge.fork.clone_url,
+      },
+    );
+    await expect(
+      row.getByText(PROJECT_POLICY_WORDS.refused("advisory-reset"), { exact: true }),
+    ).toBeVisible();
+    await expect(advisory).toHaveValue(`${ADVISORY}, ${LINT}`);
+    await expect(toFork).toBeChecked();
+    expect((await saved())?.origin).toBe(world.forge.fork.clone_url);
+    expect((await saved())?.advisoryWorkflows).toEqual([ADVISORY, LINT]);
+    await focusOn(toFork, { focusVisible: true });
+    await pressKey(toFork, "ArrowLeft");
+    await expect.poll(async () => (await saved())?.origin).toBe(world.forge.upstream.clone_url);
+    expect((await saved())?.advisoryWorkflows).toBeUndefined();
+
+    // The list changes while the app reads the folder for the new address.
+    const folderGit = (...args: string[]) =>
+      execFileSync("git", ["-C", world.repo.path, ...args], {
+        stdio: "pipe",
+        env: {
+          ...process.env,
+          GIT_CONFIG_GLOBAL: join(world.homeDir, ".gitconfig"),
+          GIT_CONFIG_NOSYSTEM: "1",
+        },
+      })
+        .toString()
+        .trim();
+    const pushAddress = folderGit("config", "--local", "--get", "remote.origin.pushurl");
+    folderGit("remote", "set-url", "origin", world.forge.fork.clone_url);
+    await address.fill(world.forge.fork.clone_url);
+    await expect(addressNote).toHaveCount(0);
+    await page.evaluate(
+      ({ saving, id, listed, at }) => {
+        void window.infinitary.repos.configure(id, {
+          advisoryWorkflows: listed,
+          advisoryWorkflowsAt: at,
+        });
+        (saving as HTMLFormElement | null)?.requestSubmit();
+      },
+      {
+        saving: await address.evaluateHandle((input) => (input as HTMLInputElement).form),
+        id: world.repo.id,
+        listed: [ADVISORY],
+        at: world.forge.upstream.clone_url,
+      },
+    );
+    await expect(row.getByText(PROJECT_POLICY_WORDS.addressReset, { exact: true })).toBeVisible();
+    expect((await saved())?.origin).toBe(world.forge.upstream.clone_url);
+    expect((await saved())?.advisoryWorkflows).toEqual([ADVISORY]);
+    expect(folderGit("config", "--local", "--get", "remote.origin.pushurl")).toBe(pushAddress);
+    await expect(addressNote).toBeVisible();
+    await address.press("Enter");
+    await expect.poll(async () => (await saved())?.origin).toBe(world.forge.fork.clone_url);
+    expect((await saved())?.advisoryWorkflows).toBeUndefined();
   } finally {
     await world.close();
   }

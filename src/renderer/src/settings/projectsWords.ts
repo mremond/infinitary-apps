@@ -4,8 +4,8 @@ import * as m from "@shared/i18n/messages.generated";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import {
   ADVISORY_WORKFLOWS_MOVED_REFUSAL,
+  ADVISORY_WORKFLOWS_MOVING_REFUSAL,
   ADVISORY_WORKFLOWS_RESET_REFUSAL,
-  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
   type NoChecksRecord,
   type RepoView,
   readsPullRequestChecks,
@@ -16,15 +16,16 @@ import { AUTONOMY_WORDS, PROJECT_DELIVERY_WORDS, RIGOR_WORDS } from "@shared/voc
 /**
  * A save Settings sent that the app refused for a reason a control names
  * (docs/forge.md, "Advisory workflows"): the list was named for a repository
- * the project left, or was sent while its target project changed, or the
- * target project was refused because the list changed while it was read.
+ * the project left, or was sent while where the project lives changed, or a
+ * change of target project or address was refused because the list it
+ * clears changed after Settings showed it.
  */
-export type ProjectRefusal = "advisory-moved" | "advisory-changing" | "target-reset";
+export type ProjectRefusal = "advisory-moved" | "advisory-changing" | "advisory-reset";
 
 const PROJECT_REFUSALS = new Map<string, ProjectRefusal>([
   [ADVISORY_WORKFLOWS_MOVED_REFUSAL, "advisory-moved"],
-  [ADVISORY_WORKFLOWS_TARGET_REFUSAL, "advisory-changing"],
-  [ADVISORY_WORKFLOWS_RESET_REFUSAL, "target-reset"],
+  [ADVISORY_WORKFLOWS_MOVING_REFUSAL, "advisory-changing"],
+  [ADVISORY_WORKFLOWS_RESET_REFUSAL, "advisory-reset"],
 ]);
 
 /**
@@ -124,13 +125,20 @@ export const PROJECT_POLICY_WORDS = {
   get advisoryClearsTarget() {
     return m.settingsProjectsAdvisoryClearsTarget();
   },
-  /** Beside the control a refused save came from (`projectRefusalOf`). */
+  /**
+   * Beside the control a refused save came from (`projectRefusalOf`); a
+   * policy save resets the list only through Target project.
+   */
   refused: (refusal: ProjectRefusal) =>
     refusal === "advisory-moved"
       ? m.settingsProjectsAdvisoryMovedRefusal()
       : refusal === "advisory-changing"
-        ? m.settingsProjectsAdvisoryTargetRefusal()
+        ? m.settingsProjectsAdvisoryMovingRefusal()
         : m.settingsProjectsTargetResetRefusal(),
+  /** Under the project's address, when its save was refused for the same reason. */
+  get addressReset() {
+    return m.settingsProjectsAddressResetRefusal();
+  },
   /** Under the rows of a project that merges locally and asks for Careful. */
   get carefulLocal() {
     return m.settingsProjectsLocalCareful();
