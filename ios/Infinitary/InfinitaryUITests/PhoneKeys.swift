@@ -83,14 +83,12 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 ) async throws {
     let result: Result<Void, Error>
     do {
-        try await attach()
-        try phoneKeyPhase("keyboard attachment", key: nil, failures: failures) { nil }
+        try await phoneKeyAsyncPhase("keyboard attachment", failures: failures, attach)
         try phoneKeyPhase("the fresh main-run-loop wait", key: nil, failures: failures, wait)
-        try await registration()
-        try phoneKeyPhase("keyboard registration", key: nil, failures: failures) { nil }
+        try await phoneKeyAsyncPhase("keyboard registration", failures: failures, registration)
         result = .success(())
     } catch { result = .failure(error) }
-    do { try await detach() }
+    do { try await phoneKeyAsyncPhase("keyboard detachment", failures: failures, cleanup: true, detach) }
     catch {
         if case .failure(let original) = result {
             throw NSError(domain: "PhoneKeyboard", code: 6, userInfo: [NSLocalizedDescriptionKey:
@@ -99,7 +97,6 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         throw error
     }
     try result.get()
-    try phoneKeyPhase("keyboard detachment", key: nil, failures: failures) { nil }
 }
 
 @MainActor private func phoneKeyboardAttachment(_ attached: Bool, control: String) async throws {
@@ -125,19 +122,38 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     _ phase: String, key: String?, failures: PhoneFailures = .shared, _ action: () -> String?
 ) throws {
     let checkpoint = failures.count
-    // An earlier failure already makes XCTest's delivery state unusable; no later phase may send an event.
-    let failure: String?
-    if let earlier = failures.failure(since: 0) { failure = earlier }
-    else {
-        let exception = action()
-        failure = failures.failure(since: checkpoint) ?? exception
-    }
-    if let failure {
+    try phoneKeyPriorFailure(failures, checkpoint: checkpoint)
+    let exception = action()
+    if let failure = failures.failure(since: checkpoint) ?? exception {
         let message = key.map {
             "XCTest could not complete key \($0.debugDescription): \(failure). Delivery is unknown; no retry was made."
         } ?? "The requested chord was not sent: \(phase) failed: \(failure)"
         throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey: message])
     }
+}
+
+@MainActor private func phoneKeyPriorFailure(_ failures: PhoneFailures, checkpoint: Int) throws {
+    if checkpoint > 0, let prior = failures.failure(since: 0) {
+        throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey:
+            "The requested chord was not sent: XCTest had already failed before this step: \(prior)"])
+    }
+}
+
+@MainActor private func phoneKeyAsyncPhase(
+    _ phase: String, failures: PhoneFailures, cleanup: Bool = false,
+    _ action: @MainActor () async throws -> Void
+) async throws {
+    let checkpoint = failures.count
+    // Cleanup still runs after a prior failure; its checkpoint prevents relabeling that failure as detachment.
+    if !cleanup { try phoneKeyPriorFailure(failures, checkpoint: checkpoint) }
+    let result: Result<Void, Error>
+    do { try await action(); result = .success(()) }
+    catch { result = .failure(error) }
+    if let failure = failures.failure(since: checkpoint) {
+        throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey:
+            "The requested chord was not sent: \(phase) failed: \(failure)"])
+    }
+    try result.get()
 }
 
 /// INF-6074: on a starved simulator the system's keyboard can take back the caret a key put in a text field. The

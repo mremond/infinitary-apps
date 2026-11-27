@@ -12,7 +12,7 @@ import { capturePhoneIdleTimeout, capturePhoneKeyboardTimeout, phoneLaunchOwner,
 import { phoneWebContentStartup } from "../tests/helpers/phoneWebContent.ts";
 import { capturePhoneWebStacks } from "../tests/helpers/phoneWebStacks.ts";
 import { libraryPhotoAdded, photosOpened } from "../tests/helpers/phonePhotos.ts";
-import { changePhoneTextSize, hardwareKeyboardArguments, observePhoneKeyboard, type PhoneChord, type PhoneDisplayReport, type PhoneTextSize, phoneApplicationPid, phoneDisplayDeadline, phoneTouchDeadline, withPhoneHardwareKeyboard } from "../tests/helpers/phoneKeyboard.ts";
+import { changePhoneTextSize, setPhoneHardwareKeyboard, observePhoneKeyboard, type PhoneChord, type PhoneDisplayReport, type PhoneTextSize, phoneApplicationPid, phoneDisplayDeadline, phoneTouchDeadline, withPhoneHardwareKeyboard } from "../tests/helpers/phoneKeyboard.ts";
 import { removeScratchDirs, scratchDir } from "../tests/helpers/scratchDirs.ts";
 import { ciModeRefusal } from "./checks-mode.ts";
 import { openModuleRunner, REPO_ROOT } from "./moduleRunner.ts";
@@ -295,7 +295,7 @@ const recording = {
   },
   keyboardAttachment: async (attached: boolean) => {
     if (!simulator) throw new Error("No owned simulator keyboard exists");
-    await run("xcrun", hardwareKeyboardArguments(simulator, attached));
+    await setPhoneHardwareKeyboard(run, simulator, attached);
     return { attached };
   },
   keyboardReady: async (chord: PhoneChord) => {
@@ -530,7 +530,7 @@ const readyForPart = async (lane: Lane, name: string) => {
   await run("xcrun", ["simctl", "privacy", owned, "reset", "all"]);
   await run("xcrun", ["simctl", "ui", owned, "appearance", "light"]);
   await run("xcrun", ["simctl", "ui", owned, "content_size", "large"]);
-  await run("xcrun", hardwareKeyboardArguments(owned, false));
+  await setPhoneHardwareKeyboard(run, owned, false);
   if ((await installedApps(owned))[phoneBundle]) throw new Error(`${device}: the previous part's app survived its uninstall`);
   await faceIdStarted(device, owned);
 };

@@ -89,6 +89,81 @@ import XCTest
         XCTAssertEqual(sent, 1)
     }
 
+
+    func testPriorIssueStopsReadinessAndDeliveryWithoutClaimingAnAttempt() async {
+        let failures = PhoneFailures()
+        let reason = "No matches found for Descendants matching type Alert"
+        failures.testCase(self, didRecord: XCTIssue(type: .assertionFailure, compactDescription: reason))
+        var order: [String] = []
+        do {
+            try await phoneKeyboardReadiness(failures: failures, attach: {
+                order.append("attach")
+            }, wait: {
+                order.append("wait"); return nil
+            }, registration: {
+                order.append("witness")
+            }, detach: {
+                order.append("detach")
+            })
+            XCTFail("A prior issue must stop readiness")
+        } catch {
+            XCTAssertTrue(error.localizedDescription.contains("had already failed before this step: " + reason))
+            XCTAssertFalse(error.localizedDescription.contains("attachment failed"))
+        }
+        XCTAssertThrowsError(try phoneKeyEvent("[", failures: failures) { order.append("send") }) { error in
+            XCTAssertTrue(error.localizedDescription.contains("chord was not sent"))
+            XCTAssertFalse(error.localizedDescription.contains("Delivery is unknown"))
+        }
+        XCTAssertEqual(order, ["detach"])
+    }
+
+    func testNewAttachmentIssueKeepsItsPhaseAndReasonWhenTheOperationThrows() async {
+        let failures = PhoneFailures()
+        let reason = "No matches found for Descendants matching type Alert"
+        var order: [String] = []
+        do {
+            try await phoneKeyboardReadiness(failures: failures, attach: {
+                order.append("attach")
+                failures.testCase(self, didRecord: XCTIssue(type: .assertionFailure, compactDescription: reason))
+                throw NSError(domain: "PhoneKeyboardTest", code: 1, userInfo: [NSLocalizedDescriptionKey: "Interrupted"])
+            }, wait: {
+                order.append("wait"); return nil
+            }, registration: {
+                order.append("witness")
+            }, detach: {
+                order.append("detach")
+            })
+            XCTFail("An attachment issue must stop readiness")
+        } catch {
+            XCTAssertTrue(error.localizedDescription.contains("keyboard attachment failed: " + reason))
+            XCTAssertFalse(error.localizedDescription.contains("Interrupted"))
+            XCTAssertFalse(error.localizedDescription.contains("detachment failed"))
+        }
+        XCTAssertEqual(order, ["attach", "detach"])
+    }
+
+    func testAttachmentTimeoutCleansUpWithoutWaitingForRegistrationOrSending() async {
+        let failures = PhoneFailures()
+        var order: [String] = []
+        do {
+            try await phoneKeyboardReadiness(failures: failures, attach: {
+                order.append("attach")
+                throw URLError(.timedOut)
+            }, wait: {
+                order.append("wait"); return nil
+            }, registration: {
+                order.append("witness")
+            }, detach: {
+                order.append("detach")
+            })
+            try phoneKeyEvent("[", failures: failures) { order.append("send") }
+            XCTFail("A timed-out attachment must stop the chord")
+        } catch {
+            XCTAssertEqual((error as? URLError)?.code, .timedOut)
+        }
+        XCTAssertEqual(order, ["attach", "detach"])
+    }
+
 }
 
 private final class PhoneKeyTestProcess: NSObject {

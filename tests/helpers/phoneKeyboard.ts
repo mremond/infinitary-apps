@@ -892,6 +892,33 @@ export function hardwareKeyboardArguments(simulator: string, attached: boolean):
   ];
 }
 
+type KeyboardRun = (command: string, args: string[]) => Promise<unknown>;
+const keyboardWrites = new WeakMap<KeyboardRun, Map<string, Promise<void>>>();
+
+export function setPhoneHardwareKeyboard(
+  run: KeyboardRun,
+  simulator: string,
+  attached: boolean,
+): Promise<void> {
+  let writes = keyboardWrites.get(run);
+  if (!writes) {
+    writes = new Map();
+    keyboardWrites.set(run, writes);
+  }
+  const queue = writes;
+  const write = async () => {
+    await run("xcrun", hardwareKeyboardArguments(simulator, attached));
+  };
+  // An HTTP timeout does not cancel notifyutil; cleanup must follow even a failed or late attachment.
+  const pending = (queue.get(simulator) ?? Promise.resolve()).then(write, write);
+  queue.set(simulator, pending);
+  const finished = () => {
+    if (queue.get(simulator) === pending) queue.delete(simulator);
+  };
+  void pending.then(finished, finished);
+  return pending;
+}
+
 /**
  * UIKit publishes an app's key commands to backboardd only while a hardware keyboard is attached when
  * its deferred update runs, and XCTest's own keyboard detaches within a millisecond of a key press.
@@ -902,11 +929,11 @@ export async function withPhoneHardwareKeyboard<T>(
   simulator: string,
   wait: () => Promise<T>,
 ): Promise<T> {
-  await run("xcrun", hardwareKeyboardArguments(simulator, true));
+  await setPhoneHardwareKeyboard(run, simulator, true);
   try {
     return await wait();
   } finally {
-    await run("xcrun", hardwareKeyboardArguments(simulator, false));
+    await setPhoneHardwareKeyboard(run, simulator, false);
   }
 }
 
