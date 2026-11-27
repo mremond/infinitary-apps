@@ -293,15 +293,17 @@ const recording = {
     const services = await run("xcrun", ["simctl", "spawn", owned, "launchctl", "list"]);
     return observer.caret(phoneApplicationPid(services, phoneBundle), since, deadline);
   },
+  keyboardAttachment: async (attached: boolean) => {
+    if (!simulator) throw new Error("No owned simulator keyboard exists");
+    await run("xcrun", hardwareKeyboardArguments(simulator, attached));
+    return { attached };
+  },
   keyboardReady: async (chord: PhoneChord) => {
     if (!simulator || !keyboard) throw new Error("No owned simulator keyboard observer exists");
     const owned = simulator;
     const observer = keyboard;
-    // The app publishes its key commands only while this keyboard is attached; the chord's own press detaches it again.
-    return withPhoneHardwareKeyboard(run, owned, async () => {
-      const services = await run("xcrun", ["simctl", "spawn", owned, "launchctl", "list"]);
-      return observer.wait(phoneApplicationPid(services, phoneBundle), chord);
-    });
+    const services = await run("xcrun", ["simctl", "spawn", owned, "launchctl", "list"]);
+    return observer.wait(phoneApplicationPid(services, phoneBundle), chord);
   },
   display: async (appearance: "light" | "dark", large: boolean): Promise<PhoneDisplayReport> => {
     const until = phoneDisplayDeadline();

@@ -69,13 +69,12 @@ import { clearPhoneCards, raiseReaderCard } from "./phoneCrewCards";
 import { phoneGoogleControls, startPhoneGoogle } from "./phoneGoogle";
 import type {
   PhoneCaretOutcome,
-  PhoneChord,
   PhoneDisplayReport,
   PhoneKeyOutcome,
-  PhoneKeyWitness,
   PhonePickerPreview,
   PhoneTouchOutcome,
 } from "./phoneKeyboard";
+import { type PhoneKeyboardControls, phoneKeyboardControl } from "./phoneKeyboardControl";
 import { raiseMoveCard, showMoveCardPast } from "./phoneMoveCard";
 import { phonePanelControls } from "./phonePanels";
 import { startPhonePushRelay } from "./phonePushRelay";
@@ -142,14 +141,12 @@ async function controlBody(request: IncomingMessage): Promise<string> {
 
 export async function startPhoneHome(
   root: string,
-  controls?: {
+  controls?: PhoneKeyboardControls & {
     start(name?: string): Promise<void>;
     stop(): Promise<void>;
     damageRecord?(): Promise<void>;
     appearance?(theme: "dark" | "light"): Promise<PhoneDisplayReport>;
     display?(appearance: "light" | "dark", large: boolean): Promise<PhoneDisplayReport>;
-    keyboardBeforeLaunch?(): Promise<{ generation: number }>;
-    keyboardReady?(chord: PhoneChord): Promise<PhoneKeyWitness>;
     touchOutcome?(since: number): Promise<PhoneTouchOutcome>;
     // INF-6074: whether the system's keyboard took back the caret a text field of the app took since `since`.
     caretOutcome?(since: number): Promise<PhoneCaretOutcome>;
@@ -756,35 +753,13 @@ export async function startPhoneHome(
     try {
       let result: unknown;
       switch (`${request.method} ${command}`) {
-        case "POST keyboard-before-launch": {
-          if (!controls?.keyboardBeforeLaunch)
-            throw new Error("No simulator keyboard observer is available");
-          result = await controls.keyboardBeforeLaunch();
-          observations.push({ check: "keyboard-before-launch", result });
-          break;
-        }
+        case "POST keyboard-before-launch":
+        case "POST keyboard-attach":
+        case "POST keyboard-detach":
         case "POST keyboard-ready": {
-          if (!controls?.keyboardReady)
-            throw new Error("No simulator keyboard observer is available");
-          let body = "";
-          for await (const chunk of request) {
-            body += chunk.toString();
-            if (body.length > 1024) throw new Error("A keyboard request is too large");
-          }
-          const chord = JSON.parse(body);
-          if (
-            typeof chord.key !== "string" ||
-            (chord.key.length !== 1 &&
-              !["leftArrow", "rightArrow", "upArrow", "downArrow"].includes(chord.key)) ||
-            !Array.isArray(chord.modifiers) ||
-            !chord.modifiers.every(
-              (value: unknown) =>
-                typeof value === "string" && ["cmd", "shft", "opt", "ctrl"].includes(value),
-            )
-          )
-            throw new Error("A keyboard request must name one key and its modifiers");
-          result = await controls.keyboardReady(chord);
-          observations.push({ check: "keyboard-registration", result });
+          const observation = await phoneKeyboardControl(command, request, controls);
+          result = observation.result;
+          observations.push(observation);
           break;
         }
         case "POST touch-outcome": {

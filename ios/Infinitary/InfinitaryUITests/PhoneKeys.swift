@@ -32,10 +32,6 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 /// No priming press, held modifier or delay: the requested chord is the only key event, sent once after the witness.
 /// App-side keyCommands, elapsed time and repeated key presses are not readiness witnesses.
 @MainActor func pressPhoneKey(_ key: String, modifiers: XCUIElement.KeyModifierFlags, in app: XCUIApplication) async throws {
-    if let failure = PhoneWaitForKeyQuiescence(app) {
-        throw NSError(domain: "PhoneKeyboard", code: 5, userInfo: [NSLocalizedDescriptionKey:
-            "The requested chord was not sent: the fresh main-run-loop wait failed: \(failure)"])
-    }
     let control = try XCTUnwrap(ProcessInfo.processInfo.environment["PHONE_TEST_HOME"])
     var request = URLRequest(url: try XCTUnwrap(URL(string: control + "/keyboard-ready")))
     request.httpMethod = "POST"
@@ -50,20 +46,28 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     request.httpBody = try JSONSerialization.data(withJSONObject: [
         "key": canonicalKey, "modifiers": modifierNames
     ])
-    let (data, response) = try await phoneTestSession.data(for: request)
-    guard (response as? HTTPURLResponse)?.statusCode == 200 else {
-        throw NSError(domain: "PhoneKeyboard", code: 1, userInfo: [NSLocalizedDescriptionKey:
-            "The requested chord was not sent: " + (String(data: data, encoding: .utf8) ?? "No keyboard registration witness")])
-    }
-    let witness = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
-    guard witness["key"] as? String == canonicalKey,
-          witness["modifiers"] as? [String] == modifierNames,
-          let pid = witness["pid"] as? Int, pid > 0,
-          witness["token"] is String else {
-        throw NSError(domain: "PhoneKeyboard", code: 2, userInfo: [NSLocalizedDescriptionKey:
-            "The requested chord was not sent: its registration witness did not match"])
-    }
-    print("Keyboard registration acknowledged: \(witness)")
+    try await phoneKeyboardReadiness(attach: {
+        try await phoneKeyboardAttachment(true, control: control)
+    }, wait: {
+        PhoneWaitForKeyQuiescence(app)
+    }, registration: {
+        let (data, response) = try await phoneTestSession.data(for: request)
+        guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+            throw NSError(domain: "PhoneKeyboard", code: 1, userInfo: [NSLocalizedDescriptionKey:
+                "The requested chord was not sent: " + (String(data: data, encoding: .utf8) ?? "No keyboard registration witness")])
+        }
+        let witness = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        guard witness["key"] as? String == canonicalKey,
+              witness["modifiers"] as? [String] == modifierNames,
+              let pid = witness["pid"] as? Int, pid > 0,
+              witness["token"] is String else {
+            throw NSError(domain: "PhoneKeyboard", code: 2, userInfo: [NSLocalizedDescriptionKey:
+                "The requested chord was not sent: its registration witness did not match"])
+        }
+        print("Keyboard registration acknowledged: \(witness)")
+    }, detach: {
+        try await phoneKeyboardAttachment(false, control: control)
+    })
     // Xcode 26.4's typist generates no HID event for the Return constant (CR).
     // LF generates the actual Return key (usage page 7, code 0x28), routed as CR by backboardd.
     // Keep CR for the registration witness; send that physical key exactly once.
@@ -72,12 +76,67 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     }
 }
 
+@MainActor func phoneKeyboardReadiness(
+    failures: PhoneFailures = .shared,
+    attach: @MainActor () async throws -> Void, wait: () -> String?,
+    registration: @MainActor () async throws -> Void, detach: @MainActor () async throws -> Void
+) async throws {
+    let result: Result<Void, Error>
+    do {
+        try await attach()
+        try phoneKeyPhase("keyboard attachment", key: nil, failures: failures) { nil }
+        try phoneKeyPhase("the fresh main-run-loop wait", key: nil, failures: failures, wait)
+        try await registration()
+        try phoneKeyPhase("keyboard registration", key: nil, failures: failures) { nil }
+        result = .success(())
+    } catch { result = .failure(error) }
+    do { try await detach() }
+    catch {
+        if case .failure(let original) = result {
+            throw NSError(domain: "PhoneKeyboard", code: 6, userInfo: [NSLocalizedDescriptionKey:
+                "\(original.localizedDescription); keyboard detachment also failed: \(error.localizedDescription)"])
+        }
+        throw error
+    }
+    try result.get()
+    try phoneKeyPhase("keyboard detachment", key: nil, failures: failures) { nil }
+}
+
+@MainActor private func phoneKeyboardAttachment(_ attached: Bool, control: String) async throws {
+    let command = attached ? "keyboard-attach" : "keyboard-detach"
+    var request = URLRequest(url: try XCTUnwrap(URL(string: control + "/" + command)))
+    request.httpMethod = "POST"
+    request.timeoutInterval = 40
+    let (data, response) = try await phoneTestSession.data(for: request)
+    guard (response as? HTTPURLResponse)?.statusCode == 200,
+          let state = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+          state["attached"] as? Bool == attached else {
+        throw NSError(domain: "PhoneKeyboard", code: 7, userInfo: [NSLocalizedDescriptionKey:
+            "The simulator did not confirm keyboard attachment state \(attached)"])
+    }
+}
+
 /// Swift cannot catch the Objective-C exceptions XCTest raises while resolving an alert snapshot.
-@MainActor func phoneKeyEvent(_ key: String, _ send: () -> Void) throws {
-    let exception = PhoneCatchKeyException(send)
-    if let failure = exception ?? PhoneFailures.failureDescription {
-        throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey:
-            "XCTest could not complete key \(key.debugDescription): \(failure). Delivery is unknown; no retry was made."])
+@MainActor func phoneKeyEvent(_ key: String, failures: PhoneFailures = .shared, _ send: () -> Void) throws {
+    try phoneKeyPhase("key delivery", key: key, failures: failures) { PhoneCatchKeyException(send) }
+}
+
+@MainActor func phoneKeyPhase(
+    _ phase: String, key: String?, failures: PhoneFailures = .shared, _ action: () -> String?
+) throws {
+    let checkpoint = failures.count
+    // An earlier failure already makes XCTest's delivery state unusable; no later phase may send an event.
+    let failure: String?
+    if let earlier = failures.failure(since: 0) { failure = earlier }
+    else {
+        let exception = action()
+        failure = failures.failure(since: checkpoint) ?? exception
+    }
+    if let failure {
+        let message = key.map {
+            "XCTest could not complete key \($0.debugDescription): \(failure). Delivery is unknown; no retry was made."
+        } ?? "The requested chord was not sent: \(phase) failed: \(failure)"
+        throw NSError(domain: "PhoneKeyboard", code: 4, userInfo: [NSLocalizedDescriptionKey: message])
     }
 }
 
@@ -159,14 +218,16 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 /// Only a failure counts: a warning, such as UIKit's runtime warning about a reparented view, fails nothing and XCTest
 /// goes on sending events. Counting that warning turned off the target and outcome waits of every later tap in the part.
 final class PhoneFailures: NSObject, XCTestObservation, @unchecked Sendable {
-    private static let shared = PhoneFailures()
+    static let shared = PhoneFailures()
     @MainActor private static var watching = false
     private let lock = NSLock()
-    private var failed = false
-    private var lastFailure: String?
+    private var failures: [String] = []
 
-    static var recorded: Bool { shared.lock.withLock { shared.failed } }
-    static var failureDescription: String? { shared.lock.withLock { shared.lastFailure } }
+    static var recorded: Bool { shared.count > 0 }
+    var count: Int { lock.withLock { failures.count } }
+    func failure(since checkpoint: Int) -> String? {
+        lock.withLock { failures.dropFirst(checkpoint).first }
+    }
 
     /// Before a part's first action (PhoneJourney.launchFresh); one observer serves every part in the process.
     @MainActor static func watch() {
@@ -176,12 +237,12 @@ final class PhoneFailures: NSObject, XCTestObservation, @unchecked Sendable {
     }
 
     func testCaseWillStart(_ testCase: XCTestCase) {
-        lock.withLock { failed = false; lastFailure = nil }
+        lock.withLock { failures.removeAll() }
     }
 
     func testCase(_ testCase: XCTestCase, didRecord issue: XCTIssue) {
         guard issue.isFailure else { return }
-        lock.withLock { failed = true; lastFailure = issue.compactDescription }
+        lock.withLock { failures.append(issue.compactDescription) }
     }
 }
 

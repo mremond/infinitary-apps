@@ -1336,7 +1336,9 @@ It also photographs join, Home, Activity, the empty stage, details and Settings 
 Every native journey launch goes through `launchPhoneApp`, which renews the owned simulator's keyboard log subscription and waits for its startup before launching the app.
 A live subscription is not proof that it still supplies registrations after relaunch; the new subscription starts with no cached witnesses and observes both launch and the home's keyboard attachment.
 The runner joins the old output streams before appending the new subscription's gzip member, keeping all registrations in order.
-Hardware chords go through `pressPhoneKey`, which first asks the app's current process for a fresh main-run-loop quiescence wait without waiting for animations, then asks the test home for backboardd's acknowledgement of that chord's registration for the current app process and sends the chord once.
+Hardware chords go through `pressPhoneKey`: the test home confirms attachment of the simulator's keyboard, the app's current process runs one fresh main-run-loop quiescence wait without animations, and the test home reads backboardd's acknowledgement of that exact chord for the current app process.
+The helper detaches the keyboard after registration or failure and sends the chord once only after successful readiness.
+A recorded XCTest failure stops its phase before registration or delivery; its original reason takes precedence over a subsequent generic exception.
 The fresh wait observes pending work after a page push; it is not an explicit UI-commit API, and never replaces the registration witness.
 The UI-test target's Objective-C bridge checks both private method signatures before calling them and converts exceptions from the wait or `typeKey` into contextual test failures.
 A snapshot failure leaves key delivery unknown and never authorizes another key; the keyboard tool tests exercise the bridge with the recorded alert-snapshot error reason.
