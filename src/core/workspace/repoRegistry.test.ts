@@ -443,6 +443,32 @@ describe("RepoRegistry's advisory workflows", () => {
     expect(reload()?.advisoryWorkflows).toBeUndefined();
   });
 
+  it("keeps the list when the project's address is spelled another way, and drops it for another repository", async () => {
+    const { registry } = setup();
+    const { repo } = await registry.setup({ kind: "init", name: "meter" });
+    const pilot = [".github/workflows/early-tests.yml"];
+    registry.configure(repo.id, {
+      origin: "https://github.com/example-studio/meter.git",
+      delivery: "direct-pr",
+      advisoryWorkflows: pilot,
+    });
+    expect(
+      registry.configure(repo.id, { origin: "git@github.com:Example-Studio/meter.git" })
+        .advisoryWorkflows,
+    ).toEqual(pilot);
+    expect(
+      registry.configure(repo.id, { origin: "https://github.com/example-studio/meter-next.git" })
+        .advisoryWorkflows,
+    ).toBeUndefined();
+    // A list sent with the new address is chosen for it.
+    expect(
+      registry.configure(repo.id, {
+        origin: "https://github.com/example-studio/meter.git",
+        advisoryWorkflows: pilot,
+      }).advisoryWorkflows,
+    ).toEqual(pilot);
+  });
+
   it("refuses a file that names no workflow, and a file named twice", () => {
     for (const advisoryWorkflows of [
       ["early-tests.yml"],

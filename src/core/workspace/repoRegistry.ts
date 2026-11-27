@@ -12,7 +12,7 @@ import {
   unlinkSync,
 } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
-import { advisoryWorkflowsSchema } from "@shared/advisoryWorkflows";
+import { advisoryWorkflowsSchema, sameAdvisoryRepository } from "@shared/advisoryWorkflows";
 import { type BatchRecord, batchRecordSchema } from "@shared/batches";
 import {
   type ContributionRoute,
@@ -737,16 +737,15 @@ export class RepoRegistry {
             // i18n-exempt: SQL, never shown
             .prepare("UPDATE repos SET contributor_disclosure = ? WHERE id = ?")
             .run(changes.contributorDisclosure, id);
-        if (changes.advisoryWorkflows !== undefined)
+        // A list was chosen for the repository the project named then.
+        const advisoryWorkflows =
+          changes.advisoryWorkflows ??
+          (repo.advisoryWorkflows && !sameAdvisoryRepository(repo.origin, origin) ? [] : undefined);
+        if (advisoryWorkflows !== undefined)
           this.db
             // i18n-exempt: SQL, never shown
             .prepare("UPDATE repos SET advisory_workflows_json = ? WHERE id = ?")
-            .run(
-              changes.advisoryWorkflows.length > 0
-                ? JSON.stringify(changes.advisoryWorkflows)
-                : null,
-              id,
-            );
+            .run(advisoryWorkflows.length > 0 ? JSON.stringify(advisoryWorkflows) : null, id);
         this.projects.renameForRepo(id, name);
         if (origin !== repo.origin)
           for (const listener of this.addressListeners) listener(repo, origin);

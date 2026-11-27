@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { forgeOf } from "./forge";
 
 /**
  * One advisory workflow (docs/forge.md, "Advisory workflows"): a workflow
@@ -29,4 +30,25 @@ export const advisoryWorkflowsSchema = z
  */
 export function typedAdvisoryWorkflows(text: string): string[] {
   return [...new Set(text.split(/[\s,]+/).filter((path) => path !== ""))];
+}
+
+/**
+ * Whether two addresses name the same GitHub repository, however each is
+ * spelled: a list chosen for one repository never reaches another's
+ * workflow files of the same name (docs/forge.md, "Advisory workflows").
+ */
+export function sameAdvisoryRepository(
+  chosenAt: string | null | undefined,
+  readAt: string | null | undefined,
+): boolean {
+  const chosen = forgeOf(chosenAt);
+  const read = forgeOf(readAt);
+  return (
+    !!chosen.host &&
+    !!chosen.owner &&
+    !!chosen.name &&
+    chosen.host === read.host &&
+    chosen.owner.toLowerCase() === read.owner?.toLowerCase() &&
+    chosen.name.toLowerCase() === read.name?.toLowerCase()
+  );
 }

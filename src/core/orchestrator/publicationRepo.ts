@@ -1,3 +1,4 @@
+import { sameAdvisoryRepository } from "@shared/advisoryWorkflows";
 import { hasChangeRequests } from "@shared/forge";
 import { type ForgeRepo, requestAtRepo, requestLinkAtRepo } from "../forge";
 
@@ -5,15 +6,20 @@ export { requestAtRepo, requestLinkAtRepo } from "../forge";
 
 import type { TaskRecord } from "../storage/taskRecords";
 
-/** A prepared task keeps its own publication identity; other managed targets keep theirs. */
+/**
+ * A prepared task keeps its own publication identity; other managed targets
+ * keep theirs. The project's advisory workflows go with it only to the
+ * repository they were chosen for.
+ */
 export function publicationRepo<T extends ForgeRepo>(record: TaskRecord, repo: T): T {
-  return "id" in repo && repo.id === record.repoId && record.delivery?.publicationOrigin
-    ? {
-        ...repo,
-        origin: record.delivery.publicationOrigin,
-        contribution: record.delivery.contribution,
-      }
-    : repo;
+  const origin = record.delivery?.publicationOrigin;
+  if (!("id" in repo && repo.id === record.repoId && origin)) return repo;
+  return {
+    ...repo,
+    origin,
+    contribution: record.delivery?.contribution,
+    ...(sameAdvisoryRepository(repo.origin, origin) ? {} : { advisoryWorkflows: undefined }),
+  };
 }
 
 /**
