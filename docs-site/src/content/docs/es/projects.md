@@ -1,5 +1,5 @@
 ---
-source: c51b6ca36743cf77
+source: 6f29a4870b425665
 title: Proyectos
 description: Cómo agregar un proyecto a Infinitary, reunir varios repositorios en uno, darle etiquetas, centrar la ventana en uno, elegir cómo se fusionan sus cambios y quitarlo.
 ---
@@ -164,6 +164,10 @@ Está activado para un proyecto nuevo, así que el trabajo terminado espera tu p
 Desactívalo, y el trabajo que supera las comprobaciones puede fusionarse sin preguntarte.
 
 **Cuidado** define con qué minuciosidad se comprueba el trabajo: **Rápido**, **Predeterminado** o **Cuidadoso**.
+
+**Flujos de trabajo orientativos** indica los archivos de flujo de trabajo de un proyecto de GitHub, como `.github/workflows/early-tests.yml`, cuyas comprobaciones aparecen en cada cambio, pero nunca retienen su fusión ni su lote.
+Escribe los archivos separados por comas y pulsa **Guardar**.
+Una comprobación que exigen tus reglas de rama en GitHub sigue reteniendo la fusión en GitHub.
 
 **Indicar la ayuda de IA** está activado en un proyecto cuyos cambios pasan por solicitudes de incorporación de cambios.
 Cuando un tripulante revisa la solicitud de incorporación de cambios de otra persona, el comentario que publica empieza con una línea que dice que lo escribió un tripulante de Infinitary.

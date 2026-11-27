@@ -2496,6 +2496,7 @@
 "recordCareCareful" = "慎重";
 "recordCareDefault" = "標準";
 "recordCareQuick" = "クイック";
+"recordCheckAdvisory" = "参考、%1$@";
 "recordComparedComputers" = "開始時に比較したコンピューター";
 "recordContinue" = "続行";
 "recordCrewmateOnModel" = "%1$@（%2$@）";
@@ -3583,6 +3584,11 @@
 "settingsPhoneStoppedThere" = "%2$@連携は、%1$@ の「設定 → 自動化」で選び直してください。";
 "settingsPhoneTodayPartial" = "今日はまだ途中です";
 "settingsPhoneUsageThere" = "最近のタスクと各モデルの詳細は、%1$@ の「設定 → 使用量」にあります。";
+"settingsProjectsAdvisoryDescription" = "これらの GitHub ワークフローファイル（.github/workflows/early-tests.yml など）のチェックは変更に表示されますが、マージや一括プルリクエストを止めることはありません。";
+"settingsProjectsAdvisoryInvalid" = "各ワークフローファイルを .github/workflows の直下で一度ずつ指定してください。";
+"settingsProjectsAdvisoryLabel" = "参考ワークフローのファイル";
+"settingsProjectsAdvisoryNone" = "なし";
+"settingsProjectsAdvisoryTitle" = "参考ワークフロー";
 "settingsProjectsAutonomyOff" = "完了した作業はあなたの承認を待ちます。";
 "settingsProjectsAutonomyOn" = "チェックに合格した作業は、確認なしでマージされることがあります。";
 "settingsProjectsAutonomyPersonal" = "その場で作成。チェックに合格した作業は、終わりしだい書き込まれます。";

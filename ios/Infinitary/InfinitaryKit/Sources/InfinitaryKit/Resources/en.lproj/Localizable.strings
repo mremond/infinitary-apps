@@ -2496,6 +2496,7 @@
 "recordCareCareful" = "Careful";
 "recordCareDefault" = "Default";
 "recordCareQuick" = "Quick";
+"recordCheckAdvisory" = "advisory, %1$@";
 "recordComparedComputers" = "Compared computers at start";
 "recordContinue" = "Continue";
 "recordCrewmateOnModel" = "%1$@ on %2$@";
@@ -3583,6 +3584,11 @@
 "settingsPhoneStoppedThere" = "%2$@ Pick its integration again in Settings → Automation on %1$@.";
 "settingsPhoneTodayPartial" = "Today is partial";
 "settingsPhoneUsageThere" = "Recent tasks and each model's detail are in Settings → Usage on %1$@.";
+"settingsProjectsAdvisoryDescription" = "Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch.";
+"settingsProjectsAdvisoryInvalid" = "Name each workflow file once, directly in .github/workflows.";
+"settingsProjectsAdvisoryLabel" = "Advisory workflow files";
+"settingsProjectsAdvisoryNone" = "None";
+"settingsProjectsAdvisoryTitle" = "Advisory workflows";
 "settingsProjectsAutonomyOff" = "Finished work waits for your word.";
 "settingsProjectsAutonomyOn" = "Work that passes the checks may merge without asking you.";
 "settingsProjectsAutonomyPersonal" = "Builds in place. Work that passes the checks is written as soon as it is done.";

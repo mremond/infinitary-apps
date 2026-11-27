@@ -24,6 +24,7 @@
   "recordCareCareful": "慎重",
   "recordCareDefault": "標準",
   "recordCareQuick": "クイック",
+  "recordCheckAdvisory": "参考、{state}",
   "recordComparedComputers": "開始時に比較したコンピューター",
   "recordContinue": "続行",
   "recordCrewmateOnModel": "{crewmate}（{model}）",

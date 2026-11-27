@@ -230,7 +230,7 @@ export const WALKS: Record<string, { walks: string[]; reason: string }> = {
     reason:
       "the fleet hygiene pass's tasks still holding a working copy; its partial index holds only those rows",
   },
-  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure FROM repos ORDER BY added_at":
+  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure, advisory_workflows_json FROM repos ORDER BY added_at":
     {
       walks: ["SCAN repos", "USE TEMP B-TREE FOR ORDER BY"],
       reason: "one row per project the captain adds",
@@ -255,17 +255,17 @@ export const WALKS: Record<string, { walks: string[]; reason: string }> = {
     walks: ["SCAN repos"],
     reason: "one row per project the captain adds",
   },
-  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure FROM repos WHERE origin = ? AND kind = 'project'":
+  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure, advisory_workflows_json FROM repos WHERE origin = ? AND kind = 'project'":
     {
       walks: ["SCAN repos"],
       reason: "one row per project the captain adds",
     },
-  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure FROM repos WHERE name = ?":
+  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure, advisory_workflows_json FROM repos WHERE name = ?":
     {
       walks: ["SCAN repos"],
       reason: "one row per project the captain adds",
     },
-  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure FROM repos WHERE origin = ? AND setup_kind = 'clone'":
+  "SELECT id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure, advisory_workflows_json FROM repos WHERE origin = ? AND setup_kind = 'clone'":
     {
       walks: ["SCAN repos"],
       reason: "one row per project the captain adds",

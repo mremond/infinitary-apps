@@ -30,6 +30,7 @@
   "recordCareCareful": "Minutieux",
   "recordCareDefault": "Par défaut",
   "recordCareQuick": "Rapide",
+  "recordCheckAdvisory": "indicatif, {state}",
   "recordComparedComputers": "Ordinateurs comparés au démarrage",
   "recordContinue": "Poursuivre",
   "recordCrewmateOnModel": "{crewmate} avec {model}",

@@ -818,6 +818,7 @@ The evidence is kept while the same checks fail at the same version, read again 
 GitHub check runs retain their reported status, conclusion and available run identity.
 A check run that finished `neutral`, such as a report or coverage bot's, holds nothing and still reads neutral in the checks cell, since GitHub's required checks pass on success, skipped or neutral (INF-4552).
 A check that waits for a person to start it (`manual`) holds the change; the merge card's checks hold then names it as waiting to be started and promises no wake, since the check watch waits only on a check still queued or running.
+A check from one of the project's advisory workflows holds nothing in any state ("Advisory workflows" below).
 No observed checks or workflow runs yields an empty list.
 A later run of the same workflow and event at the version decides each check of the same name an earlier run left, whatever that earlier check read (`withoutSupersededRuns`), as a rerun's newest attempt decides inside one run.
 The captain’s F26 choice made it so for a cancelled duplicate, and INF-4584 for a failure: a requested run that failed, such as one that named a wrong input, no longer holds the merge once a newer request of the same workflow passed at that version.
@@ -874,10 +875,24 @@ A batch of the captain's own reads each of the project's changes as declared (`d
 An empty list alone never starts the record, and the app never infers it from missing workflow files.
 An empty, undeclared reading names this way to the crewmate, and its two-hour wake does too ("Check facts and crew judgment" above, `emptyWords` in `src/core/orchestrator/changeChecks.ts`).
 
-The first reading where a check ran on any of the project's changes ends the record: a check that is queued, running or finished counts, while a skipped check and the app's own batch check do not (`checksThatRan` in `src/shared/checkSnapshot.ts`).
+The first reading where a check ran on any of the project's changes ends the record: a check that is queued, running or finished counts, while a skipped check, an advisory one ("Advisory workflows" below) and the app's own batch check do not (`checksThatRan` in `src/shared/checkSnapshot.ts`).
 Every reading of a change's checks ends it: a task's reading and the merge's own (`ChangeChecks.endNoChecks`), and the batch pull request's (`Batches.follow`), where a project whose workflows run only on pull requests runs them.
 Its checks then hold the merge again, and one Activity line names the check and the change it ran on (`noChecksSaid`, `RepoRegistry.onNoChecks`).
 A pull request that adds a recorded project's first check can merge before that check registers; the record ends at the first reading that sees it.
+
+## Advisory workflows
+
+A GitHub project can name workflow files whose checks show on each change but never hold it, such as a pilot workflow the project is still trying out.
+The list is the project's `advisoryWorkflows` (`RepoView`, the `advisory_workflows_json` column), each a file directly in `.github/workflows` by its path in the repository, and `RepoRegistry` is its only writer.
+Settings → Projects shows it as Advisory workflows, below Require pull request checks, and the first mate sets it with `app_change project-settings` on the captain's words.
+It is offered only for a project that ships through pull requests on GitHub (`namesAdvisoryWorkflows` in `src/shared/repos.ts`), since GitHub names the workflow file on each run (`path`); `RepoRegistry.checkConfigure` refuses a list for any other project (`ADVISORY_WORKFLOWS_REFUSAL`), and an empty list is always accepted.
+
+The GitHub reader marks each check whose workflow run's file is on the list (`asAdvisory` in `src/core/forge/forge.ts`): its state reads `neutral`, and `advisory` keeps the state GitHub reported.
+Every reader of a check reading follows with no path of its own, because each one already treats `neutral` as holding nothing: the merge card's checks hold, the check watch and its wakes, the merge's own reading, a batch's admission and its trial, and a reviewed pull request's merge.
+The crew's check facts give such a check's own state and say it holds nothing, and the task's checks and the check watch's wakes say `advisory, running` or `advisory, failed`, so a crewmate still sees the workflow's result and can read its log with `read_workflow`.
+A check whose workflow run is still unfinished before it registers carries the run, so it is marked as soon as it is read.
+A reading where only advisory or skipped checks ran is treated as an empty one: it waits for the required checks to register, or for the crew to declare their absence ("Check facts and crew judgment" above), and an advisory check never ends a project's no-checks record ("A project with no checks" above).
+A check the project's GitHub branch rules require still holds the merge at GitHub, whatever the list says: the list changes what the app waits for, never what GitHub enforces.
 
 ## A requested merge
 

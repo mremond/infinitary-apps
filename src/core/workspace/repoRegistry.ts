@@ -12,6 +12,7 @@ import {
   unlinkSync,
 } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
+import { advisoryWorkflowsSchema } from "@shared/advisoryWorkflows";
 import { type BatchRecord, batchRecordSchema } from "@shared/batches";
 import {
   type ContributionRoute,
@@ -22,12 +23,14 @@ import { type ForgeKind, forgeOf, type KnownForgeHost } from "@shared/forge";
 import { changeRequestHost } from "@shared/forgeKinds";
 import { AUTOMATIC_COMPUTER, placementRequirementsSchema } from "@shared/placement";
 import {
+  ADVISORY_WORKFLOWS_REFUSAL,
   BATCH_HOST_REFUSAL,
   BATCHES_OFF_REFUSAL,
   deliveryChoices,
   NO_CHECKS_REFUSAL,
   type NoChecksChange,
   type NoChecksRecord,
+  namesAdvisoryWorkflows,
   noChecksRecordSchema,
   type ProjectsFolderView,
   type RepoDelivery,
@@ -130,13 +133,14 @@ type Row = {
   no_checks_json?: string | null;
   batch_gap_minutes?: number | null;
   contributor_disclosure?: string | null;
+  advisory_workflows_json?: string | null;
 };
 
 /** Where a new repository goes: a task key of its own, or the existing project it joins by key. */
 type Into = { key?: string | undefined; project?: string | undefined };
 
 const ROW_COLUMNS =
-  "id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure";
+  "id, name, path, setup_kind, kind, origin, forge_kind, forge_host, delivery, autonomy, rigor, runs_on, placement_requirements_json, scope, contribution_json, batch_json, no_checks_json, batch_gap_minutes, contributor_disclosure, advisory_workflows_json";
 
 function fromRow(row: Row): RepoView {
   const contribution = row.contribution_json ? JSON.parse(row.contribution_json) : null;
@@ -172,7 +176,18 @@ function fromRow(row: Row): RepoView {
     ...(row.contributor_disclosure != null
       ? { contributorDisclosure: row.contributor_disclosure }
       : {}),
+    ...(row.advisory_workflows_json ? advisoryWorkflowsOf(row.advisory_workflows_json) : {}),
   };
+}
+
+/** The project's advisory workflows; a garbled value reads as none, so every check holds. */
+function advisoryWorkflowsOf(json: string): { advisoryWorkflows?: string[] } {
+  try {
+    const parsed = advisoryWorkflowsSchema.safeParse(JSON.parse(json));
+    return parsed.success && parsed.data.length > 0 ? { advisoryWorkflows: parsed.data } : {};
+  } catch {
+    return {};
+  }
 }
 
 /** The record that the project runs no checks; a garbled value reads as none, so checks hold. */
@@ -722,6 +737,16 @@ export class RepoRegistry {
             // i18n-exempt: SQL, never shown
             .prepare("UPDATE repos SET contributor_disclosure = ? WHERE id = ?")
             .run(changes.contributorDisclosure, id);
+        if (changes.advisoryWorkflows !== undefined)
+          this.db
+            // i18n-exempt: SQL, never shown
+            .prepare("UPDATE repos SET advisory_workflows_json = ? WHERE id = ?")
+            .run(
+              changes.advisoryWorkflows.length > 0
+                ? JSON.stringify(changes.advisoryWorkflows)
+                : null,
+              id,
+            );
         this.projects.renameForRepo(id, name);
         if (origin !== repo.origin)
           for (const listener of this.addressListeners) listener(repo, origin);
@@ -804,6 +829,18 @@ export class RepoRegistry {
       })
     )
       throw new Error(NO_CHECKS_REFUSAL);
+    // Naming none is always accepted, as turning checks back on is.
+    if (
+      changes.advisoryWorkflows !== undefined &&
+      changes.advisoryWorkflows.length > 0 &&
+      !namesAdvisoryWorkflows({
+        kind: repo.kind,
+        delivery: changes.delivery ?? repo.delivery,
+        origin: changes.origin === undefined ? repo.origin : changes.origin,
+        host,
+      })
+    )
+      throw new Error(ADVISORY_WORKFLOWS_REFUSAL);
     if (
       name !== repo.name &&
       (!/^[\w][\w.-]*$/.test(name) || this.nameTaken(name, undefined, ownFolder))

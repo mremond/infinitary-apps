@@ -2496,6 +2496,7 @@
 "recordCareCareful" = "谨慎";
 "recordCareDefault" = "默认";
 "recordCareQuick" = "快速";
+"recordCheckAdvisory" = "参考，%1$@";
 "recordComparedComputers" = "开始时比较过的电脑";
 "recordContinue" = "继续";
 "recordCrewmateOnModel" = "%1$@，使用 %2$@";
@@ -3583,6 +3584,11 @@
 "settingsPhoneStoppedThere" = "%2$@ 请在 %1$@ 上的“设置” → “自动化”中重新选择它的集成。";
 "settingsPhoneTodayPartial" = "今天尚未结束";
 "settingsPhoneUsageThere" = "最近的任务和各模型的明细在 %1$@ 上的“设置” → “用量”中。";
+"settingsProjectsAdvisoryDescription" = "这些 GitHub 工作流文件（如 .github/workflows/early-tests.yml）的检查会显示在改动上，但从不阻止它合并，也不阻止这批改动合并。";
+"settingsProjectsAdvisoryInvalid" = "请直接在 .github/workflows 中写出每个工作流文件，每个只写一次。";
+"settingsProjectsAdvisoryLabel" = "参考工作流文件";
+"settingsProjectsAdvisoryNone" = "无";
+"settingsProjectsAdvisoryTitle" = "参考工作流";
 "settingsProjectsAutonomyOff" = "完成的工作会等你确认。";
 "settingsProjectsAutonomyOn" = "通过检查的工作可以不经询问直接合并。";
 "settingsProjectsAutonomyPersonal" = "就地构建。通过检查的工作一完成就会写入。";

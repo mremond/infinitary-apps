@@ -2496,6 +2496,7 @@
 "recordCareCareful" = "Cuidadoso";
 "recordCareDefault" = "Padrão";
 "recordCareQuick" = "Rápido";
+"recordCheckAdvisory" = "informativo, %1$@";
 "recordComparedComputers" = "Computadores comparados no início";
 "recordContinue" = "Continuar";
 "recordCrewmateOnModel" = "%1$@ com %2$@";
@@ -3583,6 +3584,11 @@
 "settingsPhoneStoppedThere" = "%2$@ Escolha a integração dela de novo em Ajustes → Automação em %1$@.";
 "settingsPhoneTodayPartial" = "Hoje está incompleto";
 "settingsPhoneUsageThere" = "As tarefas recentes e os detalhes de cada modelo estão em Ajustes → Uso em %1$@.";
+"settingsProjectsAdvisoryDescription" = "As verificações destes arquivos de fluxo de trabalho do GitHub, como .github/workflows/early-tests.yml, aparecem em uma alteração, mas nunca seguram a mesclagem nem o lote.";
+"settingsProjectsAdvisoryInvalid" = "Informe cada arquivo de fluxo de trabalho uma vez, diretamente em .github/workflows.";
+"settingsProjectsAdvisoryLabel" = "Arquivos de fluxos de trabalho informativos";
+"settingsProjectsAdvisoryNone" = "Nenhum";
+"settingsProjectsAdvisoryTitle" = "Fluxos de trabalho informativos";
 "settingsProjectsAutonomyOff" = "O trabalho concluído espera sua palavra.";
 "settingsProjectsAutonomyOn" = "O trabalho que passa nas verificações pode ser mesclado sem perguntar a você.";
 "settingsProjectsAutonomyPersonal" = "Feito no local. O trabalho que passa nas verificações é gravado assim que fica pronto.";

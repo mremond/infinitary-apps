@@ -50,6 +50,12 @@ export type ForgeLocation = {
   dir: string;
   /** A verified fork that supplies task branches while requests target this location. */
   source?: { id: number; fullName: string };
+  /**
+   * The project's advisory workflow files (`RepoView.advisoryWorkflows`):
+   * a host that names each check's workflow file marks their checks
+   * `advisory` (docs/forge.md, "Advisory workflows").
+   */
+  advisoryWorkflows?: readonly string[];
 };
 
 export type ForgeChange = {
@@ -101,6 +107,17 @@ export function ownChecksOf(items: ForgeCheck[], pushed = false): ForgeCheck[] {
 }
 
 /**
+ * A check from one of the project's advisory workflows (docs/forge.md,
+ * "Advisory workflows"): it reads `neutral`, which holds nothing anywhere a
+ * reading is judged, and keeps the state the host reported in `advisory`.
+ * Matched by the workflow run it belongs to, never by a check's name, so a
+ * check of another workflow that shares its name still holds.
+ */
+export function asAdvisory(check: ForgeCheck): ForgeCheck {
+  return { ...check, state: "neutral", advisory: check.advisory ?? check.state };
+}
+
+/**
  * One check's state, normalised: `success`, `skipped` and a finished
  * `neutral` permit green, as GitHub's required checks pass on them; terminal
  * failures are red; anything still queued or running is `pending`. A check
@@ -137,6 +154,13 @@ export type ForgeCheck = {
    * as the host's own pipeline passes with it (`@shared/checkSnapshot`).
    */
   failureAllowed?: boolean;
+  /**
+   * The state the host reported for a check from one of the project's
+   * advisory workflows (`ForgeLocation.advisoryWorkflows`), whose own
+   * `state` then reads `neutral`: it holds nothing, whether it is still
+   * running, failed or never finished (`asAdvisory`).
+   */
+  advisory?: ForgeCheckState;
   /**
    * A row that sums up a whole run rather than one check of its own, such as
    * GitHub's unfinished workflow run or a GitLab pipeline beside its jobs:
@@ -646,8 +670,11 @@ export function isFullCommitId(sha: string): boolean {
 
 /** A check state in a tool's words: `completed / <conclusion>`, or still running. */
 export function describeCheckState(
-  check: Pick<ForgeCheck, "state" | "manual" | "failureAllowed" | "status">,
+  check: Pick<ForgeCheck, "state" | "manual" | "failureAllowed" | "status" | "advisory">,
 ): string {
+  if (check.advisory)
+    // i18n-exempt: a check fact served to the crew's model
+    return `${check.advisory === "pending" ? "in_progress / -" : `completed / ${check.advisory}`}, advisory, so it holds nothing`;
   if (check.manual) return "manual / waiting for a person to start it";
   if (check.failureAllowed) {
     const ended = check.status ? `${check.status}, ` : "";

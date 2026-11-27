@@ -27,6 +27,7 @@
   "recordCareCareful": "Sorgfältig",
   "recordCareDefault": "Standard",
   "recordCareQuick": "Schnell",
+  "recordCheckAdvisory": "unverbindlich, {state}",
   "recordComparedComputers": "Beim Start verglichene Computer",
   "recordContinue": "Fortsetzen",
   "recordCrewmateOnModel": "{crewmate} mit {model}",

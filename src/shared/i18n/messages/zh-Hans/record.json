@@ -24,6 +24,7 @@
   "recordCareCareful": "谨慎",
   "recordCareDefault": "默认",
   "recordCareQuick": "快速",
+  "recordCheckAdvisory": "参考，{state}",
   "recordComparedComputers": "开始时比较过的电脑",
   "recordContinue": "继续",
   "recordCrewmateOnModel": "{crewmate}，使用 {model}",

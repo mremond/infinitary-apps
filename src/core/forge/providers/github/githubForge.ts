@@ -15,6 +15,7 @@ import {
 } from "../../api";
 import {
   allowanceResetOf,
+  asAdvisory,
   checkTimes,
   type Forge,
   ForgeBaseMoved,
@@ -194,10 +195,14 @@ const TEAM_QUEUE_FILES: Record<string, readonly string[]> = {
   ".github/infinitary": ["rules.mjs", "message.mjs", "github.mjs"],
 };
 
-/** The workflow run a check suite belongs to, as far as superseding needs it. */
+/**
+ * The workflow run a check suite belongs to, as far as superseding and the
+ * project's advisory workflows need it: `path` is its workflow file.
+ */
 type SuiteRunJson = {
   id?: number;
   name?: string;
+  path?: string;
   check_suite_id: number;
   workflow_id: number;
   event: string;
@@ -593,13 +598,23 @@ export class GitHubForge implements Forge {
         });
       }
     }
+    // Only a check GitHub placed in a run of an advisory file is advisory:
+    // a commit status, or a check in no listed run, holds as read.
+    const advisory = new Set(
+      workflows
+        .filter((run) => run.path && this.location.advisoryWorkflows?.includes(run.path))
+        .map((run) => run.id),
+    );
+    const marked = read.map((check) =>
+      check.run !== undefined && advisory.has(check.run) ? asAdvisory(check) : check,
+    );
     // A pull request's checks are the runs it started (INF-1891), and a
     // batch's the runs its own pushed branch started too; a branch's own
     // checks, read with no number, keep every run at its version.
     const items =
       change.number !== undefined
-        ? ownChecksOf(read, change.branch.startsWith(BATCH_BRANCH_PREFIX))
-        : read;
+        ? ownChecksOf(marked, change.branch.startsWith(BATCH_BRANCH_PREFIX))
+        : marked;
     return {
       items,
       ...(problem ? { problem } : {}),

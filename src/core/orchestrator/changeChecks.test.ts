@@ -1024,6 +1024,19 @@ describe('a project with no checks (docs/forge.md, "A project with no checks")',
     expect(repos.get(repoId)?.noChecks).toBeUndefined();
   });
 
+  // INF-67: an advisory workflow's check decides nothing (docs/forge.md, "Advisory workflows").
+  it("keeps the record while only an advisory check runs", async () => {
+    const { tasks, repos, service, forge, task, repoId, headSha } = await noCiProject();
+    repos.configure(repoId, { requireChecks: false });
+    forge.atHead[headSha] = [
+      { name: "early-tests", state: "neutral", advisory: "pending" },
+    ] as ForgeCheck[];
+    await service.checkTool.checkForCrew(task.id);
+    expect(repos.get(repoId)?.noChecks).toBeDefined();
+    expect(tasks.get(task.id)?.delivery?.ciWatch).toBeUndefined();
+    expect(service.checks.reading(task.id)?.overall).toBe("green");
+  });
+
   it("keeps the record the captain sets in the project's settings, and ends it there", async () => {
     const { tasks, repos, service, task, repoId } = await noCiProject();
     expect(repos.configure(repoId, { requireChecks: false }).noChecks).toMatchObject({
@@ -1158,6 +1171,79 @@ describe("a neutral check by each host's own rule (INF-4552)", () => {
     }
     expect(steers).toHaveLength(0);
 
+    expect((await service.merges.merge("ab12cd34")).ok).toBe(false);
+    expect(forge.calls.some((call) => call.startsWith("putIn"))).toBe(false);
+  });
+});
+
+/**
+ * INF-67, from the captain's choice to update Infinitary before a project's
+ * branch pilot starts (docs/forge.md, "Advisory workflows"): a check from one
+ * of the project's advisory workflows, as the GitHub reader marks it, holds
+ * nothing whether it runs, fails or never finishes; every other check holds
+ * as it always has, and advisory checks alone never pass a change.
+ */
+describe("a check from an advisory workflow (INF-67)", () => {
+  const HEAD = "feedbeef";
+  const early = (state: ForgeCheckState) =>
+    ({ name: "early-tests", state: "neutral", advisory: state }) as ForgeCheck;
+
+  async function readWith(checks: ForgeCheck[]) {
+    const harness = setup();
+    await insertDirectPrTask(harness.tasks, harness.repos);
+    recordPr(harness.tasks, 23);
+    harness.forge.atHead[HEAD] = checks;
+    const said = await harness.service.checkTool.checkForCrew("ab12cd34");
+    const delivery = harness.tasks.get("ab12cd34")?.delivery;
+    return { ...harness, said, delivery };
+  }
+
+  it.each([
+    ["pending", "in_progress / -", "running"],
+    ["failure", "completed / failure", "failed"],
+    ["timed_out", "completed / timed_out", "timed out"],
+    ["cancelled", "completed / cancelled", "cancelled"],
+  ] as const)(
+    "merges while the advisory check is %s, and still names its own state",
+    async (state, facts, words) => {
+      const { said, delivery, service, forge } = await readWith([
+        { name: "unit-tests", state: "success" },
+        early(state),
+      ]);
+      expect(said).toContain(`- early-tests: ${facts}, advisory, so it holds nothing`);
+      expect(checkSnapshotSummary(delivery!.checks!)).toMatchObject({
+        overall: "green",
+        words: `1 passed · 1 advisory, ${words}`,
+      });
+      expect(delivery?.ciWatch).toBeUndefined();
+      expect((await service.merges.merge("ab12cd34")).ok).toBe(true);
+      expect(forge.calls.filter((call) => call.startsWith("putIn"))).toHaveLength(1);
+    },
+  );
+
+  it.each([
+    ["failure", "red"],
+    ["pending", "pending"],
+  ] as const)(
+    "holds while a required check reads %s, whatever the advisory one says",
+    async (state, overall) => {
+      const { delivery, service, forge } = await readWith([
+        { name: "unit-tests", state },
+        early("success"),
+      ]);
+      expect(checkSnapshotSummary(delivery!.checks!).overall).toBe(overall);
+      expect((await service.merges.merge("ab12cd34")).ok).toBe(false);
+      expect(forge.calls.some((call) => call.startsWith("putIn"))).toBe(false);
+    },
+  );
+
+  it("waits on a reading where only advisory checks ran, as on an empty one", async () => {
+    const { delivery, service, forge } = await readWith([early("success")]);
+    expect(checkSnapshotSummary(delivery!.checks!)).toMatchObject({
+      overall: "pending",
+      words: "advisory, passed",
+    });
+    expect(service.checks.reading("ab12cd34")?.overall).toBe("pending");
     expect((await service.merges.merge("ab12cd34")).ok).toBe(false);
     expect(forge.calls.some((call) => call.startsWith("putIn"))).toBe(false);
   });

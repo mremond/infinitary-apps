@@ -15,7 +15,13 @@ import {
 import { join } from "node:path";
 import { contributorDisclosureLine } from "@shared/contributorDisclosure";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
-import { BATCH_HOST_REFUSAL, BATCHES_OFF_REFUSAL, NO_CHECKS_REFUSAL } from "@shared/repos";
+import {
+  ADVISORY_WORKFLOWS_REFUSAL,
+  BATCH_HOST_REFUSAL,
+  BATCHES_OFF_REFUSAL,
+  NO_CHECKS_REFUSAL,
+  repoPolicyPatchSchema,
+} from "@shared/repos";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { scratchDir } from "../../../tests/helpers/scratchDirs";
 import { PERSONAL_WORKSPACE_NAME } from "../paths";
@@ -390,6 +396,64 @@ describe("RepoRegistry's record that a project runs no pull request checks", () 
     ).toThrow(NO_CHECKS_REFUSAL);
     expect(registry.get(repo.id)?.delivery).toBe("direct-pr");
     expect(registry.get(repo.id)?.noChecks).toBeUndefined();
+  });
+});
+
+/**
+ * Advisory workflows (INF-67, from the captain's choice to update Infinitary
+ * before a project's branch pilot starts; docs/forge.md, "Advisory
+ * workflows"): a GitHub project's list of workflow files whose checks hold
+ * nothing, kept across reloads and other settings, cleared by an empty list,
+ * and refused for a project whose changes do not go through GitHub pull
+ * requests, which name no workflow file.
+ */
+describe("RepoRegistry's advisory workflows", () => {
+  it("keeps a GitHub project's advisory workflow files, clears them, and refuses them where no pull request names its workflow", async () => {
+    const { db, registry } = setup();
+    const { repo } = await registry.setup({ kind: "init", name: "meter" });
+    const reload = () =>
+      new RepoRegistry(db, scratchDir("infinitary-reloaded-fleet-")).get(repo.id);
+    const pilot = [".github/workflows/early-tests.yml"];
+    expect(() => registry.configure(repo.id, { advisoryWorkflows: pilot })).toThrow(
+      ADVISORY_WORKFLOWS_REFUSAL,
+    );
+    registry.configure(repo.id, {
+      origin: "https://gitlab.com/o/meter.git",
+      delivery: "direct-pr",
+    });
+    expect(() => registry.configure(repo.id, { advisoryWorkflows: pilot })).toThrow(
+      ADVISORY_WORKFLOWS_REFUSAL,
+    );
+    expect(
+      registry.configure(repo.id, {
+        origin: "https://github.com/o/meter.git",
+        advisoryWorkflows: pilot,
+      }).advisoryWorkflows,
+    ).toEqual(pilot);
+    registry.configure(repo.id, { autonomy: true });
+    expect(reload()?.advisoryWorkflows).toEqual(pilot);
+    // A local merge reads no checks, so it cannot take the list, and the list stays as it was.
+    expect(() =>
+      registry.configure(repo.id, { advisoryWorkflows: pilot, delivery: "local-only" }),
+    ).toThrow(ADVISORY_WORKFLOWS_REFUSAL);
+    expect(reload()?.delivery).toBe("direct-pr");
+    expect(
+      registry.configure(repo.id, { advisoryWorkflows: [] }).advisoryWorkflows,
+    ).toBeUndefined();
+    expect(reload()?.advisoryWorkflows).toBeUndefined();
+  });
+
+  it("refuses a file that names no workflow, and a file named twice", () => {
+    for (const advisoryWorkflows of [
+      ["early-tests.yml"],
+      [".github/workflows/nested/early-tests.yml"],
+      [".github/workflows/early-tests.yml", ".github/workflows/early-tests.yml"],
+    ])
+      expect(repoPolicyPatchSchema.safeParse({ advisoryWorkflows }).success).toBe(false);
+    expect(
+      repoPolicyPatchSchema.safeParse({ advisoryWorkflows: [".github/workflows/early-tests.yaml"] })
+        .success,
+    ).toBe(true);
   });
 });
 

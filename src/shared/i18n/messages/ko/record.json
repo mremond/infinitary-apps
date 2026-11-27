@@ -24,6 +24,7 @@
   "recordCareCareful": "신중하게",
   "recordCareDefault": "기본",
   "recordCareQuick": "빠르게",
+  "recordCheckAdvisory": "참고용, {state}",
   "recordComparedComputers": "시작할 때 비교한 컴퓨터",
   "recordContinue": "이어서 하기",
   "recordCrewmateOnModel": "{crewmate}, {model} 사용",

@@ -1591,6 +1591,12 @@ export const MIGRATIONS: readonly Migration[] = [
       "CREATE INDEX IF NOT EXISTS captain_asks_correction_of ON captain_asks (correction_of) WHERE correction_of IS NOT NULL",
     );
   },
+  // A project's advisory workflows (docs/forge.md, "Advisory workflows"):
+  // the workflow files whose checks hold nothing, as a JSON list. Null on
+  // every existing project, whose checks all hold as before. `RepoRegistry`
+  // is the only writer; no published view reads it. Dropping the column
+  // reverses it.
+  (db) => addColumn(db, "repos", "advisory_workflows_json", "TEXT"),
 ];
 
 /**

@@ -30,6 +30,7 @@
   "recordCareCareful": "Cuidadoso",
   "recordCareDefault": "Predeterminado",
   "recordCareQuick": "Rápido",
+  "recordCheckAdvisory": "orientativo, {state}",
   "recordComparedComputers": "Computadoras comparadas al inicio",
   "recordContinue": "Continuar",
   "recordCrewmateOnModel": "{crewmate} con {model}",

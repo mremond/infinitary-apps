@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { advisoryWorkflowsSchema } from "./advisoryWorkflows";
 import { batchRecordSchema } from "./batches";
 import { contributionDestinationSchema, contributionRouteSchema } from "./contributions";
 import { contributorDisclosureSchema } from "./contributorDisclosure";
@@ -272,6 +273,26 @@ export function readsPullRequestChecks(
   );
 }
 
+/**
+ * Whether a project may name advisory workflows (docs/forge.md, "Advisory
+ * workflows"): one whose changes' checks are read on GitHub, which names the
+ * workflow file each check's run comes from. Settings → Projects offers the
+ * setting only here, and `RepoRegistry.checkConfigure` refuses it elsewhere.
+ */
+export function namesAdvisoryWorkflows(
+  repo: Pick<RepoView, "kind" | "delivery" | "origin" | "host">,
+): boolean {
+  return readsPullRequestChecks(repo) && repo.host?.kind === "github";
+}
+
+/**
+ * The refusal the first mate's project-settings action reads; Settings →
+ * Projects offers the row only where it holds, so no person meets it there.
+ */
+// i18n-exempt: served to the first mate's model
+export const ADVISORY_WORKFLOWS_REFUSAL =
+  "Advisory workflows can be named only for a project whose changes go through pull requests on GitHub, which says which workflow file each check comes from. This project's changes do not.";
+
 export const NO_CHECKS_REFUSAL =
   "Require pull request checks can be turned off only for a project whose changes go through pull requests on GitHub, GitLab or Bitbucket. This project's changes do not, so no check holds its merge.";
 
@@ -347,11 +368,17 @@ export const repoPolicyPatchSchema = z
      * default line.
      */
     contributorDisclosure: contributorDisclosureSchema.nullable().optional(),
+    /**
+     * Settings → Projects' Advisory workflows (docs/forge.md, "Advisory
+     * workflows"): the workflow files whose checks never hold a merge; an
+     * empty list names none.
+     */
+    advisoryWorkflows: advisoryWorkflowsSchema.optional(),
   })
   .strict()
   .refine((patch) => Object.values(patch).some((value) => value !== undefined), {
     message:
-      "pass delivery, autonomy, rigor, costLimit, scope, name, path, origin, requireChecks, batchGap, contributorDisclosure, or several",
+      "pass delivery, autonomy, rigor, costLimit, scope, name, path, origin, requireChecks, batchGap, contributorDisclosure, advisoryWorkflows, or several",
   });
 export type RepoPolicyPatch = z.infer<typeof repoPolicyPatchSchema>;
 
@@ -445,6 +472,12 @@ export const repoViewSchema = z.object({
    * assistance"); absent, the default line.
    */
   contributorDisclosure: contributorDisclosureSchema.optional(),
+  /**
+   * The project's advisory workflows, by file (docs/forge.md, "Advisory
+   * workflows"): their checks show on every reading and hold nothing.
+   * Absent, every check holds as read.
+   */
+  advisoryWorkflows: advisoryWorkflowsSchema.optional(),
   /**
    * Whether a runbook that is on at the home offers batched pull requests,
    * so the project may newly choose them (`deliveryChoices`); absent from an

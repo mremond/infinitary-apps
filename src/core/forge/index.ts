@@ -233,7 +233,10 @@ export type {
 export type ForgeBindings = Partial<Record<ForgeKind, (location: ForgeLocation) => Forge>>;
 
 /** The repository fields the seam reads; a repo-less task has none. */
-export type ForgeRepo = Pick<RepoView, "path" | "origin" | "host" | "contribution">;
+export type ForgeRepo = Pick<
+  RepoView,
+  "path" | "origin" | "host" | "contribution" | "advisoryWorkflows"
+>;
 
 /** A saved numbered request belongs to a forge repository, not a managed project id. */
 export function requestAtRepo(
@@ -283,6 +286,7 @@ export function forgeLocationOf(repo: ForgeRepo): ForgeLocation {
     ...(contributesUpstream(repo.contribution) && repo.contribution?.fork
       ? { source: { id: repo.contribution.fork.id, fullName: repo.contribution.fork.fullName } }
       : {}),
+    ...(repo.advisoryWorkflows?.length ? { advisoryWorkflows: repo.advisoryWorkflows } : {}),
   };
 }
 

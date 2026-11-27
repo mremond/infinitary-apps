@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { BatchCheckFact, BatchSendBackFact } from "@shared/batches";
 import {
+  advisoryCheckWords,
   CHECK_FAILURE_ALLOWED_WORDS,
   CHECK_WAITING_TO_START_WORDS,
   checkSnapshotSummary,
@@ -15,6 +16,8 @@ import { checksTimes } from "@shared/checksSpan";
 import { type ContributionState, contributesUpstream } from "@shared/contributions";
 import { forgeOf, hasChangeRequests, sameRequestLink } from "@shared/forge";
 import { changePageUrl } from "@shared/forgeKinds";
+import { inLanguage } from "@shared/i18n/current";
+import { SOURCE_LANGUAGE } from "@shared/i18n/languages";
 import type { RepoView } from "@shared/repos";
 import {
   allowanceResetOf,
@@ -783,11 +786,12 @@ export class ChangeChecks {
       ? {
           headSha: checked.change.headSha,
           ...(checked.change.number !== undefined ? { prNumber: checked.change.number } : {}),
-          items: checks.map(({ name, state, manual, failureAllowed }) => ({
+          items: checks.map(({ name, state, manual, failureAllowed, advisory }) => ({
             name,
             state,
             ...(manual ? { manual } : {}),
             ...(failureAllowed ? { failureAllowed } : {}),
+            ...(advisory ? { advisory } : {}),
           })),
           absenceDeclared: this.absenceDeclared(task, checked),
           ...(complete !== undefined ? { complete } : {}),
@@ -987,17 +991,26 @@ function running(items: { state: ForgeCheckState }[]): boolean {
 
 /**
  * The checks a wake names; one waiting for a person to start it says so,
- * and so does one that failed where its project allows it.
+ * and so do one that failed where its project allows it and an advisory one.
  */
 function named(
-  items: { name: string; state: ForgeCheckState; manual?: boolean; failureAllowed?: boolean }[],
+  items: {
+    name: string;
+    state: ForgeCheckState;
+    manual?: boolean;
+    failureAllowed?: boolean;
+    advisory?: ForgeCheckState;
+  }[],
 ): WatchedCheck[] {
-  return items.map((item) =>
-    item.manual
-      ? { name: item.name, state: CHECK_WAITING_TO_START_WORDS, manual: true }
-      : item.failureAllowed
-        ? { name: item.name, state: CHECK_FAILURE_ALLOWED_WORDS }
-        : { name: item.name, state: item.state },
+  return items.map(({ advisory, ...item }) =>
+    advisory
+      ? // A wake is served to the crew's model, which reads English.
+        { name: item.name, state: inLanguage(SOURCE_LANGUAGE, () => advisoryCheckWords(advisory)) }
+      : item.manual
+        ? { name: item.name, state: CHECK_WAITING_TO_START_WORDS, manual: true }
+        : item.failureAllowed
+          ? { name: item.name, state: CHECK_FAILURE_ALLOWED_WORDS }
+          : { name: item.name, state: item.state },
   );
 }
 

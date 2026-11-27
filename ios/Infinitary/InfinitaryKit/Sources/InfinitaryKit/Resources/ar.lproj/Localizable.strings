@@ -2496,6 +2496,7 @@
 "recordCareCareful" = "متأنٍّ";
 "recordCareDefault" = "افتراضي";
 "recordCareQuick" = "سريع";
+"recordCheckAdvisory" = "استشاري، %1$@";
 "recordComparedComputers" = "الحواسيب التي قورنت عند البدء";
 "recordContinue" = "متابعة";
 "recordCrewmateOnModel" = "%1$@ باستخدام %2$@";
@@ -3583,6 +3584,11 @@
 "settingsPhoneStoppedThere" = "%2$@ اختر تكاملها مجددًا في الإعدادات ← الأتمتة على %1$@.";
 "settingsPhoneTodayPartial" = "اليوم غير مكتمل";
 "settingsPhoneUsageThere" = "المهام الأخيرة وتفاصيل كل نموذج موجودة في الإعدادات ← الاستخدام على %1$@.";
+"settingsProjectsAdvisoryDescription" = "تظهر فحوصات ملفات مسارات عمل GitHub هذه، مثل .github/workflows/early-tests.yml، على التغيير، لكنها لا تعلّق دمجه ولا دفعته أبدًا.";
+"settingsProjectsAdvisoryInvalid" = "اذكر كل ملف مسار عمل مرة واحدة، مباشرة في .github/workflows.";
+"settingsProjectsAdvisoryLabel" = "ملفات مسارات العمل الاستشارية";
+"settingsProjectsAdvisoryNone" = "لا شيء";
+"settingsProjectsAdvisoryTitle" = "مسارات عمل استشارية";
 "settingsProjectsAutonomyOff" = "العمل المنتهي ينتظر كلمتك.";
 "settingsProjectsAutonomyOn" = "العمل الذي يجتاز الفحوصات قد يُدمج دون سؤالك.";
 "settingsProjectsAutonomyPersonal" = "يُبنى في مكانه. العمل الذي يجتاز الفحوصات يُكتب فور انتهائه.";

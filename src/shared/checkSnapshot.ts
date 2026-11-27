@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BATCH_CHECK } from "./batches";
 import type { FactDotState } from "./factDot";
+import * as m from "./i18n/messages.generated.ts";
 
 /** Reported check states, shared by the forge reader and every displayed fact. */
 export const checkStateSchema = z.enum([
@@ -40,13 +41,18 @@ export function isRedCheckState(state: ForgeCheckState): boolean {
  * and nothing finishes on its own for a wake to report. `failureAllowed`
  * marks a `neutral` check that failed or was cancelled where its project
  * allows it to fail, such as a GitLab job with `allow_failure`: it holds
- * nothing, as GitLab's own pipeline passes with it.
+ * nothing, as GitLab's own pipeline passes with it. `advisory` is the state
+ * the host reported for a check from one of the project's advisory
+ * workflows (docs/forge.md, "Advisory workflows"), whose own state reads
+ * `neutral`: it holds nothing in any state, and a reading where only
+ * advisory or skipped checks ran waits as an empty one does (`noCheckRan`).
  */
 export const checkItemSchema = z.object({
   name: z.string(),
   state: checkStateSchema,
   manual: z.boolean().optional(),
   failureAllowed: z.boolean().optional(),
+  advisory: checkStateSchema.optional(),
 });
 export type CheckItem = z.infer<typeof checkItemSchema>;
 
@@ -56,6 +62,10 @@ export function waitsToStart(item: { manual?: boolean }): boolean {
 
 export function failsAllowed(item: { failureAllowed?: boolean }): boolean {
   return item.failureAllowed === true;
+}
+
+export function isAdvisory(item: { advisory?: ForgeCheckState }): boolean {
+  return item.advisory !== undefined;
 }
 
 export function checksWaitingToStart(items: readonly CheckItem[]): string[] {
@@ -125,6 +135,11 @@ export const CHECK_WAITING_TO_START_WORDS = "waiting to be started";
 
 export const CHECK_FAILURE_ALLOWED_WORDS = "allowed to fail";
 
+/** An advisory check with the state the host reported, such as `advisory, running`. */
+export function advisoryCheckWords(state: ForgeCheckState): string {
+  return m.recordCheckAdvisory({ state: STATE_WORDS[state] });
+}
+
 export const CHECKS_NOT_REPORTED_WORDS = "none reported";
 export const CHECKS_ABSENT_WORDS = "no checks";
 /** What the checks say when the app could not read them all; the task card adds the reason. */
@@ -137,24 +152,30 @@ export const CHECKS_INCOMPLETE_WORDS = "reading incomplete";
  * only skipped ones. Right after a pull request opens, the host may list a
  * job that skips on that event before the jobs that run have registered, so
  * such a reading is still pending until the crew declares the absence of
- * checks at that version, exactly as an empty one is.
+ * checks at that version, exactly as an empty one is. An advisory check
+ * decides nothing, so it counts as none here too (docs/forge.md, "Advisory
+ * workflows").
  */
-export function noCheckRan(items: readonly { state: ForgeCheckState }[]): boolean {
-  return items.every((item) => item.state === "skipped");
+export function noCheckRan(
+  items: readonly { state: ForgeCheckState; advisory?: ForgeCheckState }[],
+): boolean {
+  return items.every((item) => item.state === "skipped" || isAdvisory(item));
 }
 
 /**
  * The checks of a reading that ran where the project lives, any one of which
  * ends the project's record that it runs no pull request checks
  * (docs/forge.md, "A project with no checks"): a skipped check did not run,
- * and the batch check is the app's own, by its name or an earlier queue's.
+ * an advisory one decides nothing, and the batch check is the app's own, by
+ * its name or an earlier queue's.
  */
-export function checksThatRan<T extends { name: string; state: ForgeCheckState }>(
-  items: readonly T[],
-): T[] {
+export function checksThatRan<
+  T extends { name: string; state: ForgeCheckState; advisory?: ForgeCheckState },
+>(items: readonly T[]): T[] {
   return items.filter(
     (item) =>
       item.state !== "skipped" &&
+      !isAdvisory(item) &&
       item.name !== BATCH_CHECK &&
       !item.name.startsWith(`${BATCH_CHECK} [`),
   );
@@ -206,7 +227,9 @@ function itemWords(check: {
   state: ForgeCheckState;
   manual?: boolean;
   failureAllowed?: boolean;
+  advisory?: ForgeCheckState;
 }): string {
+  if (check.advisory) return advisoryCheckWords(check.advisory);
   if (waitsToStart(check)) return CHECK_WAITING_TO_START_WORDS;
   if (failsAllowed(check)) return CHECK_FAILURE_ALLOWED_WORDS;
   return STATE_WORDS[check.state];
@@ -222,8 +245,10 @@ export function checkSnapshotState(reading: CheckSnapshot): string {
   if (overall === "red") return STATE_WORDS.failure;
   if (reading.problem) return CHECKS_UNREADABLE_WORDS;
   if (reading.items.length === 0) return words;
-  // Only skipped checks never read passed, even once declared (INF-3915).
-  if (noCheckRan(reading.items) && reading.complete !== false) return STATE_WORDS.skipped;
+  // Only skipped checks never read passed, even once declared (INF-3915);
+  // advisory ones beside them leave none reported, since they decide nothing.
+  if (noCheckRan(reading.items) && reading.complete !== false)
+    return reading.items.some(isAdvisory) ? CHECKS_NOT_REPORTED_WORDS : STATE_WORDS.skipped;
   if (overall === "green") return STATE_WORDS.success;
   if (reading.items.some((check) => check.state === "pending")) return STATE_WORDS.pending;
   if (reading.complete === false) return CHECKS_INCOMPLETE_WORDS;

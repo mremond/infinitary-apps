@@ -1,5 +1,5 @@
 ---
-source: c51b6ca36743cf77
+source: 6f29a4870b425665
 title: Projetos
 description: Como adicionar um projeto ao Infinitary, reunir vários repositórios em um só, criar etiquetas para ele, focar a janela em um deles, escolher como as mudanças dele são mescladas e removê-lo.
 ---
@@ -164,6 +164,10 @@ Ele vem ligado em um projeto novo, então o trabalho terminado espera a sua pala
 Desligue-o, e o trabalho que passa nas verificações pode ser mesclado sem perguntar a você.
 
 **Cuidado** define o quanto o trabalho é verificado: **Rápido**, **Padrão** ou **Cuidadoso**.
+
+**Fluxos de trabalho informativos** indica os arquivos de fluxo de trabalho de um projeto do GitHub, como `.github/workflows/early-tests.yml`, cujas verificações aparecem em cada alteração, mas nunca seguram a mesclagem nem o lote.
+Digite os arquivos separados por vírgulas e pressione **Salvar**.
+Uma verificação que suas regras de branch no GitHub exigem continua segurando a mesclagem no GitHub.
 
 **Informar a ajuda de IA** fica ligado em um projeto cujas mudanças passam por solicitações de pull.
 Quando um tripulante revisa a solicitação de pull de outra pessoa, o comentário que ele publica começa com uma linha dizendo que um tripulante do Infinitary o escreveu.

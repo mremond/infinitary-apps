@@ -87,6 +87,12 @@ type StubCheckRun = {
   status: string;
   conclusion: string | null;
   run?: number;
+  /**
+   * The workflow file of the check's run, such as
+   * `.github/workflows/early-tests.yml`, which GitHub names on the run as
+   * `path`; a run whose checks name none is the `ci` workflow with no path.
+   */
+  workflow?: string;
   started_at?: string;
   completed_at?: string;
 };
@@ -1088,7 +1094,7 @@ export async function startGitHubStub(
           // Checks that finished on an earlier head say nothing of this one: its own start again.
           const moved = own?.checksHead !== undefined && own.checksHead !== sha;
           const runs = own ? (moved ? (openedChecks ?? checkRuns) : own.checks) : checkRuns;
-          const listed = (runs ?? checkRuns).map(({ run, ...check }) =>
+          const listed = (runs ?? checkRuns).map(({ run, workflow: _workflow, ...check }) =>
             run === undefined ? check : { ...check, check_suite: { id: run } },
           );
           send(200, { total_count: listed.length, check_runs: listed });
@@ -1107,21 +1113,30 @@ export async function startGitHubStub(
             send(200, { total_count: 0, workflow_runs: [] });
             return;
           }
-          // One pull request workflow's runs, each a check suite, finished
-          // once every check run in it has.
+          // Pull request workflows' runs, each a check suite, finished once
+          // every check run in it has.
           const numbers = [...new Set(checkRuns.flatMap((check) => check.run ?? []))];
-          const runs = numbers.map((number) => ({
-            id: number,
-            run_number: number,
-            check_suite_id: number,
-            workflow_id: 1,
-            name: "ci",
-            event: "pull_request",
-            head_sha: url.searchParams.get("head_sha"),
-            status: checkRuns.every((check) => check.run !== number || check.status === "completed")
-              ? "completed"
-              : "in_progress",
-          }));
+          const files = [...new Set(checkRuns.flatMap((check) => check.workflow ?? []))];
+          const runs = numbers.map((number) => {
+            const workflow = checkRuns.find((check) => check.run === number)?.workflow;
+            return {
+              id: number,
+              run_number: number,
+              check_suite_id: number,
+              workflow_id: workflow ? files.indexOf(workflow) + 2 : 1,
+              name: workflow
+                ? (workflow.split("/").pop() ?? workflow).replace(/\.ya?ml$/, "")
+                : "ci",
+              ...(workflow ? { path: workflow } : {}),
+              event: "pull_request",
+              head_sha: url.searchParams.get("head_sha"),
+              status: checkRuns.every(
+                (check) => check.run !== number || check.status === "completed",
+              )
+                ? "completed"
+                : "in_progress",
+            };
+          });
           send(200, { total_count: runs.length, workflow_runs: runs });
           return;
         }

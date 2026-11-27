@@ -1,5 +1,5 @@
 ---
-source: c51b6ca36743cf77
+source: 6f29a4870b425665
 title: Projekte
 description: Wie du ein Projekt zu Infinitary hinzufügst, mehrere Repositorys in einem zusammenfasst, ihm Tags gibst, das Fenster auf eines konzentrierst, wählst, wie seine Änderungen zusammengeführt werden, und es entfernst.
 ---
@@ -164,6 +164,10 @@ Bei einem neuen Projekt ist es an, damit fertige Arbeit auf dein Wort wartet.
 Schalte es aus, und Arbeit, die die Überprüfungen besteht, darf ohne Rückfrage zusammengeführt werden.
 
 **Sorgfalt** legt fest, wie gründlich Arbeit geprüft wird: **Schnell**, **Standard** oder **Sorgfältig**.
+
+**Unverbindliche Workflows** nennt die Workflow-Dateien eines GitHub-Projekts, etwa `.github/workflows/early-tests.yml`, deren Überprüfungen bei jeder Änderung erscheinen, aber nie ihr Zusammenführen oder ihr Bündel aufhalten.
+Gib die Dateien durch Kommas getrennt ein und drücke **Speichern**.
+Eine Überprüfung, die deine Branch-Regeln auf GitHub verlangen, hält das Zusammenführen auf GitHub weiterhin auf.
 
 **KI-Unterstützung offenlegen** ist bei einem Projekt an, dessen Änderungen über Pull Requests laufen.
 Wenn ein Crewmitglied den Pull Request einer anderen Person prüft, beginnt sein Kommentar mit einer Zeile, die sagt, dass ein Infinitary-Crewmitglied ihn geschrieben hat.

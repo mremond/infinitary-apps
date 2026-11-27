@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "id": "advisory-workflows",
+      "kind": "feature",
+      "area": "projects",
+      "title": "Checks from workflows you are trying out no longer hold a merge",
+      "body": "A GitHub project can now name workflow files it is still trying out in Settings, Projects, Advisory workflows. Their checks still show on each change, but while they run, fail or never finish, the change's merge card offers Merge and its batch goes ahead once every other check has passed. Every other check holds the merge as before, and a check your GitHub branch rules require still holds it on GitHub.",
+      "picture": {
+        "dark": "advisory-workflows-dark.webp",
+        "light": "advisory-workflows-light.webp",
+        "alt": "A GitHub project's settings with Advisory workflows naming .github/workflows/early-tests.yml below Require pull request checks"
+      },
+      "docsSite": ["projects"],
+      "provenance": { "origin": "change" }
+    }
+  ],
+  "exclusions": []
+}

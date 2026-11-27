@@ -39,6 +39,7 @@
   "recordCareCareful": "متأنٍّ",
   "recordCareDefault": "افتراضي",
   "recordCareQuick": "سريع",
+  "recordCheckAdvisory": "استشاري، {state}",
   "recordComparedComputers": "الحواسيب التي قورنت عند البدء",
   "recordContinue": "متابعة",
   "recordCrewmateOnModel": "{crewmate} باستخدام {model}",

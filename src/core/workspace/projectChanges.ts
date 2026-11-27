@@ -413,6 +413,7 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     requireChecks: "Require pull request checks",
     batchGap: BATCH_GAP_WORDS.title,
     contributorDisclosure: m.settingsProjectsDisclosure(),
+    advisoryWorkflows: m.settingsProjectsAdvisoryTitle(),
   };
   // Each detail as the project has it now; the project keeps Require pull
   // request checks as its record that it runs none.
@@ -437,6 +438,10 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
         : value === ""
           ? m.settingsProjectsDisclosureOff()
           : String(value);
+    if (key === "advisoryWorkflows") {
+      const paths = (value as readonly string[] | undefined) ?? [];
+      return paths.length ? paths.join(", ") : m.settingsProjectsAdvisoryNone();
+    }
     if (key === "runsOn")
       return value === AUTOMATIC_COMPUTER
         ? AUTOMATIC_WORD

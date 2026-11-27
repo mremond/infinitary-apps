@@ -51557,6 +51557,34 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     return `Quick`;
   }
+  function recordCheckAdvisory(input2) {
+    const state = input2.state;
+    switch (currentLanguage()) {
+      case "ar":
+        return `استشاري، ${state}`;
+      case "de":
+        return `unverbindlich, ${state}`;
+      case "es":
+        return `orientativo, ${state}`;
+      case "fr":
+        return `indicatif, ${state}`;
+      case "ja":
+        return `参考、${state}`;
+      case "ko":
+        return `참고용, ${state}`;
+      case "pt-BR":
+        return `informativo, ${state}`;
+      case "zh-Hans":
+        return `参考，${state}`;
+      case "zh-Hant":
+        return `參考，${state}`;
+      case "en-XA":
+        return `[áðṽîšöŕý, ${state} ~~~~]`;
+      case "ar-XB":
+        return `‮advisory, ‬${state}`;
+    }
+    return `advisory, ${state}`;
+  }
   function recordComparedComputers() {
     switch (currentLanguage()) {
       case "ar":
@@ -84764,6 +84792,141 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     }
     return `Recent tasks and each model's detail are in Settings → Usage on ${home}.`;
   }
+  function settingsProjectsAdvisoryDescription() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `تظهر فحوصات ملفات مسارات عمل GitHub هذه، مثل .github/workflows/early-tests.yml، على التغيير، لكنها لا تعلّق دمجه ولا دفعته أبدًا.`;
+      case "de":
+        return `Überprüfungen aus diesen GitHub-Workflow-Dateien, etwa .github/workflows/early-tests.yml, erscheinen bei einer Änderung, halten aber nie ihr Zusammenführen oder ihr Bündel auf.`;
+      case "es":
+        return `Las comprobaciones de estos archivos de flujo de trabajo de GitHub, como .github/workflows/early-tests.yml, aparecen en un cambio, pero nunca retienen su fusión ni su lote.`;
+      case "fr":
+        return `Les vérifications de ces fichiers de workflow GitHub, comme .github/workflows/early-tests.yml, s’affichent sur une modification, mais ne retiennent jamais sa fusion ni son lot.`;
+      case "ja":
+        return `これらの GitHub ワークフローファイル（.github/workflows/early-tests.yml など）のチェックは変更に表示されますが、マージや一括プルリクエストを止めることはありません。`;
+      case "ko":
+        return `이 GitHub 워크플로 파일(예: .github/workflows/early-tests.yml)의 검사는 변경에 표시되지만, 병합이나 일괄 끌어오기 요청을 막지 않아요.`;
+      case "pt-BR":
+        return `As verificações destes arquivos de fluxo de trabalho do GitHub, como .github/workflows/early-tests.yml, aparecem em uma alteração, mas nunca seguram a mesclagem nem o lote.`;
+      case "zh-Hans":
+        return `这些 GitHub 工作流文件（如 .github/workflows/early-tests.yml）的检查会显示在改动上，但从不阻止它合并，也不阻止这批改动合并。`;
+      case "zh-Hant":
+        return `這些 GitHub 工作流程檔案（如 .github/workflows/early-tests.yml）的檢查會顯示在變更上，但從不擋下它的合併或批次。`;
+      case "en-XA":
+        return `[Çĥéçķš ƒŕöɱ ţĥéšé ĜîţĤûƀ ŵöŕķƒļöŵ ƒîļéš, šûçĥ áš .ĝîţĥûƀ/ŵöŕķƒļöŵš/éáŕļý-ţéšţš.ýɱļ, šĥöŵ öñ á çĥáñĝé ƀûţ ñéṽéŕ ĥöļð îţš ɱéŕĝé öŕ îţš ƀáţçĥ. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch.‬`;
+    }
+    return `Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch.`;
+  }
+  function settingsProjectsAdvisoryInvalid() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `اذكر كل ملف مسار عمل مرة واحدة، مباشرة في .github/workflows.`;
+      case "de":
+        return `Nenn jede Workflow-Datei einmal, direkt in .github/workflows.`;
+      case "es":
+        return `Indica cada archivo de flujo de trabajo una sola vez, directamente en .github/workflows.`;
+      case "fr":
+        return `Indiquez chaque fichier de workflow une seule fois, directement dans .github/workflows.`;
+      case "ja":
+        return `各ワークフローファイルを .github/workflows の直下で一度ずつ指定してください。`;
+      case "ko":
+        return `각 워크플로 파일을 .github/workflows 바로 아래에서 한 번씩 적어 주세요.`;
+      case "pt-BR":
+        return `Informe cada arquivo de fluxo de trabalho uma vez, diretamente em .github/workflows.`;
+      case "zh-Hans":
+        return `请直接在 .github/workflows 中写出每个工作流文件，每个只写一次。`;
+      case "zh-Hant":
+        return `請直接在 .github/workflows 中寫出每個工作流程檔案，每個只寫一次。`;
+      case "en-XA":
+        return `[Ñáɱé éáçĥ ŵöŕķƒļöŵ ƒîļé öñçé, ðîŕéçţļý îñ .ĝîţĥûƀ/ŵöŕķƒļöŵš. ~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Name each workflow file once, directly in .github/workflows.‬`;
+    }
+    return `Name each workflow file once, directly in .github/workflows.`;
+  }
+  function settingsProjectsAdvisoryLabel() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `ملفات مسارات العمل الاستشارية`;
+      case "de":
+        return `Dateien unverbindlicher Workflows`;
+      case "es":
+        return `Archivos de flujos de trabajo orientativos`;
+      case "fr":
+        return `Fichiers des workflows indicatifs`;
+      case "ja":
+        return `参考ワークフローのファイル`;
+      case "ko":
+        return `참고용 워크플로 파일`;
+      case "pt-BR":
+        return `Arquivos de fluxos de trabalho informativos`;
+      case "zh-Hans":
+        return `参考工作流文件`;
+      case "zh-Hant":
+        return `參考工作流程檔案`;
+      case "en-XA":
+        return `[Åðṽîšöŕý ŵöŕķƒļöŵ ƒîļéš ~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Advisory workflow files‬`;
+    }
+    return `Advisory workflow files`;
+  }
+  function settingsProjectsAdvisoryNone() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `لا شيء`;
+      case "de":
+        return `Keine`;
+      case "es":
+        return `Ninguno`;
+      case "fr":
+        return `Aucun`;
+      case "ja":
+        return `なし`;
+      case "ko":
+        return `없음`;
+      case "pt-BR":
+        return `Nenhum`;
+      case "zh-Hans":
+        return `无`;
+      case "zh-Hant":
+        return `無`;
+      case "en-XA":
+        return `[Ñöñé ~~]`;
+      case "ar-XB":
+        return `‮None‬`;
+    }
+    return `None`;
+  }
+  function settingsProjectsAdvisoryTitle() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `مسارات عمل استشارية`;
+      case "de":
+        return `Unverbindliche Workflows`;
+      case "es":
+        return `Flujos de trabajo orientativos`;
+      case "fr":
+        return `Workflows indicatifs`;
+      case "ja":
+        return `参考ワークフロー`;
+      case "ko":
+        return `참고용 워크플로`;
+      case "pt-BR":
+        return `Fluxos de trabalho informativos`;
+      case "zh-Hans":
+        return `参考工作流`;
+      case "zh-Hant":
+        return `參考工作流程`;
+      case "en-XA":
+        return `[Åðṽîšöŕý ŵöŕķƒļöŵš ~~~~~~]`;
+      case "ar-XB":
+        return `‮Advisory workflows‬`;
+    }
+    return `Advisory workflows`;
+  }
   function settingsProjectsAutonomyOff() {
     switch (currentLanguage()) {
       case "ar":
@@ -117609,6 +117772,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     recordCareCareful,
     recordCareDefault,
     recordCareQuick,
+    recordCheckAdvisory,
     recordComparedComputers,
     recordContinue,
     recordCrewmateOnModel,
@@ -118733,6 +118897,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     settingsPhoneStoppedThere,
     settingsPhoneTodayPartial,
     settingsPhoneUsageThere,
+    settingsProjectsAdvisoryDescription,
+    settingsProjectsAdvisoryInvalid,
+    settingsProjectsAdvisoryLabel,
+    settingsProjectsAdvisoryNone,
+    settingsProjectsAdvisoryTitle,
     settingsProjectsAutonomyOff,
     settingsProjectsAutonomyOn,
     settingsProjectsAutonomyPersonal,
@@ -121324,6 +121493,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "recordCareCareful": [],
     "recordCareDefault": [],
     "recordCareQuick": [],
+    "recordCheckAdvisory": ["state"],
     "recordComparedComputers": [],
     "recordContinue": [],
     "recordCrewmateOnModel": ["crewmate", "model"],
@@ -122448,6 +122618,11 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
     "settingsPhoneStoppedThere": ["home", "reason"],
     "settingsPhoneTodayPartial": [],
     "settingsPhoneUsageThere": ["home"],
+    "settingsProjectsAdvisoryDescription": [],
+    "settingsProjectsAdvisoryInvalid": [],
+    "settingsProjectsAdvisoryLabel": [],
+    "settingsProjectsAdvisoryNone": [],
+    "settingsProjectsAdvisoryTitle": [],
     "settingsProjectsAutonomyOff": [],
     "settingsProjectsAutonomyOn": [],
     "settingsProjectsAutonomyPersonal": [],
@@ -136607,6 +136782,14 @@ ${startersHtml()}`;
     packageFallback: literal(true).optional()
   });
   const remoteLoginDoingSchema = _enum(["add", "update", "remove", "address"]);
+  const advisoryWorkflowSchema = string().trim().regex(/^\.github\/workflows\/[^/\s]+\.ya?ml$/, {
+    // i18n-exempt: served to the first mate's model; Settings shows its own words
+    message: "name a workflow file directly in .github/workflows, such as .github/workflows/early-tests.yml"
+  });
+  const advisoryWorkflowsSchema = array(advisoryWorkflowSchema).refine((paths) => new Set(paths).size === paths.length, {
+    // i18n-exempt: served to the first mate's model; Settings shows its own words
+    message: "name each advisory workflow once"
+  });
   const batchChangeSchema = object({
     taskId: string(),
     branch: string(),
@@ -138676,9 +138859,15 @@ ${startersHtml()}`;
      * outside contributor, an empty string to post none, or null for the
      * default line.
      */
-    contributorDisclosure: contributorDisclosureSchema.nullable().optional()
+    contributorDisclosure: contributorDisclosureSchema.nullable().optional(),
+    /**
+     * Settings → Projects' Advisory workflows (docs/forge.md, "Advisory
+     * workflows"): the workflow files whose checks never hold a merge; an
+     * empty list names none.
+     */
+    advisoryWorkflows: advisoryWorkflowsSchema.optional()
   }).strict().refine((patch) => Object.values(patch).some((value) => value !== void 0), {
-    message: "pass delivery, autonomy, rigor, costLimit, scope, name, path, origin, requireChecks, batchGap, contributorDisclosure, or several"
+    message: "pass delivery, autonomy, rigor, costLimit, scope, name, path, origin, requireChecks, batchGap, contributorDisclosure, advisoryWorkflows, or several"
   });
   const noChecksRecordSchema = object({
     at: number(),
@@ -138749,6 +138938,12 @@ ${startersHtml()}`;
      * assistance"); absent, the default line.
      */
     contributorDisclosure: contributorDisclosureSchema.optional(),
+    /**
+     * The project's advisory workflows, by file (docs/forge.md, "Advisory
+     * workflows"): their checks show on every reading and hold nothing.
+     * Absent, every check holds as read.
+     */
+    advisoryWorkflows: advisoryWorkflowsSchema.optional(),
     /**
      * Whether a runbook that is on at the home offers batched pull requests,
      * so the project may newly choose them (`deliveryChoices`); absent from an
@@ -139697,7 +139892,8 @@ ${startersHtml()}`;
     name: string(),
     state: checkStateSchema,
     manual: boolean().optional(),
-    failureAllowed: boolean().optional()
+    failureAllowed: boolean().optional(),
+    advisory: checkStateSchema.optional()
   });
   const checkSnapshotSchema = object({
     headSha: string(),

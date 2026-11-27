@@ -164,6 +164,10 @@ Turn it off, and work that passes the checks may merge without asking you.
 
 **Rigor** sets how thoroughly work is checked: **Quick**, **Default** or **Careful**.
 
+**Advisory workflows** names a GitHub project's workflow files, such as `.github/workflows/early-tests.yml`, whose checks show on each change but never hold its merge or its batch.
+Type the files, separated by commas, and press **Save**.
+A check your GitHub branch rules require still holds the merge on GitHub.
+
 **Disclose AI assistance** is on for a project whose changes go through pull requests.
 When a crewmate reviews someone else's pull request, the comment it posts opens with a line saying an Infinitary crewmate wrote it.
 Change the line and press **Save**, or turn the switch off to leave it out.

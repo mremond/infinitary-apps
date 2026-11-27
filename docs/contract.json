@@ -3531,6 +3531,13 @@
               "type": "string",
               "maxLength": 300
             },
+            "advisoryWorkflows": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^\\.github\\/workflows\\/[^/\\s]+\\.ya?ml$"
+              }
+            },
             "batchesOffered": {
               "type": "boolean"
             }
@@ -4726,6 +4733,13 @@
                 "type": "string",
                 "maxLength": 300
               },
+              "advisoryWorkflows": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\.github\\/workflows\\/[^/\\s]+\\.ya?ml$"
+                }
+              },
               "batchesOffered": {
                 "type": "boolean"
               }
@@ -5193,6 +5207,13 @@
                     "type": "null"
                   }
                 ]
+              },
+              "advisoryWorkflows": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\.github\\/workflows\\/[^/\\s]+\\.ya?ml$"
+                }
               }
             },
             "additionalProperties": false
@@ -6268,6 +6289,13 @@
           "contributorDisclosure": {
             "type": "string",
             "maxLength": 300
+          },
+          "advisoryWorkflows": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^\\.github\\/workflows\\/[^/\\s]+\\.ya?ml$"
+            }
           },
           "batchesOffered": {
             "type": "boolean"
@@ -13498,6 +13526,13 @@
           "contributorDisclosure": {
             "type": "string",
             "maxLength": 300
+          },
+          "advisoryWorkflows": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^\\.github\\/workflows\\/[^/\\s]+\\.ya?ml$"
+            }
           },
           "batchesOffered": {
             "type": "boolean"
@@ -50251,6 +50286,22 @@
                                   },
                                   "failureAllowed": {
                                     "type": "boolean"
+                                  },
+                                  "advisory": {
+                                    "type": "string",
+                                    "enum": [
+                                      "success",
+                                      "failure",
+                                      "error",
+                                      "cancelled",
+                                      "timed_out",
+                                      "action_required",
+                                      "startup_failure",
+                                      "stale",
+                                      "skipped",
+                                      "neutral",
+                                      "pending"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -52117,6 +52168,22 @@
                             },
                             "failureAllowed": {
                               "type": "boolean"
+                            },
+                            "advisory": {
+                              "type": "string",
+                              "enum": [
+                                "success",
+                                "failure",
+                                "error",
+                                "cancelled",
+                                "timed_out",
+                                "action_required",
+                                "startup_failure",
+                                "stale",
+                                "skipped",
+                                "neutral",
+                                "pending"
+                              ]
                             }
                           },
                           "required": [
@@ -53899,6 +53966,22 @@
                                   },
                                   "failureAllowed": {
                                     "type": "boolean"
+                                  },
+                                  "advisory": {
+                                    "type": "string",
+                                    "enum": [
+                                      "success",
+                                      "failure",
+                                      "error",
+                                      "cancelled",
+                                      "timed_out",
+                                      "action_required",
+                                      "startup_failure",
+                                      "stale",
+                                      "skipped",
+                                      "neutral",
+                                      "pending"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -59108,6 +59191,22 @@
                               },
                               "failureAllowed": {
                                 "type": "boolean"
+                              },
+                              "advisory": {
+                                "type": "string",
+                                "enum": [
+                                  "success",
+                                  "failure",
+                                  "error",
+                                  "cancelled",
+                                  "timed_out",
+                                  "action_required",
+                                  "startup_failure",
+                                  "stale",
+                                  "skipped",
+                                  "neutral",
+                                  "pending"
+                                ]
                               }
                             },
                             "required": [
@@ -60888,6 +60987,22 @@
                               },
                               "failureAllowed": {
                                 "type": "boolean"
+                              },
+                              "advisory": {
+                                "type": "string",
+                                "enum": [
+                                  "success",
+                                  "failure",
+                                  "error",
+                                  "cancelled",
+                                  "timed_out",
+                                  "action_required",
+                                  "startup_failure",
+                                  "stale",
+                                  "skipped",
+                                  "neutral",
+                                  "pending"
+                                ]
                               }
                             },
                             "required": [
@@ -106542,6 +106657,22 @@
                                   },
                                   "failureAllowed": {
                                     "type": "boolean"
+                                  },
+                                  "advisory": {
+                                    "type": "string",
+                                    "enum": [
+                                      "success",
+                                      "failure",
+                                      "error",
+                                      "cancelled",
+                                      "timed_out",
+                                      "action_required",
+                                      "startup_failure",
+                                      "stale",
+                                      "skipped",
+                                      "neutral",
+                                      "pending"
+                                    ]
                                   }
                                 },
                                 "required": [
@@ -108371,6 +108502,22 @@
                                   },
                                   "failureAllowed": {
                                     "type": "boolean"
+                                  },
+                                  "advisory": {
+                                    "type": "string",
+                                    "enum": [
+                                      "success",
+                                      "failure",
+                                      "error",
+                                      "cancelled",
+                                      "timed_out",
+                                      "action_required",
+                                      "startup_failure",
+                                      "stale",
+                                      "skipped",
+                                      "neutral",
+                                      "pending"
+                                    ]
                                   }
                                 },
                                 "required": [

@@ -1,5 +1,5 @@
 ---
-source: c51b6ca36743cf77
+source: 6f29a4870b425665
 title: Projets
 description: Comment ajouter un projet à Infinitary, y réunir plusieurs dépôts, lui donner des étiquettes, concentrer la fenêtre sur un seul projet, choisir comment ses changements sont fusionnés et le retirer.
 ---
@@ -164,6 +164,10 @@ Il est activé pour un nouveau projet, si bien que le travail terminé attend vo
 Désactivez-le, et le travail qui réussit les vérifications peut fusionner sans vous demander.
 
 **Soin** règle le degré de vérification du travail : **Rapide**, **Par défaut** ou **Minutieux**.
+
+**Workflows indicatifs** nomme les fichiers de workflow d’un projet GitHub, comme `.github/workflows/early-tests.yml`, dont les vérifications s’affichent sur chaque modification, mais ne retiennent jamais sa fusion ni son lot.
+Saisissez les fichiers séparés par des virgules, puis appuyez sur **Enregistrer**.
+Une vérification qu’exigent vos règles de branche sur GitHub retient toujours la fusion sur GitHub.
 
 **Signaler l’aide de l’IA** est activé pour un projet dont les changements passent par des demandes de tirage.
 Quand un équipier relit la demande de tirage d’une autre personne, le commentaire qu’il publie commence par une ligne qui dit qu’un équipier d’Infinitary l’a écrit.

@@ -1,3 +1,4 @@
+import { advisoryWorkflowsSchema, typedAdvisoryWorkflows } from "@shared/advisoryWorkflows";
 import {
   BATCH_GAP_CHOICES,
   BATCH_GAP_WORDS,
@@ -14,6 +15,7 @@ import { hasChangeRequests } from "@shared/forge";
 import * as m from "@shared/i18n/messages.generated";
 import {
   hostTakesBatches,
+  namesAdvisoryWorkflows,
   ownsBatches,
   projectDeliveryChoices,
   type RepoMoveResult,
@@ -657,6 +659,8 @@ function RepositorySettings({
           }
         />
       )}
+      {/* Beside Require pull request checks: both say which checks hold a merge. */}
+      {namesAdvisoryWorkflows(repo) && <AdvisoryWorkflows repo={repo} onPatch={onPatch} />}
       <PolicyRow
         title={AUTONOMY_SWITCH_NAME}
         description={PROJECT_POLICY_WORDS.asks(personal, repo.autonomy)}
@@ -1076,6 +1080,58 @@ function ContributorDisclosure({
           </Button>
         </form>
       )}
+    </>
+  );
+}
+
+/**
+ * Advisory workflows (docs/forge.md, "Advisory workflows"): the GitHub
+ * workflow files whose checks show on a change but never hold it, typed
+ * separated by commas and saved by their own Save. The app refuses a list
+ * it cannot keep without saying why, so the field checks it first.
+ */
+function AdvisoryWorkflows({
+  repo,
+  onPatch,
+}: {
+  repo: RepoView;
+  onPatch: (changes: RepoPolicyPatch) => void;
+}) {
+  const saved = (repo.advisoryWorkflows ?? []).join(", ");
+  const [draft, setDraft] = useState(saved);
+  useEffect(() => setDraft(saved), [saved]);
+  const typed = advisoryWorkflowsSchema.safeParse(typedAdvisoryWorkflows(draft));
+  const changed = typed.success && typed.data.join(", ") !== saved;
+  return (
+    <>
+      <PolicyRow
+        title={PROJECT_POLICY_WORDS.advisoryTitle}
+        description={PROJECT_POLICY_WORDS.advisory}
+        wrapsBesideControl
+        control={null}
+      />
+      <form
+        style={{ display: "flex", gap: "var(--space-2)", paddingBottom: "var(--space-2)" }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (changed) onPatch({ advisoryWorkflows: typed.data });
+        }}
+      >
+        <Input
+          aria-label={PROJECT_POLICY_WORDS.advisoryLabel}
+          value={draft}
+          spellCheck={false}
+          onChange={(event) => setDraft(event.target.value)}
+          style={{ flex: 1, fontFamily: "var(--font-mono)" }}
+        />
+        <Button type="submit" size="sm" variant="secondary" disabled={!changed}>
+          {m.settingsProjectsFolderSave()}
+        </Button>
+      </form>
+      <SettingError
+        error={typed.success ? null : PROJECT_POLICY_WORDS.advisoryInvalid}
+        surface="advisory-workflows"
+      />
     </>
   );
 }

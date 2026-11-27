@@ -2496,6 +2496,7 @@
 "recordCareCareful" = "Sorgfältig";
 "recordCareDefault" = "Standard";
 "recordCareQuick" = "Schnell";
+"recordCheckAdvisory" = "unverbindlich, %1$@";
 "recordComparedComputers" = "Beim Start verglichene Computer";
 "recordContinue" = "Fortsetzen";
 "recordCrewmateOnModel" = "%1$@ mit %2$@";
@@ -3583,6 +3584,11 @@
 "settingsPhoneStoppedThere" = "%2$@ Wähl ihre Integration unter Einstellungen → Automatisierung auf %1$@ erneut aus.";
 "settingsPhoneTodayPartial" = "Heute ist unvollständig";
 "settingsPhoneUsageThere" = "Letzte Aufgaben und die Details zu jedem Modell stehen unter Einstellungen → Nutzung auf %1$@.";
+"settingsProjectsAdvisoryDescription" = "Überprüfungen aus diesen GitHub-Workflow-Dateien, etwa .github/workflows/early-tests.yml, erscheinen bei einer Änderung, halten aber nie ihr Zusammenführen oder ihr Bündel auf.";
+"settingsProjectsAdvisoryInvalid" = "Nenn jede Workflow-Datei einmal, direkt in .github/workflows.";
+"settingsProjectsAdvisoryLabel" = "Dateien unverbindlicher Workflows";
+"settingsProjectsAdvisoryNone" = "Keine";
+"settingsProjectsAdvisoryTitle" = "Unverbindliche Workflows";
 "settingsProjectsAutonomyOff" = "Fertige Arbeit wartet auf dein Wort.";
 "settingsProjectsAutonomyOn" = "Arbeit, die die Überprüfungen besteht, darf ohne Rückfrage zusammengeführt werden.";
 "settingsProjectsAutonomyPersonal" = "Baut direkt im Ordner. Arbeit, die die Überprüfungen besteht, wird geschrieben, sobald sie fertig ist.";

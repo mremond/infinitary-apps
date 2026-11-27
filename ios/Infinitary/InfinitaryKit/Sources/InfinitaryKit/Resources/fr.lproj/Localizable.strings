@@ -2496,6 +2496,7 @@
 "recordCareCareful" = "Minutieux";
 "recordCareDefault" = "Par défaut";
 "recordCareQuick" = "Rapide";
+"recordCheckAdvisory" = "indicatif, %1$@";
 "recordComparedComputers" = "Ordinateurs comparés au démarrage";
 "recordContinue" = "Poursuivre";
 "recordCrewmateOnModel" = "%1$@ avec %2$@";
@@ -3583,6 +3584,11 @@
 "settingsPhoneStoppedThere" = "%2$@ Choisissez de nouveau son intégration dans Réglages → Automatisation sur %1$@.";
 "settingsPhoneTodayPartial" = "Aujourd’hui est incomplet";
 "settingsPhoneUsageThere" = "Les tâches récentes et le détail de chaque modèle se trouvent dans Réglages → Utilisation sur %1$@.";
+"settingsProjectsAdvisoryDescription" = "Les vérifications de ces fichiers de workflow GitHub, comme .github/workflows/early-tests.yml, s’affichent sur une modification, mais ne retiennent jamais sa fusion ni son lot.";
+"settingsProjectsAdvisoryInvalid" = "Indiquez chaque fichier de workflow une seule fois, directement dans .github/workflows.";
+"settingsProjectsAdvisoryLabel" = "Fichiers des workflows indicatifs";
+"settingsProjectsAdvisoryNone" = "Aucun";
+"settingsProjectsAdvisoryTitle" = "Workflows indicatifs";
 "settingsProjectsAutonomyOff" = "Le travail terminé attend votre accord.";
 "settingsProjectsAutonomyOn" = "Le travail qui passe les vérifications peut être fusionné sans vous demander.";
 "settingsProjectsAutonomyPersonal" = "Construit sur place. Le travail qui passe les vérifications est écrit dès qu’il est terminé.";

@@ -2615,6 +2615,7 @@ public enum PhoneMessages {
     public static func `recordCareCareful`() -> String { PhoneWords.format("recordCareCareful", []) }
     public static func `recordCareDefault`() -> String { PhoneWords.format("recordCareDefault", []) }
     public static func `recordCareQuick`() -> String { PhoneWords.format("recordCareQuick", []) }
+    public static func `recordCheckAdvisory`(`state`: String) -> String { PhoneWords.format("recordCheckAdvisory", [`state`]) }
     public static func `recordComparedComputers`() -> String { PhoneWords.format("recordComparedComputers", []) }
     public static func `recordContinue`() -> String { PhoneWords.format("recordContinue", []) }
     public static func `recordCrewmateOnModel`(`crewmate`: String, `model`: String) -> String { PhoneWords.format("recordCrewmateOnModel", [`crewmate`, `model`]) }
@@ -3739,6 +3740,11 @@ public enum PhoneMessages {
     public static func `settingsPhoneStoppedThere`(`home`: String, `reason`: String) -> String { PhoneWords.format("settingsPhoneStoppedThere", [`home`, `reason`]) }
     public static func `settingsPhoneTodayPartial`() -> String { PhoneWords.format("settingsPhoneTodayPartial", []) }
     public static func `settingsPhoneUsageThere`(`home`: String) -> String { PhoneWords.format("settingsPhoneUsageThere", [`home`]) }
+    public static func `settingsProjectsAdvisoryDescription`() -> String { PhoneWords.format("settingsProjectsAdvisoryDescription", []) }
+    public static func `settingsProjectsAdvisoryInvalid`() -> String { PhoneWords.format("settingsProjectsAdvisoryInvalid", []) }
+    public static func `settingsProjectsAdvisoryLabel`() -> String { PhoneWords.format("settingsProjectsAdvisoryLabel", []) }
+    public static func `settingsProjectsAdvisoryNone`() -> String { PhoneWords.format("settingsProjectsAdvisoryNone", []) }
+    public static func `settingsProjectsAdvisoryTitle`() -> String { PhoneWords.format("settingsProjectsAdvisoryTitle", []) }
     public static func `settingsProjectsAutonomyOff`() -> String { PhoneWords.format("settingsProjectsAutonomyOff", []) }
     public static func `settingsProjectsAutonomyOn`() -> String { PhoneWords.format("settingsProjectsAutonomyOn", []) }
     public static func `settingsProjectsAutonomyPersonal`() -> String { PhoneWords.format("settingsProjectsAutonomyPersonal", []) }
@@ -7434,6 +7440,7 @@ extension PhoneWords {
         "recordCareCareful": [],
         "recordCareDefault": [],
         "recordCareQuick": [],
+        "recordCheckAdvisory": ["state"],
         "recordComparedComputers": [],
         "recordContinue": [],
         "recordCrewmateOnModel": ["crewmate", "model"],
@@ -8558,6 +8565,11 @@ extension PhoneWords {
         "settingsPhoneStoppedThere": ["home", "reason"],
         "settingsPhoneTodayPartial": [],
         "settingsPhoneUsageThere": ["home"],
+        "settingsProjectsAdvisoryDescription": [],
+        "settingsProjectsAdvisoryInvalid": [],
+        "settingsProjectsAdvisoryLabel": [],
+        "settingsProjectsAdvisoryNone": [],
+        "settingsProjectsAdvisoryTitle": [],
         "settingsProjectsAutonomyOff": [],
         "settingsProjectsAutonomyOn": [],
         "settingsProjectsAutonomyPersonal": [],

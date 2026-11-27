@@ -27,6 +27,7 @@
   "recordCareCareful": "Careful",
   "recordCareDefault": "Default",
   "recordCareQuick": "Quick",
+  "recordCheckAdvisory": "advisory, {state}",
   "recordComparedComputers": "Compared computers at start",
   "recordContinue": "Continue",
   "recordCrewmateOnModel": "{crewmate} on {model}",
