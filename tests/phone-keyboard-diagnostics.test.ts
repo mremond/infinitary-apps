@@ -1,7 +1,10 @@
+import type { ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { readPhoneKeyProcessNames } from "../scripts/phone-key-processes";
+import { hostEnv } from "../src/core/hostEnv";
 import { deferred } from "./helpers/deferred";
 import { startPhoneHome } from "./helpers/phoneHome";
 import {
@@ -310,6 +313,116 @@ test("routing diagnostics retain ambiguous events and missing proof without inve
     });
   } finally {
     await routing.close();
+    diagnostic.restore();
+  }
+});
+
+// Each route must preserve the caller's operation identity through later process-read settlement.
+test.each(["tab", "return", "escape"] as const)(
+  "Duo %s retains one caller ID through home and process records",
+  async (key) => {
+    const diagnostic = captureDiagnostics();
+    const routing = new PhoneKeyRoutingDiagnostics(async () => "");
+    const correlation = randomUUID();
+    const home = await startPhoneHome(scratchDir("infinitary-duo-correlation-"), {
+      start: async () => {},
+      stop: async () => {},
+      key: async (pressed, diagnosticId) => ({
+        key: pressed,
+        ...routing.observe(process.pid, phoneKeyOutcome([], process.pid, 0, 0), diagnosticId),
+      }),
+      keyboardClosed: () => routing.close(),
+    });
+    try {
+      const response = await fetch(`${home.url}/key-${key}`, {
+        method: "POST",
+        headers: { "x-phone-keyboard-diagnostic-id": correlation },
+      });
+      await response.text();
+      expect(response.status).toBe(200);
+      await home.close();
+      expect([...new Set(diagnostic.records.map((record) => record.id))]).toEqual([correlation]);
+      expect(diagnostic.records.map((record) => `${record.phase}/${record.event}`).sort()).toEqual(
+        [
+          `key-${key}/request-start`,
+          "duo-key-routing/event-destinations",
+          "duo-key-routing/process-identities",
+          `key-${key}/owner-completed`,
+        ].sort(),
+      );
+    } finally {
+      await routing.close();
+      await home.close();
+      diagnostic.restore();
+    }
+  },
+);
+
+// The process accounting name is an OS field, not an assurance that its displayed spelling is complete.
+test("a real process reading labels accounting names as possibly truncated", async () => {
+  const recorded = deferred<void>();
+  const diagnostic = captureDiagnostics((record) => {
+    if (record.event === "process-identities") recorded.resolve();
+  });
+  const children = new Set<ChildProcess>();
+  const routing = new PhoneKeyRoutingDiagnostics((pids, signal) =>
+    readPhoneKeyProcessNames(pids, signal, hostEnv(), children),
+  );
+  try {
+    routing.observe(process.pid, phoneKeyOutcome([], process.pid, 0, 0));
+    await recorded.promise;
+    expect(
+      diagnostic.records.find((record) => record.event === "process-identities"),
+    ).toMatchObject({
+      accountingNamesMayBeTruncated: true,
+      processes: [{ pid: process.pid, accountingName: expect.any(String) }],
+    });
+  } finally {
+    await routing.close();
+    diagnostic.restore();
+  }
+});
+
+// An abort acknowledges cancellation; it does not mean the reader has settled or stopped writing records.
+test("shutdown keeps waiting after abort until the identity reader settles", async () => {
+  const aborted = deferred<void>();
+  const release = deferred<void>();
+  const recorded = deferred<void>();
+  const diagnostic = captureDiagnostics((record) => {
+    if (record.event === "identity-read-failed") recorded.resolve();
+  });
+  const routing = new PhoneKeyRoutingDiagnostics(async (_pids, signal) => {
+    await new Promise<void>((resolve) =>
+      signal.addEventListener(
+        "abort",
+        () => {
+          aborted.resolve();
+          resolve();
+        },
+        { once: true },
+      ),
+    );
+    await release.promise;
+    throw signal.reason;
+  });
+  routing.observe(process.pid, phoneKeyOutcome([], process.pid, 0, 0));
+  let settled = false;
+  const closing = routing.close().then(() => {
+    settled = true;
+  });
+  try {
+    await aborted.promise;
+    expect(settled).toBe(false);
+    release.resolve();
+    await closing;
+    expect(settled).toBe(true);
+    expect(
+      diagnostic.records.filter((record) => record.event === "identity-read-failed"),
+    ).toHaveLength(1);
+  } finally {
+    release.resolve();
+    await recorded.promise;
+    await closing;
     diagnostic.restore();
   }
 });

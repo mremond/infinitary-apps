@@ -75,7 +75,7 @@ enum phoneTestSession {
         let budget = request.timeoutInterval
         if !gradesBudgets { request.timeoutInterval = phoneRequestBudget(budget) }
         let command = original.url?.lastPathComponent ?? ""
-        let diagnostic = ["keyboard-before-launch", "keyboard-attach", "keyboard-ready", "keyboard-detach"].contains(command)
+        let diagnostic = ["keyboard-before-launch", "keyboard-attach", "keyboard-ready", "keyboard-detach", "key-tab", "key-return", "key-escape"].contains(command)
             ? PhoneKeyboardDiagnostic(phase: command, correlation: original.value(forHTTPHeaderField: "X-Phone-Keyboard-Diagnostic-ID")) : nil
         if let diagnostic { request.setValue(diagnostic.id, forHTTPHeaderField: "X-Phone-Keyboard-Diagnostic-ID") }
         let prepared = request

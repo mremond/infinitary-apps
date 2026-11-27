@@ -67,8 +67,8 @@ export class PhoneKeyRoutingDiagnostics {
     this.read = read;
   }
 
-  observe(appPid: number, outcome: PhoneKeyOutcome): PhoneKeyOutcome {
-    const diagnostic = phoneKeyboardDiagnostic("duo-key-routing");
+  observe(appPid: number, outcome: PhoneKeyOutcome, correlation?: string): PhoneKeyOutcome {
+    const diagnostic = phoneKeyboardDiagnostic("duo-key-routing", correlation);
     const evidence = phoneKeyDiagnosticDestinations(outcome.proof);
     diagnostic("event-destinations", {
       appPid,
@@ -109,7 +109,11 @@ export class PhoneKeyRoutingDiagnostics {
         const accountingName = line?.replace(/^\s*\d+\s+/, "").trim();
         return { pid, accountingName: accountingName || null };
       });
-      diagnostic("process-identities", { identityKind: "ps-ucomm", processes });
+      diagnostic("process-identities", {
+        identityKind: "ps-ucomm",
+        accountingNamesMayBeTruncated: true,
+        processes,
+      });
     } catch (error) {
       // Diagnostic settlement must not replace the completed key's response.
       diagnostic("identity-read-failed", { errors: phoneKeyboardError(error) });

@@ -346,14 +346,14 @@ const recording = {
     // INF-5183: the fold part presses a key on the open Duo once, as an attached keyboard does, and the answer names
     // where the simulator sent it: the app's own process, or nowhere. The keyboard is attached for the press alone, as
     // XCTest's own is for its key, so the simulator ends detached and still shows its own keyboard for the next field.
-    key: async (key: PhoneKey) => {
+    key: async (key: PhoneKey, diagnosticId: string) => {
       if (!simulator || !keyboard) throw new Error("No owned simulator keyboard observer exists");
       const [owned, observer] = [simulator, keyboard];
       const services = await run("xcrun", ["simctl", "spawn", owned, "launchctl", "list"]);
       const pid = phoneApplicationPid(services, phoneBundle);
       const pressed = await withPhoneHardwareKeyboard(run, owned, () => pressPhoneKey({ run, simulator: owned,
         helper: values["hinge-helper"]!, key, outcome: (since, until, deadline) => observer.keyOutcome(pid, since, until, deadline) }));
-      return { key, ...keyRoutingDiagnostics.observe(pid, pressed) };
+      return { key, ...keyRoutingDiagnostics.observe(pid, pressed, diagnosticId) };
     },
   } : {}),
   // INF-4794: the stand-in relay's pushes, delivered to this part's simulator as Apple would deliver them.

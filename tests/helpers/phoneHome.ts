@@ -75,6 +75,7 @@ import type {
   PhoneTouchOutcome,
 } from "./phoneKeyboard";
 import { type PhoneKeyboardControls, phoneKeyboardControl } from "./phoneKeyboardControl";
+import { phoneKeyboardDiagnostic, phoneKeyboardError } from "./phoneKeyboardDiagnostics";
 import { raiseMoveCard, showMoveCardPast } from "./phoneMoveCard";
 import { phonePanelControls } from "./phonePanels";
 import { startPhonePushRelay } from "./phonePushRelay";
@@ -166,6 +167,7 @@ export async function startPhoneHome(
     // (scripts/phone-hinge.ts); absent with no hinge.
     key?(
       key: "tab" | "return" | "escape",
+      diagnosticId: string,
     ): Promise<PhoneKeyOutcome & { key: "tab" | "return" | "escape" }>;
   },
   // INF-3563: the Settings pages part's computer starts with accounts, projects, usage and automations to show.
@@ -2880,14 +2882,27 @@ export async function startPhoneHome(
           break;
         case "POST key-tab":
         case "POST key-return":
-        case "POST key-escape":
+        case "POST key-escape": {
           if (!controls?.key)
             throw new Error("Only a simulated iPhone Duo takes a key through its test home");
-          result = await controls.key(
-            command === "key-tab" ? "tab" : command === "key-return" ? "return" : "escape",
+          const key =
+            command === "key-tab" ? "tab" : command === "key-return" ? "return" : "escape";
+          const correlation = request.headers["x-phone-keyboard-diagnostic-id"];
+          const diagnostic = phoneKeyboardDiagnostic(
+            `key-${key}`,
+            typeof correlation === "string" ? correlation : undefined,
           );
+          diagnostic("request-start");
+          try {
+            result = await controls.key(key, diagnostic.id);
+            diagnostic("owner-completed");
+          } catch (error) {
+            diagnostic("owner-failed", { errors: phoneKeyboardError(error) });
+            throw error;
+          }
           observations.push({ check: "key", result });
           break;
+        }
         case "POST appearance-dark":
         case "POST appearance-light":
           if (!controls?.appearance)

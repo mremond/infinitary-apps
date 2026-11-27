@@ -1349,12 +1349,13 @@ The handler forwards only the validated key and modifiers, never unused request-
 The native transport tags each result as transport or deadline, cancels the loser before logging the selected result, and joins the remaining child without replacing the selected original error.
 Each child retains its completion time and cancellation state, and the deadline's existing counted time, processor share, nominal budget and wall cap; cancellation of a losing deadline child is not itself proof of external cancellation.
 The registration owner records the requested process/chord, observed registration identities and existing load-clock readings at acknowledgement, timeout or observer failure, without changing its deadline.
+Each Duo key request carries its caller-generated operation ID through the disposable home and all later process-read records.
 After a Duo key's keyboard bracket has detached, its unchanged response returns without awaiting the read-only process query.
 The diagnostic owner tracks queries, aborts and joins them during home cleanup, and each process read has a five-second wall-time cap without the general command hang sampler.
 Diagnostics retain the original outcome and each candidate focus display, token and process grouped under its own event line; ambiguous or absent evidence stays explicit.
 The outcome reader and diagnostics share the same focus parser, without changing the outcome verdict.
 The query retains OS accounting names for the app and candidate destinations; unavailable identity reads stay explicit and never replace the press's result.
-Accounting names may be truncated by the OS and are labeled as such, never inferred into a fuller identity.
+Every process-identity record marks accounting names as possibly truncated by the OS; diagnostics never infer a fuller identity.
 These diagnostics retain no request URLs, bodies, authentication headers, full process paths or error descriptions.
 The fresh wait observes pending work after a page push; it is not an explicit UI-commit API, and never replaces the registration witness.
 The UI-test target's Objective-C bridge checks both private method signatures before calling them and converts exceptions from the wait or `typeKey` into contextual test failures.
