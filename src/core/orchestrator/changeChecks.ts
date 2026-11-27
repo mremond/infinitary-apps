@@ -819,7 +819,11 @@ export class ChangeChecks {
         ci: actual === "none" ? undefined : actual,
         ciAt: at,
         checks: snapshot,
-        ...checksTimes(actual, checks),
+        // An advisory check's times would move the pass time of checks it does not decide.
+        ...checksTimes(
+          actual,
+          checks.filter((check) => check.advisory === undefined),
+        ),
         ...(change ? { headSha: change.headSha } : {}),
         ...(change?.base ? { prBase: change.base } : {}),
         mainChecks: main,

@@ -1237,6 +1237,23 @@ describe("a check from an advisory workflow (INF-67)", () => {
     },
   );
 
+  it("times the checks by the required ones alone", async () => {
+    const at = (time: string) => Date.parse(`2026-11-27T${time}Z`);
+    const { delivery } = await readWith([
+      {
+        name: "unit-tests",
+        state: "success",
+        startedAt: at("06:54:39"),
+        finishedAt: at("07:02:10"),
+      },
+      { ...early("success"), startedAt: at("06:54:37"), finishedAt: at("08:23:39") },
+    ]);
+    expect([delivery?.ciStartedAt, delivery?.ciFinishedAt]).toEqual([
+      at("06:54:39"),
+      at("07:02:10"),
+    ]);
+  });
+
   it("waits on a reading where only advisory checks ran, as on an empty one", async () => {
     const { delivery, service, forge } = await readWith([early("success")]);
     expect(checkSnapshotSummary(delivery!.checks!)).toMatchObject({

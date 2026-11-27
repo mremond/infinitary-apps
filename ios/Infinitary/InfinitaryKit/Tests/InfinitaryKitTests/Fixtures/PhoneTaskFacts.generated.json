@@ -5041,7 +5041,6 @@
           "prUrl": "https://github.com/infinitary-labs/infinitary/pull/612",
           "headSha": "c0ffee1",
           "ci": "pending",
-          "ciStartedAt": 1793293080000,
           "checks": {
             "headSha": "c0ffee1",
             "items": [
@@ -5085,18 +5084,14 @@
             "words": "advisory, running",
             "state": "none reported",
             "at": null,
-            "span": {
-              "startedAt": 1793293080000,
-              "finishedAt": null,
-              "joint": "for"
-            }
+            "span": null
           },
           "review": null
         },
         "browser": null,
         "label": "Working",
-        "checksWords": "advisory, running for 2m",
-        "checksStateWords": "none reported for 2m"
+        "checksWords": "advisory, running",
+        "checksStateWords": "none reported"
       }
     },
     {

@@ -1190,4 +1190,22 @@ describe("the open batch's checks reading", () => {
     expect(home.batches.checksReading(REPO)).toBeUndefined();
     expect(home.heard.checksRead.length).toBeGreaterThan(said);
   });
+
+  // docs/forge.md, "Advisory workflows": an advisory check decides nothing, so it is not counted.
+  it("counts only the checks that decide the batch", async () => {
+    const home = await batchOfTwo();
+    home.host.report([
+      passed("build"),
+      running("unit-tests"),
+      { name: "early-tests", state: "neutral", advisory: "failure" },
+      { name: "early-lint", state: "neutral", advisory: "pending" },
+    ]);
+    await home.pass();
+    expect(home.batches.checksReading(REPO)).toMatchObject({
+      passed: 1,
+      failed: 0,
+      running: 1,
+      failedNames: [],
+    });
+  });
 });

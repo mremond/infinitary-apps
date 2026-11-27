@@ -323,8 +323,13 @@ export class Batches {
       : undefined;
   }
 
-  /** Keeps a pass's reading of the open batch's checks, and says so only when it changed. */
-  private read(repoId: string, head: string, items: readonly CheckItem[]): void {
+  /**
+   * Keeps a pass's reading of the open batch's checks, and says so only when
+   * it changed. It counts the checks that decide the batch, so an advisory
+   * one is left out.
+   */
+  private read(repoId: string, head: string, read: readonly CheckItem[]): void {
+    const items = read.filter((item) => item.advisory === undefined);
     const failed = items.filter((item) => isRedCheckState(item.state));
     const running = items.filter((item) => item.state === "pending").length;
     const reading: BatchChecksReading = {
