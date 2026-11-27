@@ -4,6 +4,7 @@ import { expect, test } from "@playwright/test";
 import { openDatabase } from "../../src/core/storage/db";
 import { TaskStore } from "../../src/core/storage/taskRecords";
 import { PROJECT_POLICY_WORDS } from "../../src/renderer/src/settings/projectsWords";
+import { advisoryCheckWords } from "../../src/shared/checkSnapshot";
 import { CHECK_WORDS, MERGE_WORDS } from "../../src/shared/vocabulary";
 import { scratchDir } from "../helpers/scratchDirs";
 import { cardBody } from "./frames";
@@ -154,7 +155,7 @@ test("a project names an advisory workflow by keys, and a change merges while th
     // unfinished run is, so the running advisory workflow counts twice.
     await pressKey(facts.change.locator("a"), "Shift+Tab");
     await untilFocused(facts.cell("checks"));
-    await expect(facts.rest("checks")).toContainText("1 passed · 2 advisory, running");
+    await expect(facts.rest("checks")).toContainText(`2 ${advisoryCheckWords("pending")}`);
     const merge = page.getByRole("button", { name: MERGE_WORDS["merge-pr"], exact: true });
     await expect(merge).toBeVisible();
     await expect(
