@@ -7,7 +7,11 @@ import { createGzip } from "node:zlib";
 import { keepPhoneDiagnostic } from "../../scripts/phone-checks.ts";
 
 import { budgetReading, budgetTimer, waitCap } from "./budgets.ts";
-import { phoneKeyboardDiagnostic, phoneKeyboardError } from "./phoneKeyboardDiagnostics.ts";
+import {
+  phoneKeyboardDiagnostic,
+  phoneKeyboardError,
+  phoneKeyFocusDestinations,
+} from "./phoneKeyboardDiagnostics.ts";
 import { logTime } from "./phonePhotos.ts";
 
 export type PhoneChord = { key: string; modifiers: string[] };
@@ -74,12 +78,13 @@ export class PhoneKeyRegistrations {
     for (const notify of this.listeners) notify();
   }
 
-  wait(pid: number, chord: PhoneChord): Promise<PhoneKeyWitness> {
+  wait(pid: number, chord: PhoneChord, diagnosticId?: string): Promise<PhoneKeyWitness> {
     const budget = 30_000;
-    const diagnostic = phoneKeyboardDiagnostic("registration-witness");
+    const diagnostic = phoneKeyboardDiagnostic("registration-witness", diagnosticId);
     const snapshot = () => ({
       pid,
-      ...chord,
+      key: chord.key,
+      modifiers: chord.modifiers,
       deadline: budgetReading(budget),
       registrations: [...this.registrations.values()].map((entry) => ({
         pid: entry.pid,
@@ -182,9 +187,9 @@ export function phoneKeyOutcome(
   const [line] = proof;
   if (!line || proof.length !== 1) return { outcome: "unknown", pid, proof };
   if (line.endsWith("; (no destinations)>")) return { outcome: "discarded", pid, proof };
-  const targets = [...line.matchAll(/<keyboardFocus;[^<>]*; pid: (\d+);[^<>]*>/g)];
+  const targets = phoneKeyFocusDestinations(line);
   return {
-    outcome: targets.some((target) => Number(target[1]) === pid) ? "delivered" : "unknown",
+    outcome: targets.some((target) => target.pid === pid) ? "delivered" : "unknown",
     pid,
     proof,
   };
@@ -1039,7 +1044,8 @@ export async function observePhoneKeyboard(options: PhoneKeyboardOptions) {
       stream = await openPhoneKeyboardStream(options, true);
       return { generation: ++generation };
     },
-    wait: (pid: number, chord: PhoneChord) => stream.wait(pid, chord),
+    wait: (pid: number, chord: PhoneChord, diagnosticId?: string) =>
+      stream.wait(pid, chord, diagnosticId),
     touch: (since: number) => stream.touch(since),
     keyOutcome: (pid: number, since: number, until: number, deadline: number) =>
       stream.keyOutcome(pid, since, until, deadline),
@@ -1223,7 +1229,8 @@ async function openPhoneKeyboardStream(options: PhoneKeyboardOptions, append: bo
     throw error;
   }
   return {
-    wait: (pid: number, chord: PhoneChord) => registrations.wait(pid, chord),
+    wait: (pid: number, chord: PhoneChord, diagnosticId?: string) =>
+      registrations.wait(pid, chord, diagnosticId),
     touch: (since: number) => touches.outcome(since),
     // INF-5183: a key's outcome is read from this subscription and the kept log, and the kept log's read ends when
     // the press's own window does, `deadline`, never at the kept log's own minute (`PhoneKeyEvents`).

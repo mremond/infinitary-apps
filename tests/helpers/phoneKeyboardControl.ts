@@ -6,7 +6,7 @@ export type PhoneKeyboardControls = {
   keyboardClosed?(): Promise<void>;
   keyboardBeforeLaunch?(): Promise<{ generation: number }>;
   keyboardAttachment?(attached: boolean): Promise<{ attached: boolean }>;
-  keyboardReady?(chord: PhoneChord): Promise<PhoneKeyWitness>;
+  keyboardReady?(chord: PhoneChord, diagnosticId: string): Promise<PhoneKeyWitness>;
 };
 
 export async function phoneKeyboardControl(
@@ -35,7 +35,7 @@ export async function phoneKeyboardControl(
   response.once("close", closed);
   diagnostic("request-start");
   try {
-    const result = await executePhoneKeyboardControl(command, request, controls);
+    const result = await executePhoneKeyboardControl(command, request, diagnostic.id, controls);
     diagnostic("owner-completed", { responseClosed: response.destroyed });
     return result;
   } catch (error) {
@@ -50,6 +50,7 @@ export async function phoneKeyboardControl(
 async function executePhoneKeyboardControl(
   command: string | undefined,
   request: IncomingMessage,
+  diagnosticId: string,
   controls?: PhoneKeyboardControls,
 ): Promise<{ check: string; result: unknown }> {
   if (command === "keyboard-before-launch") {
@@ -83,5 +84,9 @@ async function executePhoneKeyboardControl(
     )
   )
     throw new Error("A keyboard request must name one key and its modifiers");
-  return { check: "keyboard-registration", result: await controls.keyboardReady(chord) };
+  const validated: PhoneChord = { key: chord.key, modifiers: [...chord.modifiers] };
+  return {
+    check: "keyboard-registration",
+    result: await controls.keyboardReady(validated, diagnosticId),
+  };
 }

@@ -14,7 +14,8 @@ import { capturePhoneWebStacks } from "../tests/helpers/phoneWebStacks.ts";
 import { libraryPhotoAdded, photosOpened } from "../tests/helpers/phonePhotos.ts";
 import { changePhoneTextSize, joinPhoneHardwareKeyboardWrites, setPhoneHardwareKeyboard, observePhoneKeyboard, type PhoneChord, type PhoneDisplayReport, type PhoneTextSize, phoneApplicationPid, phoneDisplayDeadline, phoneTouchDeadline, withPhoneHardwareKeyboard } from "../tests/helpers/phoneKeyboard.ts";
 import { removeScratchDirs, scratchDir } from "../tests/helpers/scratchDirs.ts";
-import { keepPhoneKeyRoutingDiagnostics } from "../tests/helpers/phoneKeyboardDiagnostics.ts";
+import { PhoneKeyRoutingDiagnostics } from "../tests/helpers/phoneKeyboardDiagnostics.ts";
+import { readPhoneKeyProcessNames } from "./phone-key-processes.ts";
 import { ciModeRefusal } from "./checks-mode.ts";
 import { openModuleRunner, REPO_ROOT } from "./moduleRunner.ts";
 import { takeHeavyRunPlace } from "./heavy-run-place.ts";
@@ -173,6 +174,8 @@ try { activity = startPhoneActivity(env, invokingHome); }
 catch (error) { await runner.close(); runPlace.close(); throw error; }
 let number = 0;
 const children = new Set<ChildProcess>();
+const keyRoutingDiagnostics = new PhoneKeyRoutingDiagnostics((pids, signal) =>
+  readPhoneKeyProcessNames(pids, signal, env, children));
 let interrupted = false;
 let cleaningUp = false;
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => {
@@ -295,6 +298,7 @@ const recording = {
     return observer.caret(phoneApplicationPid(services, phoneBundle), since, deadline);
   },
   keyboardClosed: async () => {
+    await keyRoutingDiagnostics.close();
     await withinPhoneDeadline("Simulator keyboard shutdown", 2 * PHONE_COMMAND_BUDGET_MS,
       joinPhoneHardwareKeyboardWrites(run), async () => "pending commands end with gate cleanup");
   },
@@ -303,12 +307,12 @@ const recording = {
     await setPhoneHardwareKeyboard(run, simulator, attached);
     return { attached };
   },
-  keyboardReady: async (chord: PhoneChord) => {
+  keyboardReady: async (chord: PhoneChord, diagnosticId: string) => {
     if (!simulator || !keyboard) throw new Error("No owned simulator keyboard observer exists");
     const owned = simulator;
     const observer = keyboard;
     const services = await run("xcrun", ["simctl", "spawn", owned, "launchctl", "list"]);
-    return observer.wait(phoneApplicationPid(services, phoneBundle), chord);
+    return observer.wait(phoneApplicationPid(services, phoneBundle), chord, diagnosticId);
   },
   display: async (appearance: "light" | "dark", large: boolean): Promise<PhoneDisplayReport> => {
     const until = phoneDisplayDeadline();
@@ -349,10 +353,7 @@ const recording = {
       const pid = phoneApplicationPid(services, phoneBundle);
       const pressed = await withPhoneHardwareKeyboard(run, owned, () => pressPhoneKey({ run, simulator: owned,
         helper: values["hinge-helper"]!, key, outcome: (since, until, deadline) => observer.keyOutcome(pid, since, until, deadline) }));
-      // Bound the diagnostic query without extending the caller's existing control timeout.
-      await keepPhoneKeyRoutingDiagnostics(
-        (command, args) => run(command, args, false, undefined, undefined, {}, 5_000), pid, pressed.proof);
-      return { key, ...pressed };
+      return { key, ...keyRoutingDiagnostics.observe(pid, pressed) };
     },
   } : {}),
   // INF-4794: the stand-in relay's pushes, delivered to this part's simulator as Apple would deliver them.

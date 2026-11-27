@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { PhoneKeyOutcome } from "./phoneKeyboard";
 
 // Transport errors can embed control URLs and pairing data. Keep their type/code chain, never messages or stacks.
 export function phoneKeyboardError(error: unknown): unknown[] {
@@ -26,54 +27,98 @@ export function phoneKeyboardDiagnostic(phase: string, correlation?: string) {
       ? correlation
       : randomUUID();
   const started = performance.now();
-  return (event: string, fields: Record<string, unknown> = {}) => {
+  const record = (event: string, fields: Record<string, unknown> = {}) => {
     console.log(
       `Phone keyboard diagnostic: ${JSON.stringify({
+        ...fields,
         id,
         phase,
         event,
         uptimeMs: performance.now(),
         wallTimeMs: Date.now(),
         elapsedMs: performance.now() - started,
-        ...fields,
       })}`,
     );
   };
+  return Object.assign(record, { id });
+}
+
+export function phoneKeyFocusDestinations(line: string) {
+  return [...line.matchAll(/<keyboardFocus;[^<>]*; pid: (\d+);[^<>]*>/g)].map((match) => ({
+    pid: Number(match[1]),
+    display: /\bdisplay: ([\dA-Fa-f-]+)/.exec(match[0])?.[1] ?? null,
+    token: /\btoken: (0x[\dA-Fa-f]+)/.exec(match[0])?.[1] ?? null,
+  }));
 }
 
 export function phoneKeyDiagnosticDestinations(proof: readonly string[]) {
-  return proof.flatMap((line) =>
-    [...line.matchAll(/<keyboardFocus;([^<>]+)>/g)].map((match) => {
-      const fields = match[1] ?? "";
-      return {
-        pid: Number(/\bpid: (\d+)/.exec(fields)?.[1]) || null,
-        display: /\bdisplay: ([\dA-Fa-f-]+)/.exec(fields)?.[1] ?? null,
-        token: /\btoken: (0x[\dA-Fa-f]+)/.exec(fields)?.[1] ?? null,
-      };
-    }),
-  );
+  return proof.map((event) => ({ event, destinations: phoneKeyFocusDestinations(event) }));
 }
 
-export async function keepPhoneKeyRoutingDiagnostics(
-  run: (command: string, args: string[]) => Promise<string>,
-  appPid: number,
-  proof: readonly string[],
-) {
-  const diagnostic = phoneKeyboardDiagnostic("duo-key-routing");
-  const destinations = phoneKeyDiagnosticDestinations(proof);
-  diagnostic("event-destinations", { appPid, destinations });
-  const pids = [...new Set([appPid, ...destinations.flatMap(({ pid }) => (pid ? [pid] : []))])];
-  try {
-    // Simulator PIDs are host PIDs. The runner keeps output, so use accounting names, not paths or arguments.
-    const table = await run("ps", ["-p", pids.join(","), "-o", "pid=,ucomm="]);
-    const processes = pids.map((pid) => {
-      const line = table.split("\n").find((row) => Number(/^\s*(\d+)\s/.exec(row)?.[1]) === pid);
-      const accountingName = line?.replace(/^\s*\d+\s+/, "").trim();
-      return { pid, accountingName: accountingName || null };
+type ProcessReader = (pids: readonly number[], signal: AbortSignal) => Promise<string>;
+
+export class PhoneKeyRoutingDiagnostics {
+  private pending = new Set<Promise<void>>();
+  private controllers = new Set<AbortController>();
+  private closed = false;
+  private read: ProcessReader;
+
+  constructor(read: ProcessReader) {
+    this.read = read;
+  }
+
+  observe(appPid: number, outcome: PhoneKeyOutcome): PhoneKeyOutcome {
+    const diagnostic = phoneKeyboardDiagnostic("duo-key-routing");
+    const evidence = phoneKeyDiagnosticDestinations(outcome.proof);
+    diagnostic("event-destinations", {
+      appPid,
+      outcome: outcome.outcome,
+      evidence,
+      ambiguous: outcome.proof.length > 1,
+      missingProof: outcome.proof.length === 0,
     });
-    diagnostic("process-identities", { appPid, identityKind: "ps-ucomm", processes });
-  } catch (error) {
-    // Losing a diagnostic read must not replace the actual single press's result or error.
-    diagnostic("identity-read-failed", { errors: phoneKeyboardError(error) });
+    if (this.closed) {
+      diagnostic("identity-not-started-after-close");
+      return outcome;
+    }
+    const controller = new AbortController();
+    this.controllers.add(controller);
+    const pids = [
+      ...new Set([
+        appPid,
+        ...evidence.flatMap(({ destinations }) => destinations.map(({ pid }) => pid)),
+      ]),
+    ];
+    const work = this.capture(pids, controller.signal, diagnostic).finally(() => {
+      this.pending.delete(work);
+      this.controllers.delete(controller);
+    });
+    this.pending.add(work);
+    return outcome;
+  }
+
+  private async capture(
+    pids: readonly number[],
+    signal: AbortSignal,
+    diagnostic: ReturnType<typeof phoneKeyboardDiagnostic>,
+  ) {
+    try {
+      const table = await this.read(pids, signal);
+      const processes = pids.map((pid) => {
+        const line = table.split("\n").find((row) => Number(/^\s*(\d+)\s/.exec(row)?.[1]) === pid);
+        const accountingName = line?.replace(/^\s*\d+\s+/, "").trim();
+        return { pid, accountingName: accountingName || null };
+      });
+      diagnostic("process-identities", { identityKind: "ps-ucomm", processes });
+    } catch (error) {
+      // Diagnostic settlement must not replace the completed key's response.
+      diagnostic("identity-read-failed", { errors: phoneKeyboardError(error) });
+    }
+  }
+
+  async close() {
+    this.closed = true;
+    for (const controller of this.controllers) controller.abort();
+    await Promise.all(this.pending);
   }
 }

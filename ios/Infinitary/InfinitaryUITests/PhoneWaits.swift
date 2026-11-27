@@ -3,11 +3,14 @@ import XCTest
 // The load clock, `PhoneWaitDeadline`, lives in PhoneLoadClock/, shared with the app-hosted tests.
 
 struct PhoneKeyboardDiagnostic: Sendable {
-    let id = UUID().uuidString
+    let id: String
     let phase: String
     private let started = ProcessInfo.processInfo.systemUptime
 
-    init(phase: String) { self.phase = phase }
+    init(phase: String, correlation: String? = nil) {
+        self.phase = phase
+        self.id = correlation.flatMap { UUID(uuidString: $0)?.uuidString } ?? UUID().uuidString
+    }
 
     func record(_ event: String, _ fields: [String: Any] = [:], error: Error? = nil) {
         var values = fields
@@ -37,6 +40,30 @@ struct PhoneKeyboardDiagnostic: Sendable {
     }
 }
 
+private enum PhoneControlChild: String, Sendable { case transport, deadline }
+
+private struct PhoneControlResult: Sendable {
+    let child: PhoneControlChild
+    let result: Result<(Data, URLResponse), Error>
+    let deadline: PhoneWaitDeadline?
+    let completedAt = ProcessInfo.processInfo.systemUptime
+    let cancelled = Task.isCancelled
+
+    func record(_ event: String, diagnostic: PhoneKeyboardDiagnostic?) {
+        var fields = deadline?.diagnosticReading(now: completedAt) ?? [:]
+        fields["child"] = child.rawValue
+        fields["childCancelled"] = cancelled
+        fields["completionUptimeSeconds"] = completedAt
+        switch result {
+        case .success(let response):
+            fields["status"] = (response.1 as? HTTPURLResponse)?.statusCode ?? 0
+            diagnostic?.record(event, fields)
+        case .failure(let error):
+            diagnostic?.record(event, fields, error: error)
+        }
+    }
+}
+
 /// Test-control requests go only to the disposable home, never the app's transport.
 /// Race one request (never a retry) against the same load deadline as native observations.
 /// URLSession cancellation joins the request before the caller resumes.
@@ -49,20 +76,17 @@ enum phoneTestSession {
         if !gradesBudgets { request.timeoutInterval = phoneRequestBudget(budget) }
         let command = original.url?.lastPathComponent ?? ""
         let diagnostic = ["keyboard-before-launch", "keyboard-attach", "keyboard-ready", "keyboard-detach"].contains(command)
-            ? PhoneKeyboardDiagnostic(phase: command) : nil
+            ? PhoneKeyboardDiagnostic(phase: command, correlation: original.value(forHTTPHeaderField: "X-Phone-Keyboard-Diagnostic-ID")) : nil
         if let diagnostic { request.setValue(diagnostic.id, forHTTPHeaderField: "X-Phone-Keyboard-Diagnostic-ID") }
         let prepared = request
         diagnostic?.record("request-start", ["budgetSeconds": budget, "transportTimeoutSeconds": prepared.timeoutInterval])
         do {
-            let result = try await withThrowingTaskGroup(of: (Data, URLResponse).self) { group in
+            let result = try await withThrowingTaskGroup(of: PhoneControlResult.self) { group in
                 group.addTask {
                     do {
-                        let result = try await session.data(for: prepared)
-                        diagnostic?.record("transport-completed", ["status": (result.1 as? HTTPURLResponse)?.statusCode ?? 0])
-                        return result
+                        return PhoneControlResult(child: .transport, result: .success(try await session.data(for: prepared)), deadline: nil)
                     } catch {
-                        diagnostic?.record("transport-failed", error: error)
-                        throw error
+                        return PhoneControlResult(child: .transport, result: .failure(error), deadline: nil)
                     }
                 }
                 group.addTask {
@@ -71,25 +95,20 @@ enum phoneTestSession {
                         while !deadline.expired() {
                             try await Task.sleep(for: .seconds(PhoneWaitDeadline.tick))
                         }
-                        diagnostic?.record("deadline-expired", deadline.diagnosticReading())
-                        throw URLError(.timedOut)
+                        return PhoneControlResult(child: .deadline, result: .failure(URLError(.timedOut)), deadline: deadline)
                     } catch {
-                        diagnostic?.record("deadline-task-failed", deadline.diagnosticReading(), error: error)
-                        throw error
+                        return PhoneControlResult(child: .deadline, result: .failure(error), deadline: deadline)
                     }
                 }
-                defer {
-                    diagnostic?.record("group-cancelling-remaining-children")
-                    group.cancelAll()
+                defer { group.cancelAll() }
+                let first = try await group.next()!
+                // Logging cannot delay cancellation or change which child wins the race.
+                group.cancelAll()
+                first.record("group-selected", diagnostic: diagnostic)
+                while let remaining = try await group.next() {
+                    remaining.record("group-remaining-child", diagnostic: diagnostic)
                 }
-                do {
-                    let first = try await group.next()!
-                    diagnostic?.record("group-selected-response")
-                    return first
-                } catch {
-                    diagnostic?.record("group-selected-error", error: error)
-                    throw error
-                }
+                return try first.result.get()
             }
             diagnostic?.record("request-completed")
             return result

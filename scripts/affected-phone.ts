@@ -39,6 +39,7 @@ const INPUTS = [
   // reads: each part's recorded work, the hinge helper's source, the Face ID helper's source (INF-7013) and the library
   // photo a part chooses (test-phone.ts's LIBRARY_PHOTO). tests/phone-ci.test.ts holds every module the launcher loads
   // to this list.
+  "tests/helpers/phoneKeyboardDiagnostics.ts", "scripts/phone-key-processes.ts",
   "tests/helpers/phonePhotos.ts", "tests/helpers/budgets.ts", "tests/helpers/loadClock.ts", "tests/helpers/scratchDirs.ts",
   "tests/helpers/runScratchFolders.ts", "scripts/moduleRunner.ts", "scripts/checks-mode.ts", "scripts/heavy-run-place.ts",
   "scripts/phone-hinge.ts", "scripts/phone-hinge.m", "scripts/phone-face-id.m", "scripts/phone-work.json",

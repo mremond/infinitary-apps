@@ -32,8 +32,10 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 /// No priming press, held modifier or delay: the requested chord is the only key event, sent once after the witness.
 /// App-side keyCommands, elapsed time and repeated key presses are not readiness witnesses.
 @MainActor func pressPhoneKey(_ key: String, modifiers: XCUIElement.KeyModifierFlags, in app: XCUIApplication) async throws {
+    let diagnosticId = UUID().uuidString
     let control = try XCTUnwrap(ProcessInfo.processInfo.environment["PHONE_TEST_HOME"])
     var request = URLRequest(url: try XCTUnwrap(URL(string: control + "/keyboard-ready")))
+    request.setValue(diagnosticId, forHTTPHeaderField: "X-Phone-Keyboard-Diagnostic-ID")
     request.httpMethod = "POST"
     request.timeoutInterval = 40
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -46,8 +48,8 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     request.httpBody = try JSONSerialization.data(withJSONObject: [
         "key": canonicalKey, "modifiers": modifierNames
     ])
-    try await phoneKeyboardReadiness(attach: {
-        try await phoneKeyboardAttachment(true, control: control)
+    try await phoneKeyboardReadiness(diagnosticId: diagnosticId, attach: {
+        try await phoneKeyboardAttachment(true, control: control, diagnosticId: diagnosticId)
     }, wait: {
         PhoneWaitForKeyQuiescence(app)
     }, registration: {
@@ -66,29 +68,29 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         }
         print("Keyboard registration acknowledged: \(witness)")
     }, detach: {
-        try await phoneKeyboardAttachment(false, control: control)
+        try await phoneKeyboardAttachment(false, control: control, diagnosticId: diagnosticId)
     })
     // Xcode 26.4's typist generates no HID event for the Return constant (CR).
     // LF generates the actual Return key (usage page 7, code 0x28), routed as CR by backboardd.
     // Keep CR for the registration witness; send that physical key exactly once.
-    try phoneKeyEvent(canonicalKey) {
+    try phoneKeyEvent(canonicalKey, diagnosticId: diagnosticId) {
         app.typeKey(canonicalKey == "\r" ? "\n" : canonicalKey == "\t" ? "\t" : key, modifierFlags: modifiers)
     }
 }
 
 @MainActor func phoneKeyboardReadiness(
-    failures: PhoneFailures = .shared,
+    failures: PhoneFailures = .shared, diagnosticId: String = UUID().uuidString,
     attach: @MainActor () async throws -> Void, wait: () -> String?,
     registration: @MainActor () async throws -> Void, detach: @MainActor () async throws -> Void
 ) async throws {
     let result: Result<Void, Error>
     do {
-        try await phoneKeyAsyncPhase("keyboard attachment", failures: failures, attach)
-        try phoneKeyPhase("the fresh main-run-loop wait", key: nil, failures: failures, wait)
-        try await phoneKeyAsyncPhase("keyboard registration", failures: failures, registration)
+        try await phoneKeyAsyncPhase("keyboard attachment", failures: failures, diagnosticId: diagnosticId, attach)
+        try phoneKeyPhase("the fresh main-run-loop wait", key: nil, failures: failures, diagnosticId: diagnosticId, wait)
+        try await phoneKeyAsyncPhase("keyboard registration", failures: failures, diagnosticId: diagnosticId, registration)
         result = .success(())
     } catch { result = .failure(error) }
-    do { try await phoneKeyAsyncPhase("keyboard detachment", failures: failures, cleanup: true, detach) }
+    do { try await phoneKeyAsyncPhase("keyboard detachment", failures: failures, cleanup: true, diagnosticId: diagnosticId, detach) }
     catch {
         if case .failure(let original) = result {
             throw NSError(domain: "PhoneKeyboard", code: 6, userInfo: [NSLocalizedDescriptionKey:
@@ -99,11 +101,12 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
     try result.get()
 }
 
-@MainActor private func phoneKeyboardAttachment(_ attached: Bool, control: String) async throws {
+@MainActor private func phoneKeyboardAttachment(_ attached: Bool, control: String, diagnosticId: String) async throws {
     let command = attached ? "keyboard-attach" : "keyboard-detach"
     var request = URLRequest(url: try XCTUnwrap(URL(string: control + "/" + command)))
     request.httpMethod = "POST"
     request.timeoutInterval = 40
+    request.setValue(diagnosticId, forHTTPHeaderField: "X-Phone-Keyboard-Diagnostic-ID")
     let (data, response) = try await phoneTestSession.data(for: request)
     guard (response as? HTTPURLResponse)?.statusCode == 200,
           let state = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -114,14 +117,14 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 }
 
 /// Swift cannot catch the Objective-C exceptions XCTest raises while resolving an alert snapshot.
-@MainActor func phoneKeyEvent(_ key: String, failures: PhoneFailures = .shared, _ send: () -> Void) throws {
-    try phoneKeyPhase("key delivery", key: key, failures: failures) { PhoneCatchKeyException(send) }
+@MainActor func phoneKeyEvent(_ key: String, failures: PhoneFailures = .shared, diagnosticId: String? = nil, _ send: () -> Void) throws {
+    try phoneKeyPhase("key delivery", key: key, failures: failures, diagnosticId: diagnosticId) { PhoneCatchKeyException(send) }
 }
 
 @MainActor func phoneKeyPhase(
-    _ phase: String, key: String?, failures: PhoneFailures = .shared, _ action: () -> String?
+    _ phase: String, key: String?, failures: PhoneFailures = .shared, diagnosticId: String? = nil, _ action: () -> String?
 ) throws {
-    let diagnostic = PhoneKeyboardDiagnostic(phase: phase)
+    let diagnostic = PhoneKeyboardDiagnostic(phase: phase, correlation: diagnosticId)
     diagnostic.record("phase-start", ["issueCount": failures.count])
     do {
         let checkpoint = failures.count
@@ -149,9 +152,9 @@ let englishPhone = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
 
 @MainActor private func phoneKeyAsyncPhase(
     _ phase: String, failures: PhoneFailures, cleanup: Bool = false,
-    _ action: @MainActor () async throws -> Void
+    diagnosticId: String? = nil, _ action: @MainActor () async throws -> Void
 ) async throws {
-    let diagnostic = PhoneKeyboardDiagnostic(phase: phase)
+    let diagnostic = PhoneKeyboardDiagnostic(phase: phase, correlation: diagnosticId)
     diagnostic.record("phase-start", ["issueCount": failures.count, "cleanup": cleanup])
     do {
         let checkpoint = failures.count

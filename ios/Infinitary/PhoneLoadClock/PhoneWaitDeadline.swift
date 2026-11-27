@@ -10,7 +10,7 @@ let gradesBudgets = ProcessInfo.processInfo.environment["INFINITARY_PERF_BUDGETS
 /// two ticks across a stall, and slows when the one-minute load exceeds the processor count.
 /// Each observation still ends at min(20 × budget, 10 minutes) on the monotonic wall clock,
 /// and a budget longer than 10 minutes at its own length (`phoneRequestBudget`).
-struct PhoneWaitDeadline {
+struct PhoneWaitDeadline: Sendable {
     private let budget: TimeInterval
     private let graded: Bool
     private let started: TimeInterval
@@ -28,9 +28,9 @@ struct PhoneWaitDeadline {
         last = now
     }
 
-    func diagnosticReading() -> [String: Any] {
+    func diagnosticReading(now: TimeInterval = ProcessInfo.processInfo.systemUptime) -> [String: Any] {
         ["budgetSeconds": budget, "graded": graded, "countedSeconds": counted,
-         "elapsedSeconds": ProcessInfo.processInfo.systemUptime - started,
+         "elapsedSeconds": now - started,
          "processorShare": share, "wallCapSeconds": graded ? budget : phoneRequestBudget(budget)]
     }
 

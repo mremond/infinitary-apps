@@ -4,8 +4,13 @@ import { join } from "node:path";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { deferred } from "./helpers/deferred";
 import { startPhoneHome } from "./helpers/phoneHome";
-import { PhoneKeyRegistrations } from "./helpers/phoneKeyboard";
 import {
+  PhoneKeyRegistrations,
+  phoneKeyOutcome,
+  phoneLogMilliseconds,
+} from "./helpers/phoneKeyboard";
+import {
+  PhoneKeyRoutingDiagnostics,
   phoneKeyboardError,
   phoneKeyDiagnosticDestinations,
 } from "./helpers/phoneKeyboardDiagnostics";
@@ -89,17 +94,19 @@ test("a real disconnected registration request is recorded before its observer s
   const home = await startPhoneHome(scratchDir("infinitary-keyboard-disconnect-"), {
     start: async () => {},
     stop: async () => {},
-    keyboardReady: async (chord) => {
+    keyboardReady: async (chord, diagnosticId) => {
       started.resolve();
-      return registrations.wait(54571, chord);
+      return registrations.wait(54571, chord, diagnosticId);
     },
   });
   const client = new AbortController();
+  const correlation = randomUUID();
   try {
     const request = fetch(`${home.url}/keyboard-ready`, {
       method: "POST",
       body: JSON.stringify({ key: "[", modifiers: ["cmd"] }),
       signal: client.signal,
+      headers: { "x-phone-keyboard-diagnostic-id": correlation },
     });
     const aborted = expect(request).rejects.toMatchObject({ name: "AbortError" });
     await started.promise;
@@ -116,6 +123,21 @@ test("a real disconnected registration request is recorded before its observer s
       .filter((record) => record.phase === "keyboard-ready")
       .map((record) => record.event);
     expect(events.indexOf("response-closed")).toBeLessThan(events.indexOf("owner-failed"));
+    expect([
+      ...new Set(
+        diagnostic.records
+          .filter(
+            (record) =>
+              record.phase === "keyboard-ready" || record.phase === "registration-witness",
+          )
+          .map((record) => record.id),
+      ),
+    ]).toEqual([correlation]);
+    expect(
+      diagnostic.records
+        .filter((record) => record.phase === "registration-witness")
+        .map((record) => record.id),
+    ).toEqual([correlation, correlation]);
     expect(diagnostic.records.find((record) => record.event === "owner-failed")?.errors).toEqual([
       { type: "Error" },
     ]);
@@ -142,11 +164,152 @@ test("extracts diagnostic destinations from the existing real open Duo Tab readi
   const event =
     "sequence starting with Keyboard event: <sq: 0x10e1f4310; (<keyboardFocus; display: 8AF25958-F0CD-4018-B5E2-12C18B2E53A7; pid: 94709; token: 0xA8B58429>)>";
   expect(phoneKeyDiagnosticDestinations([event])).toEqual([
-    { pid: 94709, display: "8AF25958-F0CD-4018-B5E2-12C18B2E53A7", token: "0xA8B58429" },
+    {
+      event,
+      destinations: [
+        { pid: 94709, display: "8AF25958-F0CD-4018-B5E2-12C18B2E53A7", token: "0xA8B58429" },
+      ],
+    },
   ]);
   expect(
     phoneKeyDiagnosticDestinations([
       "sequence starting with Keyboard event: <sq: 0x10c614540; (no destinations)>",
     ]),
-  ).toEqual([]);
+  ).toEqual([
+    {
+      event: "sequence starting with Keyboard event: <sq: 0x10c614540; (no destinations)>",
+      destinations: [],
+    },
+  ]);
+});
+
+// Diagnostic privacy requires dropping unused request fields before the asynchronous owner receives them.
+test("a validated chord drops unused private fields before reaching its registration owner", async () => {
+  const diagnostic = captureDiagnostics();
+  const started = deferred<void>();
+  const registrations = new PhoneKeyRegistrations();
+  let received: unknown;
+  const marker = randomUUID();
+  const home = await startPhoneHome(scratchDir("infinitary-keyboard-projection-"), {
+    start: async () => {},
+    stop: async () => {},
+    keyboardReady: async (chord, diagnosticId) => {
+      received = chord;
+      started.resolve();
+      return registrations.wait(54571, chord, diagnosticId);
+    },
+  });
+  try {
+    const request = fetch(`${home.url}/keyboard-ready`, {
+      method: "POST",
+      body: JSON.stringify({
+        key: "[",
+        modifiers: ["cmd"],
+        privateMarker: marker,
+        id: marker,
+        event: marker,
+      }),
+    });
+    await started.promise;
+    registrations.close();
+    const response = await request;
+    await response.text();
+    expect(response.status).toBe(500);
+    expect(received).toEqual({ key: "[", modifiers: ["cmd"] });
+    expect(JSON.stringify(diagnostic.records)).not.toContain(marker);
+  } finally {
+    registrations.close();
+    await home.close();
+    diagnostic.restore();
+  }
+});
+
+// This is the existing public open-Duo reading; the outcome-owner tests own its delivery verdict.
+const duoRecord = {
+  processImagePath: "/usr/libexec/backboardd",
+  timestamp: "2026-11-19 11:14:03.663978-0800",
+  eventMessage:
+    "sequence starting with Keyboard event: <sq: 0x10e1f4310; (<keyboardFocus; display: 8AF25958-F0CD-4018-B5E2-12C18B2E53A7; pid: 94709; token: 0xA8B58429>)>",
+};
+
+test.each(["stalled", "failed"] as const)(
+  "a %s identity read cannot replace or delay a completed key's HTTP response",
+  async (mode) => {
+    const diagnostic = captureDiagnostics();
+    const missing = join(scratchDir("infinitary-keyboard-process-error-"), "missing");
+    const routing = new PhoneKeyRoutingDiagnostics(
+      mode === "stalled"
+        ? (_pids, signal) =>
+            new Promise((_resolve, reject) => {
+              signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+            })
+        : async () => {
+            await readFile(missing);
+            return "";
+          },
+    );
+    const at = phoneLogMilliseconds(duoRecord.timestamp);
+    const pressed = phoneKeyOutcome([duoRecord], 94709, at, at);
+    const home = await startPhoneHome(scratchDir("infinitary-keyboard-response-"), {
+      start: async () => {},
+      stop: async () => {},
+      key: async (key) => ({ key, ...routing.observe(94709, pressed) }),
+      keyboardClosed: () => routing.close(),
+    });
+    try {
+      const response = await fetch(`${home.url}/key-tab`, { method: "POST" });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        key: "tab",
+        pid: 94709,
+        outcome: "delivered",
+        proof: [duoRecord.eventMessage],
+      });
+      await home.close();
+      expect(
+        diagnostic.records.filter((record) => record.event === "identity-read-failed"),
+      ).toHaveLength(1);
+    } finally {
+      await routing.close();
+      await home.close();
+      diagnostic.restore();
+    }
+  },
+);
+
+test("routing diagnostics retain ambiguous events and missing proof without inventing one destination", async () => {
+  const diagnostic = captureDiagnostics();
+  const routing = new PhoneKeyRoutingDiagnostics(async () => "");
+  const at = phoneLogMilliseconds(duoRecord.timestamp);
+  const otherEvent =
+    "sequence starting with Keyboard event: <sq: 0x1089f4540; (<keyboardFocus; display: 3A1D0EBF-045B-4591-8C60-635F42F4EB0B; pid: 8556; token: 0x4B2C65FC>)>";
+  try {
+    // These recorded Duo and iPhone-control lines must keep their separate candidate identities.
+    routing.observe(94709, {
+      outcome: "unknown",
+      pid: 94709,
+      proof: [duoRecord.eventMessage, otherEvent],
+    });
+    routing.observe(94709, phoneKeyOutcome([], 94709, at, at));
+    await routing.close();
+    const records = diagnostic.records.filter((record) => record.event === "event-destinations");
+    expect(records[0]).toMatchObject({
+      outcome: "unknown",
+      ambiguous: true,
+      missingProof: false,
+      evidence: [
+        { event: duoRecord.eventMessage, destinations: [{ pid: 94709 }] },
+        { event: otherEvent, destinations: [{ pid: 8556 }] },
+      ],
+    });
+    expect(records[1]).toMatchObject({
+      outcome: "unknown",
+      ambiguous: false,
+      missingProof: true,
+      evidence: [],
+    });
+  } finally {
+    await routing.close();
+    diagnostic.restore();
+  }
 });
