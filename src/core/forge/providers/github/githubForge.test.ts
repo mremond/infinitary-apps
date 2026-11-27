@@ -1102,6 +1102,44 @@ describe("GitHubForge", () => {
       ]),
     );
     expect(finished.items.filter((item) => item.advisory !== undefined)).toHaveLength(2);
+
+    // A rerun of the advisory workflow, before GitHub registers its jobs: the
+    // earlier run's failed job waits on the rerun and still holds nothing.
+    const rerun = {
+      ...contributors,
+      id: 45960000001,
+      run_number: 140,
+      check_suite_id: 124330000001,
+      status: "in_progress",
+      conclusion: null,
+    };
+    versionRuns = [ci, batch, contributors, rerun];
+    checkRuns = [
+      ...ciChecks,
+      ...batchChecks,
+      { ...contributorChecks[0]!, conclusion: "failure" },
+      contributorChecks[1]!,
+    ];
+    const retried = await forge([contributors.path]).checks(change);
+    expect(
+      retried.items
+        .filter((item) => item.name === desktop || item.name === installer)
+        .map(({ state, advisory }) => ({ state, advisory })),
+    ).toEqual([
+      { state: "neutral", advisory: "pending" },
+      { state: "neutral", advisory: "pending" },
+    ]);
+    expect(overall(retried)).toBe("green");
+    // The same rerun of a required workflow holds the change until its jobs finish.
+    const ciRerun = { ...rerun, path: ci.path, workflow_id: ci.workflow_id, run_number: 1440 };
+    versionRuns = [ci, batch, contributors, ciRerun];
+    checkRuns = [...ciChecks, ...batchChecks, ...contributorChecks];
+    const required = await forge([contributors.path]).checks(change);
+    expect(required.items.find((item) => item.name === ciChecks[0]!.name)).toEqual({
+      name: ciChecks[0]!.name,
+      state: "pending",
+    });
+    expect(overall(required)).toBe("pending");
   });
 
   it("puts the change in only at the checked head, and closes one without putting it in", async () => {

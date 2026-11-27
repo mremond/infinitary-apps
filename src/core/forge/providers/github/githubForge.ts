@@ -571,8 +571,12 @@ export class GitHubForge implements Forge {
           : `${this.place} could not provide all check runs: ${why}`;
     }
     const workflows = workflowRuns?.workflow_runs ?? [];
+    // Only a check GitHub placed in a run of an advisory file is advisory:
+    // a commit status, or a check in no listed run, holds as read.
+    const advisoryRun = (run: SuiteRunJson) =>
+      !!run.path && !!this.location.advisoryWorkflows?.includes(run.path);
     const read: ForgeCheck[] = [
-      ...this.withoutSupersededRuns(runs.items, workflows),
+      ...this.withoutSupersededRuns(runs.items, workflows, advisoryRun),
       ...statuses.items.map((status) => {
         const state = STATUS_STATES[status.state] ?? ("pending" as const);
         // A status starts when it was first posted; a settled one finished at its last change.
@@ -598,13 +602,7 @@ export class GitHubForge implements Forge {
         });
       }
     }
-    // Only a check GitHub placed in a run of an advisory file is advisory:
-    // a commit status, or a check in no listed run, holds as read.
-    const advisory = new Set(
-      workflows
-        .filter((run) => run.path && this.location.advisoryWorkflows?.includes(run.path))
-        .map((run) => run.id),
-    );
+    const advisory = new Set(workflows.filter(advisoryRun).map((run) => run.id));
     const marked = read.map((check) =>
       check.run !== undefined && advisory.has(check.run) ? asAdvisory(check) : check,
     );
@@ -634,9 +632,14 @@ export class GitHubForge implements Forge {
    * rerun's newest attempt decides inside one run. While the later run has
    * not created that check it reads pending; finished without one, the
    * earlier check counts as it reads. A check the app cannot place in a
-   * workflow run counts as it reads, facts preserved.
+   * workflow run counts as it reads, facts preserved. The pending stand-in
+   * keeps no run of its own, so an advisory workflow's is marked here.
    */
-  private withoutSupersededRuns(runs: CheckRunJson[], workflowRuns: SuiteRunJson[]): ForgeCheck[] {
+  private withoutSupersededRuns(
+    runs: CheckRunJson[],
+    workflowRuns: SuiteRunJson[],
+    advisoryRun: (run: SuiteRunJson) => boolean,
+  ): ForgeCheck[] {
     const read = runs.map((run) => {
       const workflow = workflowRuns.find((item) => item.check_suite_id === run.check_suite?.id);
       return {
@@ -673,9 +676,9 @@ export class GitHubForge implements Forge {
       if (decided) return [];
       // The later run holds no check of this name yet: pending until it
       // does, and as it read if the later run finished without one.
-      return later.some((next) => next.status !== "completed")
-        ? [{ name: check.name, state: "pending" }]
-        : [check];
+      if (later.every((next) => next.status === "completed")) return [check];
+      const waiting: ForgeCheck = { name: check.name, state: "pending" };
+      return [advisoryRun(from) ? asAdvisory(waiting) : waiting];
     });
   }
 
