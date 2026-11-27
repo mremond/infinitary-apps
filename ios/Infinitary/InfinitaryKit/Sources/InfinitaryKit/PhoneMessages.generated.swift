@@ -3751,6 +3751,8 @@ public enum PhoneMessages {
     public static func `settingsPhoneStoppedThere`(`home`: String, `reason`: String) -> String { PhoneWords.format("settingsPhoneStoppedThere", [`home`, `reason`]) }
     public static func `settingsPhoneTodayPartial`() -> String { PhoneWords.format("settingsPhoneTodayPartial", []) }
     public static func `settingsPhoneUsageThere`(`home`: String) -> String { PhoneWords.format("settingsPhoneUsageThere", [`home`]) }
+    public static func `settingsProjectsAdvisoryClearsAddress`() -> String { PhoneWords.format("settingsProjectsAdvisoryClearsAddress", []) }
+    public static func `settingsProjectsAdvisoryClearsTarget`() -> String { PhoneWords.format("settingsProjectsAdvisoryClearsTarget", []) }
     public static func `settingsProjectsAdvisoryDescription`() -> String { PhoneWords.format("settingsProjectsAdvisoryDescription", []) }
     public static func `settingsProjectsAdvisoryInvalid`() -> String { PhoneWords.format("settingsProjectsAdvisoryInvalid", []) }
     public static func `settingsProjectsAdvisoryLabel`() -> String { PhoneWords.format("settingsProjectsAdvisoryLabel", []) }
@@ -8587,6 +8589,8 @@ extension PhoneWords {
         "settingsPhoneStoppedThere": ["home", "reason"],
         "settingsPhoneTodayPartial": [],
         "settingsPhoneUsageThere": ["home"],
+        "settingsProjectsAdvisoryClearsAddress": [],
+        "settingsProjectsAdvisoryClearsTarget": [],
         "settingsProjectsAdvisoryDescription": [],
         "settingsProjectsAdvisoryInvalid": [],
         "settingsProjectsAdvisoryLabel": [],

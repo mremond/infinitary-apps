@@ -52,3 +52,15 @@ export function sameAdvisoryRepository(
     chosen.name.toLowerCase() === read.name?.toLowerCase()
   );
 }
+
+/**
+ * Whether moving a project to `origin` clears its advisory workflows, as
+ * RepoRegistry.configure does: a list stays with the repository it was
+ * chosen for. Every place that changes a project's repository says so first.
+ */
+export function clearsAdvisoryWorkflows(
+  repo: { origin?: string | null; advisoryWorkflows?: readonly string[] },
+  origin: string | null | undefined,
+): boolean {
+  return !!repo.advisoryWorkflows?.length && !sameAdvisoryRepository(repo.origin, origin);
+}

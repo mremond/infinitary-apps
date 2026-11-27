@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { access } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import { ACTIONS, type ActionActor, type ActionName, isProjectChange } from "@shared/actions";
+import { clearsAdvisoryWorkflows } from "@shared/advisoryWorkflows";
 import { BATCH_GAP_WORDS } from "@shared/batches";
 import { type Card, FIRSTMATE_CARD_META } from "@shared/cards";
 import { DEFAULT_CONTRIBUTOR_DISCLOSURE } from "@shared/contributorDisclosure";
@@ -399,6 +400,13 @@ function changeRows(offer: Offer, devices: readonly DeviceView[]): string {
     previous.kind === "project"
   )
     changes.runsOn = AUTOMATIC_COMPUTER;
+  if (
+    offer.action === "project-settings" &&
+    changes.origin !== undefined &&
+    changes.advisoryWorkflows === undefined &&
+    clearsAdvisoryWorkflows(previous, changes.origin as string | null)
+  )
+    changes.advisoryWorkflows = [];
   const labels: Record<string, string> = {
     name: "Name",
     scope: "Scope",

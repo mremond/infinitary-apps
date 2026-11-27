@@ -12,7 +12,7 @@ import {
   unlinkSync,
 } from "node:fs";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
-import { advisoryWorkflowsSchema, sameAdvisoryRepository } from "@shared/advisoryWorkflows";
+import { advisoryWorkflowsSchema, clearsAdvisoryWorkflows } from "@shared/advisoryWorkflows";
 import { type BatchRecord, batchRecordSchema } from "@shared/batches";
 import {
   type ContributionRoute,
@@ -737,10 +737,8 @@ export class RepoRegistry {
             // i18n-exempt: SQL, never shown
             .prepare("UPDATE repos SET contributor_disclosure = ? WHERE id = ?")
             .run(changes.contributorDisclosure, id);
-        // A list was chosen for the repository the project named then.
         const advisoryWorkflows =
-          changes.advisoryWorkflows ??
-          (repo.advisoryWorkflows && !sameAdvisoryRepository(repo.origin, origin) ? [] : undefined);
+          changes.advisoryWorkflows ?? (clearsAdvisoryWorkflows(repo, origin) ? [] : undefined);
         if (advisoryWorkflows !== undefined)
           this.db
             // i18n-exempt: SQL, never shown

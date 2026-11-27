@@ -3595,6 +3595,8 @@
 "settingsPhoneStoppedThere" = "%2$@ Vuelve a elegir su integración en Configuración → Automatización en %1$@.";
 "settingsPhoneTodayPartial" = "Hoy está incompleto";
 "settingsPhoneUsageThere" = "Las tareas recientes y el detalle de cada modelo están en Configuración → Uso en %1$@.";
+"settingsProjectsAdvisoryClearsAddress" = "Guardar la dirección de otro repositorio borra los flujos de trabajo orientativos de este proyecto, que se eligieron para su repositorio actual.";
+"settingsProjectsAdvisoryClearsTarget" = "Elegir el otro proyecto de destino borra los flujos de trabajo orientativos de este proyecto, que se eligieron para su repositorio actual.";
 "settingsProjectsAdvisoryDescription" = "Las comprobaciones de estos archivos de flujo de trabajo de GitHub, como .github/workflows/early-tests.yml, aparecen en un cambio, pero nunca retienen su fusión ni su lote. Una comprobación que exigen tus reglas de rama de GitHub sigue reteniendo la fusión en GitHub.";
 "settingsProjectsAdvisoryInvalid" = "Indica cada archivo de flujo de trabajo una sola vez, directamente en .github/workflows.";
 "settingsProjectsAdvisoryLabel" = "Archivos de flujos de trabajo orientativos";

@@ -1051,6 +1051,27 @@ describe("approved once-per-project contribution consent", () => {
     expect(tasks.get(snapshot.id)?.delivery?.contribution?.destination).toBe("upstream");
   });
 
+  // docs/forge.md, "Advisory workflows": a list stays with the repository it
+  // was chosen for, so the choice that moves the project says so first.
+  it("says which target clears an imported fork's advisory workflows, and that choice clears them", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, {
+      delivery: "direct-pr",
+      advisoryWorkflows: [".github/workflows/early-tests.yml"],
+    });
+    const service = world.make();
+    await service.discover(world.repo.id);
+    expect(world.offer().body).toContain(
+      CONTRIBUTION_WORDS.clearsAdvisory(CONTRIBUTION_WORDS.contribute),
+    );
+    expect(world.offer().body).not.toContain(
+      CONTRIBUTION_WORDS.clearsAdvisory(CONTRIBUTION_WORDS.keepFork),
+    );
+    await service.answer(world.choose(world.offer(), "contribute-upstream"));
+    expect(world.repos.get(world.repo.id)?.origin).toBe(world.upstream.origin);
+    expect(world.repos.get(world.repo.id)?.advisoryWorkflows).toBeUndefined();
+  });
+
   it("creates a fork only after the consent click and reuses it after reopening the project owner", async () => {
     const world = await fixture(false);
     const service = world.make();

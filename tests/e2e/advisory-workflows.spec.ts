@@ -5,14 +5,17 @@ import { openDatabase } from "../../src/core/storage/db";
 import { TaskStore } from "../../src/core/storage/taskRecords";
 import { PROJECT_POLICY_WORDS } from "../../src/renderer/src/settings/projectsWords";
 import { advisoryCheckWords } from "../../src/shared/checkSnapshot";
+import { CONTRIBUTION_WORDS } from "../../src/shared/contributions";
+import * as m from "../../src/shared/i18n/messages.generated";
 import { CHECK_WORDS, MERGE_WORDS } from "../../src/shared/vocabulary";
 import { scratchDir } from "../helpers/scratchDirs";
+import { startContributionWorld } from "./contributionWorld";
 import { cardBody } from "./frames";
 import { seedGitHubSignIn, seedRepo, startGitHubStub } from "./githubStub";
 import { launchApp, SHORT_TICK } from "./launch";
 import { SPAWN_PROMPT_MARKER } from "./mockProvider";
 import { seedHostedOrigins, seedProject } from "./projectSeed";
-import { projectLine, projectSettings, taskBranch } from "./projects";
+import { openProject, projectLine, projectSettings, taskBranch } from "./projects";
 import { promptInput } from "./prompt";
 import { readSavedData } from "./savedData";
 import {
@@ -323,3 +326,71 @@ for (const batchCase of [
     }
   });
 }
+
+/**
+ * docs/forge.md, "Advisory workflows": the list belongs to the repository it
+ * was chosen for, so Settings says before the change which control would
+ * move the project to another repository and clear it. An imported fork that
+ * contributes to its original (`contributionWorld.ts`) offers both: its
+ * address and its Target project. Completion signals are the two notes and
+ * the saved project's address and list.
+ */
+test("Settings says before the change that another repository clears the advisory workflows", async () => {
+  const world = await startContributionWorld(true);
+  try {
+    const { page } = world.app;
+    const title = CONTRIBUTION_WORDS.destinationTitle(world.repo.name);
+    await showCard(page, title);
+    await shownCard(page, title)
+      .getByRole("button", { name: CONTRIBUTION_WORDS.contribute, exact: true })
+      .click();
+    const saved = async () =>
+      (await page.evaluate(() => window.infinitary.repos.list())).find(
+        (repo) => repo.id === world.repo.id,
+      );
+    await expect.poll(async () => (await saved())?.origin).toBe(world.forge.upstream.clone_url);
+    await page.evaluate(
+      ({ id, advisory }) =>
+        window.infinitary.repos.configure(id, {
+          delivery: "direct-pr",
+          advisoryWorkflows: [advisory],
+        }),
+      { id: world.repo.id, advisory: ADVISORY },
+    );
+
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await page.getByRole("tab", { name: "Projects", exact: true }).click();
+    const row = await openProject(page, world.repo.id);
+    const targetNote = row.getByText(PROJECT_POLICY_WORDS.advisoryClearsTarget, { exact: true });
+    const addressNote = row.getByText(PROJECT_POLICY_WORDS.advisoryClearsAddress, { exact: true });
+    const address = row.getByRole("textbox", {
+      name: m.settingsProjectsOriginLabel(),
+      exact: true,
+    });
+    await expect(
+      row.getByRole("textbox", { name: PROJECT_POLICY_WORDS.advisoryLabel }),
+    ).toHaveValue(ADVISORY);
+    await expect(targetNote).toBeVisible();
+    await expect(addressNote).toHaveCount(0);
+
+    // The same repository, spelled another way, keeps the list; the fork's address would clear it.
+    await address.fill("git@github.com:Examples/Project.git");
+    await expect(addressNote).toHaveCount(0);
+    await address.fill(world.forge.fork.clone_url);
+    await expect(addressNote).toBeVisible();
+    await address.fill(world.forge.upstream.clone_url);
+    await expect(addressNote).toHaveCount(0);
+
+    const original = row.getByRole("radio", { name: CONTRIBUTION_WORDS.upstream, exact: true });
+    await focusOn(original, { focusVisible: true });
+    await pressKey(original, "ArrowRight");
+    await expect(
+      row.getByRole("radio", { name: CONTRIBUTION_WORDS.fork, exact: true }),
+    ).toBeChecked();
+    await expect.poll(async () => (await saved())?.origin).toBe(world.forge.fork.clone_url);
+    expect((await saved())?.advisoryWorkflows).toBeUndefined();
+    await expect(targetNote).toHaveCount(0);
+  } finally {
+    await world.close();
+  }
+});

@@ -1,4 +1,8 @@
-import { advisoryWorkflowsSchema, typedAdvisoryWorkflows } from "@shared/advisoryWorkflows";
+import {
+  advisoryWorkflowsSchema,
+  clearsAdvisoryWorkflows,
+  typedAdvisoryWorkflows,
+} from "@shared/advisoryWorkflows";
 import {
   BATCH_GAP_CHOICES,
   BATCH_GAP_WORDS,
@@ -616,6 +620,11 @@ function RepositorySettings({
         />
       )}
       {!personal &&
+        repo.contribution?.fork &&
+        [repo.contribution.upstream, repo.contribution.fork].some((project) =>
+          clearsAdvisoryWorkflows(repo, project.origin),
+        ) && <AdvisoryClearsNote words={PROJECT_POLICY_WORDS.advisoryClearsTarget} id={repo.id} />}
+      {!personal &&
         repo.batchesOffered !== false &&
         repo.origin &&
         repo.host &&
@@ -954,6 +963,9 @@ function ProjectDetails({ repo, withName }: { repo: RepoView; withName: boolean 
           />
         }
       />
+      {clearsAdvisoryWorkflows(repo, origin || null) && (
+        <AdvisoryClearsNote words={PROJECT_POLICY_WORDS.advisoryClearsAddress} id={repo.id} />
+      )}
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: ROW_GAP }}>
         <Button
           type="submit"
@@ -967,6 +979,28 @@ function ProjectDetails({ repo, withName }: { repo: RepoView; withName: boolean 
       </div>
       <SettingError error={error} surface="project-details" />
     </form>
+  );
+}
+
+/**
+ * Shown before the change, under the control that makes it: saving the
+ * project at another repository clears its advisory workflows
+ * (`clearsAdvisoryWorkflows`), and nothing restores them.
+ */
+function AdvisoryClearsNote({ words, id }: { words: string; id: string }) {
+  return (
+    <div
+      data-advisory-clears
+      data-repo={id}
+      role="note"
+      style={{
+        fontSize: "var(--text-sm)",
+        color: "var(--warn)",
+        paddingBottom: "var(--space-3)",
+      }}
+    >
+      {words}
+    </div>
   );
 }
 

@@ -930,6 +930,8 @@
   "settingsPhoneStoppedThere": "{reason} Choisissez de nouveau son intégration dans Réglages → Automatisation sur {home}.",
   "settingsPhoneTodayPartial": "Aujourd’hui est incomplet",
   "settingsPhoneUsageThere": "Les tâches récentes et le détail de chaque modèle se trouvent dans Réglages → Utilisation sur {home}.",
+  "settingsProjectsAdvisoryClearsAddress": "Enregistrer l’adresse d’un autre dépôt efface les workflows indicatifs de ce projet, choisis pour son dépôt actuel.",
+  "settingsProjectsAdvisoryClearsTarget": "Choisir l’autre projet cible efface les workflows indicatifs de ce projet, choisis pour son dépôt actuel.",
   "settingsProjectsAdvisoryDescription": "Les vérifications de ces fichiers de workflow GitHub, comme .github/workflows/early-tests.yml, s’affichent sur une modification, mais ne retiennent jamais sa fusion ni son lot. Une vérification exigée par vos règles de branche GitHub retient toujours la fusion sur GitHub.",
   "settingsProjectsAdvisoryInvalid": "Indiquez chaque fichier de workflow une seule fois, directement dans .github/workflows.",
   "settingsProjectsAdvisoryLabel": "Fichiers des workflows indicatifs",

@@ -894,6 +894,8 @@
   "settingsPhoneStoppedThere": "{reason}連携は、{home} の「設定 → 自動化」で選び直してください。",
   "settingsPhoneTodayPartial": "今日はまだ途中です",
   "settingsPhoneUsageThere": "最近のタスクと各モデルの詳細は、{home} の「設定 → 使用量」にあります。",
+  "settingsProjectsAdvisoryClearsAddress": "別のリポジトリのアドレスを保存すると、このプロジェクトの参考ワークフローは消去されます。現在のリポジトリ用に選ばれたものだからです。",
+  "settingsProjectsAdvisoryClearsTarget": "もう一方の対象プロジェクトを選ぶと、このプロジェクトの参考ワークフローは消去されます。現在のリポジトリ用に選ばれたものだからです。",
   "settingsProjectsAdvisoryDescription": "これらの GitHub ワークフローファイル（.github/workflows/early-tests.yml など）のチェックは変更に表示されますが、マージや一括プルリクエストを止めることはありません。GitHub のブランチルールで必須のチェックは、引き続き GitHub 上でマージを止めます。",
   "settingsProjectsAdvisoryInvalid": "各ワークフローファイルを .github/workflows の直下で一度ずつ指定してください。",
   "settingsProjectsAdvisoryLabel": "参考ワークフローのファイル",

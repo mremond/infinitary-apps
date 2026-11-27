@@ -984,6 +984,8 @@
   "settingsPhoneStoppedThere": "{reason} اختر تكاملها مجددًا في الإعدادات ← الأتمتة على {home}.",
   "settingsPhoneTodayPartial": "اليوم غير مكتمل",
   "settingsPhoneUsageThere": "المهام الأخيرة وتفاصيل كل نموذج موجودة في الإعدادات ← الاستخدام على {home}.",
+  "settingsProjectsAdvisoryClearsAddress": "يمسح حفظُ عنوان مستودع آخر مساراتِ العمل الاستشارية لهذا المشروع، لأنها اختيرت لمستودعه الحالي.",
+  "settingsProjectsAdvisoryClearsTarget": "يمسح اختيارُ المشروع الهدف الآخر مساراتِ العمل الاستشارية لهذا المشروع، لأنها اختيرت لمستودعه الحالي.",
   "settingsProjectsAdvisoryDescription": "تظهر فحوصات ملفات مسارات عمل GitHub هذه، مثل .github/workflows/early-tests.yml، على التغيير، لكنها لا تعلّق دمجه ولا دفعته أبدًا. ويظل الفحص الذي تشترطه قواعد الفروع في GitHub يعلّق الدمج على GitHub.",
   "settingsProjectsAdvisoryInvalid": "اذكر كل ملف مسار عمل مرة واحدة، مباشرة في .github/workflows.",
   "settingsProjectsAdvisoryLabel": "ملفات مسارات العمل الاستشارية",

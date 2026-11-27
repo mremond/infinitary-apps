@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { clearsAdvisoryWorkflows } from "@shared/advisoryWorkflows";
 import { type Card, FIRSTMATE_CARD_META } from "@shared/cards";
 import {
   CONTRIBUTION_WORDS,
@@ -168,6 +169,14 @@ export class ProjectContributions {
     if (!route) return;
     const name = escapeCardText(repo.name);
     const choice = route.destination === null;
+    const clearing = (
+      [
+        [route.upstream, CONTRIBUTION_WORDS.contribute],
+        [route.fork, CONTRIBUTION_WORDS.keepFork],
+      ] as const
+    ).flatMap(([project, label]) =>
+      project && clearsAdvisoryWorkflows(repo, project.origin) ? [label] : [],
+    );
     const arg = (action: string) =>
       `contribution:${JSON.stringify({ repo: repo.id, action, before: stamp(route) })}`;
     const action = (id: string, label: string, picked: string, primary = false) => ({
@@ -183,7 +192,7 @@ export class ProjectContributions {
         : CONTRIBUTION_WORDS.consentTitle(repo.name),
       meta: FIRSTMATE_CARD_META,
       body: choice
-        ? `<p>${name} is your fork of <span class="inf-mono">${escapeCardText(route.upstream.fullName)}</span>.</p><p>Contribute to the original project, or keep changes in your fork.</p><p>You can change Target project in Settings → Projects later.</p>`
+        ? `<p>${name} is your fork of <span class="inf-mono">${escapeCardText(route.upstream.fullName)}</span>.</p><p>Contribute to the original project, or keep changes in your fork.</p>${clearing.map((label) => `<p>${escapeCardText(CONTRIBUTION_WORDS.clearsAdvisory(label))}</p>`).join("")}<p>You can change Target project in Settings → Projects later.</p>`
         : route.creationAttempted
           ? `<p>The host has not confirmed your fork of ${name} yet.</p><p>Infinitary will read the result before sending anything else. It will not repeat an uncertain request.</p>`
           : `<p>Your sign-in cannot push to ${name}. Making your fork lets Infinitary contribute changes to its maintainers.</p><p>Infinitary asks once for this project, reuses your fork, and leaves merging to the maintainers.</p>`,

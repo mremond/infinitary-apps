@@ -2921,6 +2921,8 @@
   {"said":{"m":"settingsPhoneStoppedThere","a":{"home":"‹home›","reason":"‹reason›"}},"words":"‹reason› Pick its integration again in Settings → Automation on ‹home›."},
   {"said":{"m":"settingsPhoneTodayPartial"},"words":"Today is partial"},
   {"said":{"m":"settingsPhoneUsageThere","a":{"home":"‹home›"}},"words":"Recent tasks and each model's detail are in Settings → Usage on ‹home›."},
+  {"said":{"m":"settingsProjectsAdvisoryClearsAddress"},"words":"Saving another repository's address clears this project's advisory workflows, which were chosen for its current repository."},
+  {"said":{"m":"settingsProjectsAdvisoryClearsTarget"},"words":"Choosing the other target project clears this project's advisory workflows, which were chosen for its current repository."},
   {"said":{"m":"settingsProjectsAdvisoryDescription"},"words":"Checks from these GitHub workflow files, such as .github/workflows/early-tests.yml, show on a change but never hold its merge or its batch. A check your GitHub branch rules require still holds the merge on GitHub."},
   {"said":{"m":"settingsProjectsAdvisoryInvalid"},"words":"Name each workflow file once, directly in .github/workflows."},
   {"said":{"m":"settingsProjectsAdvisoryLabel"},"words":"Advisory workflow files"},

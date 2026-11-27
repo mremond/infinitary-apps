@@ -1,5 +1,7 @@
+import { tmpdir } from "node:os";
 import type { Card } from "@shared/cards";
 import type { DeviceView } from "@shared/devices";
+import * as m from "@shared/i18n/messages.generated";
 import { AUTOMATIC_COMPUTER } from "@shared/placement";
 import type { RepoView } from "@shared/repos";
 import { describe, expect, it } from "vitest";
@@ -99,6 +101,52 @@ describe("the app's exact-change card", () => {
       "Off",
       "On",
     ]);
+  });
+
+  // docs/forge.md, "Advisory workflows": the registry clears a list chosen
+  // for another repository, so the card shows it before the click. The
+  // detected address arrives the way a folder whose remote changed reports it.
+  it("shows the advisory workflows becoming none when the address names another repository", async () => {
+    const project: RepoView = {
+      ...WEBSITE,
+      path: tmpdir(),
+      advisoryWorkflows: [".github/workflows/early-tests.yml"],
+    };
+    const raised: Omit<Card, "author" | "priority" | "status" | "createdAt">[] = [];
+    const changes = new ProjectChanges({
+      repos: {
+        get: () => project,
+        checkDetails: async () => {},
+        detectedOrigin: async () => "https://github.com/someone-else/website.git",
+      } as unknown as RepoRegistry,
+      devices: () => [],
+      raiseCard: (card) => raised.push(card),
+      tell: () => {},
+    });
+    changes.bindDispatch((async (channel: string) => {
+      if (channel === "inf:repos:list") return [project];
+      throw new Error(`No ${channel} here.`);
+    }) as CoreDispatch);
+    const advisoryRow = (body: string | undefined) =>
+      body
+        ?.match(
+          new RegExp(
+            `<tr><th>${m.settingsProjectsAdvisoryTitle()}</th><td[^>]*>([^<]*)</td><td[^>]*>([^<]*)</td></tr>`,
+          ),
+        )
+        ?.slice(1);
+    await changes.inspect(project.id);
+    expect(advisoryRow(raised[0]?.body)).toEqual([
+      ".github/workflows/early-tests.yml",
+      m.settingsProjectsAdvisoryNone(),
+    ]);
+    await changes.request(
+      "project-settings",
+      { repoId: project.id, changes: { origin: "git@github.com:Someone/Website.git" } },
+      { kind: "firstmate", wake: "other" },
+    );
+    expect(raised[1]?.body).toContain("git@github.com:Someone/Website.git");
+    expect(advisoryRow(raised[1]?.body)).toBeUndefined();
   });
 
   it("offers a primary Apply change as the default and a ghost Not now", async () => {

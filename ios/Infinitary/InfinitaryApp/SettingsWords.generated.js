@@ -9819,6 +9819,60 @@ ${events}` : prompt;
     }
     return `Recent tasks and each model's detail are in Settings → Usage on ${home}.`;
   }
+  function settingsProjectsAdvisoryClearsAddress() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `يمسح حفظُ عنوان مستودع آخر مساراتِ العمل الاستشارية لهذا المشروع، لأنها اختيرت لمستودعه الحالي.`;
+      case "de":
+        return `Wenn du die Adresse eines anderen Repositorys speicherst, werden die unverbindlichen Workflows dieses Projekts gelöscht, denn sie wurden für sein aktuelles Repository gewählt.`;
+      case "es":
+        return `Guardar la dirección de otro repositorio borra los flujos de trabajo orientativos de este proyecto, que se eligieron para su repositorio actual.`;
+      case "fr":
+        return `Enregistrer l’adresse d’un autre dépôt efface les workflows indicatifs de ce projet, choisis pour son dépôt actuel.`;
+      case "ja":
+        return `別のリポジトリのアドレスを保存すると、このプロジェクトの参考ワークフローは消去されます。現在のリポジトリ用に選ばれたものだからです。`;
+      case "ko":
+        return `다른 저장소의 주소를 저장하면 이 프로젝트의 참고용 워크플로가 지워져요. 지금 저장소에 맞춰 고른 것이기 때문이에요.`;
+      case "pt-BR":
+        return `Salvar o endereço de outro repositório apaga os fluxos de trabalho informativos deste projeto, escolhidos para o repositório atual dele.`;
+      case "zh-Hans":
+        return `保存另一个仓库的地址会清除这个项目的参考工作流，因为它们是为当前仓库选的。`;
+      case "zh-Hant":
+        return `儲存另一個存放庫的位址會清除這個專案的參考工作流程，因為它們是為目前的存放庫選的。`;
+      case "en-XA":
+        return `[Šáṽîñĝ áñöţĥéŕ ŕéþöšîţöŕý'š áððŕéšš çļéáŕš ţĥîš þŕöĵéçţ'š áðṽîšöŕý ŵöŕķƒļöŵš, ŵĥîçĥ ŵéŕé çĥöšéñ ƒöŕ îţš çûŕŕéñţ ŕéþöšîţöŕý. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Saving another repository's address clears this project's advisory workflows, which were chosen for its current repository.‬`;
+    }
+    return `Saving another repository's address clears this project's advisory workflows, which were chosen for its current repository.`;
+  }
+  function settingsProjectsAdvisoryClearsTarget() {
+    switch (currentLanguage()) {
+      case "ar":
+        return `يمسح اختيارُ المشروع الهدف الآخر مساراتِ العمل الاستشارية لهذا المشروع، لأنها اختيرت لمستودعه الحالي.`;
+      case "de":
+        return `Wenn du das andere Zielprojekt wählst, werden die unverbindlichen Workflows dieses Projekts gelöscht, denn sie wurden für sein aktuelles Repository gewählt.`;
+      case "es":
+        return `Elegir el otro proyecto de destino borra los flujos de trabajo orientativos de este proyecto, que se eligieron para su repositorio actual.`;
+      case "fr":
+        return `Choisir l’autre projet cible efface les workflows indicatifs de ce projet, choisis pour son dépôt actuel.`;
+      case "ja":
+        return `もう一方の対象プロジェクトを選ぶと、このプロジェクトの参考ワークフローは消去されます。現在のリポジトリ用に選ばれたものだからです。`;
+      case "ko":
+        return `다른 대상 프로젝트를 고르면 이 프로젝트의 참고용 워크플로가 지워져요. 지금 저장소에 맞춰 고른 것이기 때문이에요.`;
+      case "pt-BR":
+        return `Escolher o outro projeto de destino apaga os fluxos de trabalho informativos deste projeto, escolhidos para o repositório atual dele.`;
+      case "zh-Hans":
+        return `选择另一个目标项目会清除这个项目的参考工作流，因为它们是为当前仓库选的。`;
+      case "zh-Hant":
+        return `選擇另一個目標專案會清除這個專案的參考工作流程，因為它們是為目前的存放庫選的。`;
+      case "en-XA":
+        return `[Çĥööšîñĝ ţĥé öţĥéŕ ţáŕĝéţ þŕöĵéçţ çļéáŕš ţĥîš þŕöĵéçţ'š áðṽîšöŕý ŵöŕķƒļöŵš, ŵĥîçĥ ŵéŕé çĥöšéñ ƒöŕ îţš çûŕŕéñţ ŕéþöšîţöŕý. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~]`;
+      case "ar-XB":
+        return `‮Choosing the other target project clears this project's advisory workflows, which were chosen for its current repository.‬`;
+    }
+    return `Choosing the other target project clears this project's advisory workflows, which were chosen for its current repository.`;
+  }
   function settingsProjectsAdvisoryDescription() {
     switch (currentLanguage()) {
       case "ar":
@@ -19479,6 +19533,12 @@ ${events}` : prompt;
     },
     get advisoryInvalid() {
       return settingsProjectsAdvisoryInvalid();
+    },
+    get advisoryClearsAddress() {
+      return settingsProjectsAdvisoryClearsAddress();
+    },
+    get advisoryClearsTarget() {
+      return settingsProjectsAdvisoryClearsTarget();
     },
     /** Under the rows of a project that merges locally and asks for Careful. */
     get carefulLocal() {

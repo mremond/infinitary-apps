@@ -89,6 +89,12 @@ export const PROJECT_POLICY_WORDS = {
   get advisoryInvalid() {
     return m.settingsProjectsAdvisoryInvalid();
   },
+  get advisoryClearsAddress() {
+    return m.settingsProjectsAdvisoryClearsAddress();
+  },
+  get advisoryClearsTarget() {
+    return m.settingsProjectsAdvisoryClearsTarget();
+  },
   /** Under the rows of a project that merges locally and asks for Careful. */
   get carefulLocal() {
     return m.settingsProjectsLocalCareful();
