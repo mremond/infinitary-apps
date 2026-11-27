@@ -12,7 +12,12 @@ import {
 import type { FmEvent } from "@shared/events";
 import { forgeOf } from "@shared/forge";
 import { said, saidMark } from "@shared/i18n/said";
-import { deliveryForRecord, opensPullRequest, type RepoView } from "@shared/repos";
+import {
+  ADVISORY_WORKFLOWS_RESET_REFUSAL,
+  deliveryForRecord,
+  opensPullRequest,
+  type RepoView,
+} from "@shared/repos";
 import { type Forge, ForgeAllowanceSpent, ForgeError, ForgeWriteError } from "../forge";
 import { escapeCardText } from "../orchestrator/cardText";
 import type { TaskService } from "../tasks/taskService";
@@ -414,22 +419,20 @@ export class ProjectContributions {
     const branch = same
       ? undefined
       : await this.options.forgeFor({ ...repo, origin }).defaultBranch();
-    await this.preservePrepared(repo);
     const preferredPush = await git(repo.path, ["config", "--get", "remote.origin.pushurl"]).catch(
       () => "",
     );
     // The reads above wait on the host, and a list saved meanwhile was never
-    // shown as cleared: compare before the first write, then hold the
-    // project's advisory saves until its address is written.
+    // shown as cleared: compare before the first write, which pins prepared
+    // tasks' routes, then hold the project's advisory saves until its
+    // address is written.
     const current = this.options.repos.get(repoId);
     if (!current || JSON.stringify(clearingChoices(current)) !== reset)
-      throw new ResetChanged(
-        // i18n-exempt: served to the first mate's model; Settings shows the project again instead
-        "The project's advisory workflows changed while its target project was read. Nothing changed; choose its target project again.",
-      );
+      throw new ResetChanged(ADVISORY_WORKFLOWS_RESET_REFUSAL);
     const release = this.options.repos.holdAdvisoryWorkflows(repoId);
     let updated: RepoView;
     try {
+      await this.preservePrepared(repo);
       if (branch) {
         await git(repo.path, [
           "fetch",

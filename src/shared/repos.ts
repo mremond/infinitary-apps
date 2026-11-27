@@ -301,6 +301,10 @@ export const ADVISORY_WORKFLOWS_MOVED_REFUSAL =
 export const ADVISORY_WORKFLOWS_TARGET_REFUSAL =
   "This project's target project is changing. Name its advisory workflows again once the change is done.";
 
+// i18n-exempt: served to the first mate's model
+export const ADVISORY_WORKFLOWS_RESET_REFUSAL =
+  "The project's advisory workflows changed while its target project was read. Nothing changed; choose its target project again.";
+
 export const NO_CHECKS_REFUSAL =
   "Require pull request checks can be turned off only for a project whose changes go through pull requests on GitHub, GitLab or Bitbucket. This project's changes do not, so no check holds its merge.";
 

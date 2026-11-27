@@ -12,7 +12,11 @@ import {
 import type { FmEvent } from "@shared/events";
 import { said, saidMark } from "@shared/i18n/said";
 import { PULL_REQUEST_COMMENTS_WAKE } from "@shared/pullComments";
-import { ADVISORY_WORKFLOWS_TARGET_REFUSAL, type RepoView } from "@shared/repos";
+import {
+  ADVISORY_WORKFLOWS_RESET_REFUSAL,
+  ADVISORY_WORKFLOWS_TARGET_REFUSAL,
+  type RepoView,
+} from "@shared/repos";
 import { MERGE_WORDS } from "@shared/vocabulary";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -1149,7 +1153,7 @@ describe("approved once-per-project contribution consent", () => {
     await read.reading;
     world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
     read.resume();
-    await expect(switching).rejects.toThrow("Nothing changed");
+    await expect(switching).rejects.toThrow(ADVISORY_WORKFLOWS_RESET_REFUSAL);
     expect(world.repos.get(world.repo.id)).toMatchObject({
       origin: world.fork.origin,
       advisoryWorkflows: pilot,
@@ -1158,6 +1162,46 @@ describe("approved once-per-project contribution consent", () => {
     expect(await git(world.folder, ["config", "--get", "remote.origin.url"])).toBe(
       world.fork.origin,
     );
+  });
+
+  // A target change pins each prepared task to the repository it was made
+  // for; a refused one writes nothing, so a task prepared after the project's
+  // route was read stays unpinned, its working copy's remotes as they were.
+  it("leaves a prepared task's route and its working copy's remotes alone when the target change is refused", async () => {
+    const world = await fixture();
+    world.repos.configure(world.repo.id, { delivery: "direct-pr" });
+    const tasks = new TaskService({ db: world.db, strict: true });
+    const workspace = new WorkspaceService(world.paths, { pool: false });
+    const service = world.make(() => true, tasks);
+    await service.discover(world.repo.id);
+    const prepared = await workspace.createTaskWorktree("prepared-before-target", world.folder);
+    const task = seedTask(tasks, {
+      id: prepared.taskId,
+      title: "Prepared fork work",
+      repoId: world.repo.id,
+      repoDir: world.folder,
+      worktreeDir: prepared.cwd,
+      branch: prepared.branch,
+      status: "idle",
+    });
+    const remotes = () =>
+      git(prepared.cwd, ["config", "--get-regexp", "^(remote|branch)\\."]).catch(() => "");
+    const before = await remotes();
+    const read = pauseBranchRead(world);
+    const switching = service.choose(world.repo.id, "upstream", false);
+    await read.reading;
+    world.repos.configure(world.repo.id, { advisoryWorkflows: pilot });
+    read.resume();
+    await expect(switching).rejects.toThrow(ADVISORY_WORKFLOWS_RESET_REFUSAL);
+    expect(tasks.get(task.id)?.delivery?.publicationOrigin).toBeUndefined();
+    expect(await remotes()).toBe(before);
+
+    await service.choose(world.repo.id, "upstream", false);
+    expect(world.repos.get(world.repo.id)?.origin).toBe(world.upstream.origin);
+    expect(tasks.get(task.id)?.delivery?.publicationOrigin).toBe(world.fork.origin);
+    expect(await configuredTaskRemote(prepared.cwd)).toBe(taskRemoteName(prepared.branch));
+    await workspace.removeTaskWorktree(prepared);
+    await workspace.deletionsSettled();
   });
 
   it("refuses a list saved while a target change writes the project's addresses", async () => {
