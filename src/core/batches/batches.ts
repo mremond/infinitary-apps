@@ -1046,10 +1046,11 @@ export class Batches {
     const [ran] = repo.noChecks ? checksThatRan(checks.items) : [];
     if (ran)
       this.options.repos.endNoChecks(repo.id, { check: ran.name, change: forge.label(change) });
-    // The same reading a change's own pull request takes: every check passed
-    // or skipped is green, and a reading where no check ran - none at all, or
-    // only skipped ones - is green only where every member's own version was
-    // declared to run none. The failed checks the repair judged passed on a
+    // The same reading a change's own pull request takes: every check that
+    // holds passed or skipped is green, an advisory one holding nothing in
+    // any state, and a reading where no check ran - none at all, or only
+    // skipped or advisory ones - is green only where every member's own
+    // version was declared to run none. The failed checks the repair judged passed on a
     // rerun are answered at this version; any other check, one that fails
     // later included, still counts.
     const answered = open.passed?.head === open.head ? open.passed.checks : [];

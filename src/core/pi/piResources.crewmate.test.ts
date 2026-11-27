@@ -522,8 +522,13 @@ describe("buildCrewmateSystemPrompt (contract v2.0: policy only, one note per ba
       "A failed run that is not one of the pull request's own checks is yours to handle like a failed command, never a merge input; if it stays failed, your merge card names the run, what failed and why it lies outside this change.",
     );
     // INF-2114: a project recorded as running no checks needs no declaration per version.
+    // docs/forge.md, "Advisory workflows": an advisory check holds nothing,
+    // so a reading of only advisory ones is as empty as one of skipped ones.
     expect(prompt).toContain(
-      "A reading where no check ran, none registered or every one skipped, is pending, not no checks, until you declare their absence with check_change's absentChecks from positive evidence, adding project true when the project's default branch runs none; once a project is recorded as running none, its readings say so and need no declaration.",
+      "Green means every current-version check that holds the merge succeeded or was skipped, never pending or unreadable; an advisory check, as check_change marks it, holds nothing in any state, so never wait on it.",
+    );
+    expect(prompt).toContain(
+      "A reading where no check ran, none registered or every one skipped or advisory, is pending, not no checks, until you declare their absence with check_change's absentChecks from positive evidence, adding project true when the project's default branch runs none; once a project is recorded as running none, its readings say so and need no declaration.",
     );
     // The freshness rule is the host's: a completion card is refused unless
     // the checks it reads at that moment passed (INF-490).

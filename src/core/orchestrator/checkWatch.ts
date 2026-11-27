@@ -97,7 +97,10 @@ export type WatchedReading =
       head: string;
       change: string;
       pending: WatchedCheck[];
-      /** A complete reading where no check ran: none reported, or every one skipped. */
+      /**
+       * A complete reading where no check that holds ran: none reported, or
+       * every one skipped or advisory.
+       */
       noneStarted?: boolean;
       /** Red checks seen while others still run. Absent when none are red. */
       failing?: WatchedCheck[];

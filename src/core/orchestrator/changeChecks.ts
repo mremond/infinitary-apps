@@ -964,8 +964,8 @@ function changesCheckState(
 }
 
 /**
- * A complete reading where no check ran - none reported, or every one
- * skipped. It stays pending until the crew declares absence (docs/forge.md),
+ * A complete reading where no check that holds ran - none reported, or
+ * every one skipped or advisory. It stays pending until the crew declares absence (docs/forge.md),
  * but nothing is running for a wake to report on.
  */
 function noneStarted(checks: { items: { state: ForgeCheckState }[]; complete?: boolean }): boolean {

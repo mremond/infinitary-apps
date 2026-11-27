@@ -56,7 +56,7 @@ export const CHECK_CHANGE_TOOL_DESCRIPTION = [
   "Read the latest pull request's checks, runs, workflows, events, mergeability and version changes. facts.main: the failed check's latest default-branch run, evidence of cause, never a merge input.",
   "The merge card signals readiness. Checks hold merges; the captain authorizes them separately. Declare only flake, settled or answered, with headSha and evidence. Settle at the repair's headSha with repairId and outcome; explain renamed jobs. Facts list absent repair checks without guessing replacements.",
   "repair records your fix. Judge readiness, flakes, settlement and when to stop from your delivery guidance, not a host count. Raw readings never settle a repair.",
-  "Empty or all-skipped hosted readings stay pending. absentChecks records positive no-CI evidence from trusted default-branch policy and the local gate, with pull or on your own PR; time, history or missing workflows prove nothing.",
+  "Empty, all-skipped or advisory-only hosted readings stay pending; an advisory check holds nothing in any state. absentChecks records positive no-CI evidence from trusted default-branch policy and the local gate, with pull or on your own PR; time, history or missing workflows prove nothing.",
   "The app wakes you on first failure and completion of watched checks; end your turn. No watchable checks means no wake.",
   "conflictRepair and captainGuidance grant no fresh merge consent.",
   "A merge past branch rules names its review on a card without presentation. A saved-story merge card gives presentation and omits review: pull selected the change. Otherwise put pull's review id in the merge effect; after says whether the task continues or closes.",
