@@ -30,8 +30,13 @@ import XCTest
         let sceneWords = PhoneSceneRoster.words(task, computer: computer)
         print("NATIVE_MAINTAINER_WAIT status=\(status.reason) scene=\(sceneWords) working=\(PhoneSceneRoster.working(task))")
         XCTAssertEqual(task.workPosture?.maintainers, true)
-        XCTAssertEqual(status.reason, fixture.facts.status.reason)
-        XCTAssertEqual(sceneWords, fixture.facts.status.reason)
+        // The desktop fixture is English; native readers use the simulator's catalog language.
+        let maintainerReason = PhoneMessages.phoneWaitingMaintainers()
+        XCTAssertEqual(status.reason, maintainerReason)
+        XCTAssertEqual(sceneWords, maintainerReason)
+        if PhoneWords.language == "en" {
+            XCTAssertEqual(maintainerReason, fixture.facts.status.reason)
+        }
         XCTAssertFalse(PhoneSceneRoster.working(task))
         XCTAssertNil(PhoneSceneRoster.wait(task))
         let frame = PhoneSceneMotion().frame(roster: roster, now: 0, settled: true)
