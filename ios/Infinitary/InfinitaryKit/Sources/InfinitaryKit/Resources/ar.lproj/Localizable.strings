@@ -1917,6 +1917,7 @@
 "phoneCardsTakePhoto" = "التقاط صورة";
 "phoneCardsTaskKeyHint" = "يفتح سجلها";
 "phoneCharacterFirstMate" = "نائب القبطان";
+"phoneChecksAdvisory" = "استشاري، %1$@";
 "phoneChecksAfterDuration" = "%2$@ بعد %1$@";
 "phoneChecksAllowedToFail" = "مسموح بفشلها";
 "phoneChecksCancelled" = "أُلغيت";

@@ -100,6 +100,7 @@
   "phoneCardsTakePhoto": "사진 찍기",
   "phoneCardsTaskKeyHint": "작업 기록을 열어요",
   "phoneCharacterFirstMate": "일등항해사",
+  "phoneChecksAdvisory": "참고용, {state}",
   "phoneChecksAfterDuration": "{duration} 후 {words}",
   "phoneChecksAllowedToFail": "실패 허용",
   "phoneChecksCancelled": "취소됨",

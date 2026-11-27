@@ -349,6 +349,12 @@ try {
       // INF-4557: a GitLab job that failed where its project allows it holds nothing and says so.
       ["a check allowed to fail", { delivery: { ...pr, ci: "green",
         checks: { ...checks(["success"]), items: [{ name: "check-1", state: "success" }, { name: "lint", state: "neutral", failureAllowed: true }] } } }],
+      // A check from an advisory workflow holds nothing and says the state its host reported;
+      // a reading where only one ran waits as an empty one does (docs/forge.md, "Advisory workflows").
+      ["a check from an advisory workflow", { delivery: { ...pr, ci: "green",
+        checks: { ...checks(["success"]), items: [{ name: "check-1", state: "success" }, { name: "early-tests", state: "neutral", advisory: "failure" }] } } }],
+      ["only an advisory check", { delivery: { ...pr, ci: "pending", ciStartedAt: now - 2 * min,
+        checks: { ...checks([], { complete: true }), items: [{ name: "early-tests", state: "neutral", advisory: "pending" }] } } }],
       ["no checks reported yet", { delivery: { ...pr, ci: "pending", ciStartedAt: now - 2 * min, checks: checks([]) } }],
       // INF-3915: PR #1600's first reading, one skipped check before the checks that run registered.
       ["only a skipped check", { delivery: { ...pr, ci: "pending", ciStartedAt: now - 2 * min, checks: checks(["skipped"], { complete: true }) } }],

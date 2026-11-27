@@ -4898,6 +4898,208 @@
       }
     },
     {
+      "name": "a check from an advisory workflow",
+      "row": {
+        "id": "t-1887",
+        "key": "INF-1887",
+        "projectId": "p-inf",
+        "parentId": null,
+        "kind": "work",
+        "title": "Show the crewmate's checks on the phone",
+        "goal": "Show the crewmate's checks on the phone",
+        "priority": 0,
+        "status": "active",
+        "activity": "running",
+        "workPosture": {
+          "state": "active",
+          "reason": "turn"
+        },
+        "closedReason": null,
+        "startPolicy": "when-ready",
+        "flags": {
+          "blocked": false,
+          "held": false,
+          "needsYou": false,
+          "ready": false
+        },
+        "blockedBy": [],
+        "blocks": [],
+        "children": {
+          "total": 0,
+          "closed": 0
+        },
+        "assignee": "crewmate",
+        "model": "openai-codex/gpt-6.1-terra",
+        "tier": "high",
+        "repo": {
+          "name": "infinitary",
+          "branch": "fm/task-1887"
+        },
+        "delivery": {
+          "mode": "direct-pr",
+          "prNumber": 612,
+          "prUrl": "https://github.com/infinitary-labs/infinitary/pull/612",
+          "headSha": "c0ffee1",
+          "ci": "green",
+          "checks": {
+            "headSha": "c0ffee1",
+            "items": [
+              {
+                "name": "check-1",
+                "state": "success"
+              },
+              {
+                "name": "early-tests",
+                "state": "neutral",
+                "advisory": "failure"
+              }
+            ],
+            "absenceDeclared": false
+          }
+        },
+        "outcomeSummary": null,
+        "waitingCardId": null,
+        "createdAt": 1793287800000,
+        "updatedAt": 1793293080000,
+        "startedAt": 1793288400000,
+        "closedAt": null
+      },
+      "facts": {
+        "key": "INF-1887",
+        "status": {
+          "mark": "working",
+          "word": "Working",
+          "reason": ""
+        },
+        "title": "Show the crewmate's checks on the phone",
+        "model": "GPT-6.1 Terra",
+        "tier": "high",
+        "reasoning": null,
+        "reason": null,
+        "delivery": {
+          "change": {
+            "noun": "Pull request",
+            "label": "#612",
+            "url": "https://github.com/infinitary-labs/infinitary/pull/612"
+          },
+          "checks": {
+            "dot": "ok",
+            "words": "1 passed · 1 advisory, failed",
+            "state": "passed",
+            "at": null,
+            "span": null
+          },
+          "review": null
+        },
+        "browser": null,
+        "label": "Working",
+        "checksWords": "1 passed · 1 advisory, failed",
+        "checksStateWords": "passed"
+      }
+    },
+    {
+      "name": "only an advisory check",
+      "row": {
+        "id": "t-1887",
+        "key": "INF-1887",
+        "projectId": "p-inf",
+        "parentId": null,
+        "kind": "work",
+        "title": "Show the crewmate's checks on the phone",
+        "goal": "Show the crewmate's checks on the phone",
+        "priority": 0,
+        "status": "active",
+        "activity": "running",
+        "workPosture": {
+          "state": "active",
+          "reason": "turn"
+        },
+        "closedReason": null,
+        "startPolicy": "when-ready",
+        "flags": {
+          "blocked": false,
+          "held": false,
+          "needsYou": false,
+          "ready": false
+        },
+        "blockedBy": [],
+        "blocks": [],
+        "children": {
+          "total": 0,
+          "closed": 0
+        },
+        "assignee": "crewmate",
+        "model": "openai-codex/gpt-6.1-terra",
+        "tier": "high",
+        "repo": {
+          "name": "infinitary",
+          "branch": "fm/task-1887"
+        },
+        "delivery": {
+          "mode": "direct-pr",
+          "prNumber": 612,
+          "prUrl": "https://github.com/infinitary-labs/infinitary/pull/612",
+          "headSha": "c0ffee1",
+          "ci": "pending",
+          "ciStartedAt": 1793293080000,
+          "checks": {
+            "headSha": "c0ffee1",
+            "items": [
+              {
+                "name": "early-tests",
+                "state": "neutral",
+                "advisory": "pending"
+              }
+            ],
+            "absenceDeclared": false,
+            "complete": true
+          }
+        },
+        "outcomeSummary": null,
+        "waitingCardId": null,
+        "createdAt": 1793287800000,
+        "updatedAt": 1793293080000,
+        "startedAt": 1793288400000,
+        "closedAt": null
+      },
+      "facts": {
+        "key": "INF-1887",
+        "status": {
+          "mark": "working",
+          "word": "Working",
+          "reason": ""
+        },
+        "title": "Show the crewmate's checks on the phone",
+        "model": "GPT-6.1 Terra",
+        "tier": "high",
+        "reasoning": null,
+        "reason": null,
+        "delivery": {
+          "change": {
+            "noun": "Pull request",
+            "label": "#612",
+            "url": "https://github.com/infinitary-labs/infinitary/pull/612"
+          },
+          "checks": {
+            "dot": "running",
+            "words": "advisory, running",
+            "state": "none reported",
+            "at": null,
+            "span": {
+              "startedAt": 1793293080000,
+              "finishedAt": null,
+              "joint": "for"
+            }
+          },
+          "review": null
+        },
+        "browser": null,
+        "label": "Working",
+        "checksWords": "advisory, running for 2m",
+        "checksStateWords": "none reported for 2m"
+      }
+    },
+    {
       "name": "no checks reported yet",
       "row": {
         "id": "t-1887",

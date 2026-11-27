@@ -279,13 +279,14 @@ public struct PhoneTaskFacts: Sendable {
                                 words: absent ? PhoneMessages.phoneTaskFactsChecksNone() : incomplete ? unknownWords : PhoneMessages.phoneTaskFactsChecksNoneReported(),
                                 dot: absent ? "idle" : reading.problem != nil ? "warn" : "running", problem: reading.problem)
         }
-        // A check a person must start says so, and so does one its project allows to fail;
-        // every other check says its state.
+        // A check a person must start says so, and so do one its project allows to fail and an
+        // advisory one, with the state its host reported; every other check says its state.
         var order: [String] = [], counts: [String: Int] = [:]
         for check in reading.items {
-            let word = check.manual == true ? PhoneMessages.phoneChecksWaitingToStart()
-                : check.failureAllowed == true ? PhoneMessages.phoneChecksAllowedToFail()
-                : checkStateWords[check.state] ?? check.state
+            let word = check.advisory.map { PhoneMessages.phoneChecksAdvisory(state: checkStateWords[$0] ?? $0) }
+                ?? (check.manual == true ? PhoneMessages.phoneChecksWaitingToStart()
+                    : check.failureAllowed == true ? PhoneMessages.phoneChecksAllowedToFail()
+                    : checkStateWords[check.state] ?? check.state)
             if counts[word] == nil { order.append(word) }
             counts[word, default: 0] += 1
         }
@@ -314,17 +315,20 @@ public struct PhoneTaskFacts: Sendable {
         if summary.overall == "red" { return PhoneMessages.phoneChecksFailed() }
         if reading.problem != nil { return PhoneMessages.phoneTaskFactsChecksUnreadable() }
         if reading.items.isEmpty { return summary.words }
-        // Only skipped checks never read passed, even once declared (INF-3915).
-        if noCheckRan(reading) && reading.complete != false { return PhoneMessages.phoneChecksSkipped() }
+        // Only skipped checks never read passed, even once declared (INF-3915); advisory ones
+        // beside them leave none reported, since they decide nothing.
+        if noCheckRan(reading) && reading.complete != false {
+            return reading.items.contains { $0.advisory != nil } ? PhoneMessages.phoneTaskFactsChecksNoneReported() : PhoneMessages.phoneChecksSkipped()
+        }
         if summary.overall == "green" { return PhoneMessages.phoneChecksPassed() }
         if reading.items.contains(where: { $0.state == "pending" }) { return PhoneMessages.phoneChecksRunning() }
         if reading.complete == false { return PhoneMessages.phoneTaskFactsChecksIncomplete() }
         return PhoneMessages.phoneChecksWaitingToStart()
     }
 
-    /// No check that ran: none at all, or only skipped ones (`noCheckRan`, INF-3915).
+    /// No check that ran: none at all, or only skipped and advisory ones (`noCheckRan`, INF-3915).
     static func noCheckRan(_ reading: PhoneTask.Delivery.CheckSnapshot) -> Bool {
-        reading.items.allSatisfy { $0.state == "skipped" }
+        reading.items.allSatisfy { $0.state == "skipped" || $0.advisory != nil }
     }
 
     /// The reading for the change's current version; one of an earlier version says so.

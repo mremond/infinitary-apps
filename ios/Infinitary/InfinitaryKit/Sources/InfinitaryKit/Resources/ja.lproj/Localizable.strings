@@ -1917,6 +1917,7 @@
 "phoneCardsTakePhoto" = "写真を撮る";
 "phoneCardsTaskKeyHint" = "記録を開きます";
 "phoneCharacterFirstMate" = "一等航海士";
+"phoneChecksAdvisory" = "参考、%1$@";
 "phoneChecksAfterDuration" = "%2$@（%1$@後）";
 "phoneChecksAllowedToFail" = "失敗を許容";
 "phoneChecksCancelled" = "キャンセル";

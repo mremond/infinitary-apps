@@ -280,7 +280,8 @@ public struct PhoneTask: Decodable, Identifiable, Sendable {
             public let absenceDeclared: Bool?
             /// `manual`: a check a person must start, such as a GitLab manual job; it holds (`checkItemSchema`).
             /// `failureAllowed`: a neutral check that failed where its project allows it; it holds nothing.
-            public struct Item: Decodable, Sendable { public let name: String; public let state: String; public let manual: Bool?; public let failureAllowed: Bool? }
+            /// `advisory`: the state the host reported for a neutral check from one of the project's advisory workflows; it holds nothing in any state.
+            public struct Item: Decodable, Sendable { public let name: String; public let state: String; public let manual: Bool?; public let failureAllowed: Bool?; public let advisory: String? }
         }
         public struct RunChecks: Decodable, Sendable {
             public let state: String

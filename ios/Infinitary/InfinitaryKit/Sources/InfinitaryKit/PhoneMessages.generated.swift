@@ -2009,6 +2009,7 @@ public enum PhoneMessages {
     public static func `phoneCardsTakePhoto`() -> String { PhoneWords.format("phoneCardsTakePhoto", []) }
     public static func `phoneCardsTaskKeyHint`() -> String { PhoneWords.format("phoneCardsTaskKeyHint", []) }
     public static func `phoneCharacterFirstMate`() -> String { PhoneWords.format("phoneCharacterFirstMate", []) }
+    public static func `phoneChecksAdvisory`(`state`: String) -> String { PhoneWords.format("phoneChecksAdvisory", [`state`]) }
     public static func `phoneChecksAfterDuration`(`duration`: String, `words`: String) -> String { PhoneWords.format("phoneChecksAfterDuration", [`duration`, `words`]) }
     public static func `phoneChecksAllowedToFail`() -> String { PhoneWords.format("phoneChecksAllowedToFail", []) }
     public static func `phoneChecksCancelled`() -> String { PhoneWords.format("phoneChecksCancelled", []) }
@@ -6834,6 +6835,7 @@ extension PhoneWords {
         "phoneCardsTakePhoto": [],
         "phoneCardsTaskKeyHint": [],
         "phoneCharacterFirstMate": [],
+        "phoneChecksAdvisory": ["state"],
         "phoneChecksAfterDuration": ["duration", "words"],
         "phoneChecksAllowedToFail": [],
         "phoneChecksCancelled": [],

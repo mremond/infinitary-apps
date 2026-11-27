@@ -108,6 +108,7 @@
   "phoneCardsTakePhoto": "Tomar foto",
   "phoneCardsTaskKeyHint": "Abre su registro",
   "phoneCharacterFirstMate": "Tu primer oficial",
+  "phoneChecksAdvisory": "orientativo, {state}",
   "phoneChecksAfterDuration": "{words} tras {duration}",
   "phoneChecksAllowedToFail": "fallo permitido",
   "phoneChecksCancelled": "canceladas",

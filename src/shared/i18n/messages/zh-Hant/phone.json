@@ -100,6 +100,7 @@
   "phoneCardsTakePhoto": "拍照",
   "phoneCardsTaskKeyHint": "開啟它的紀錄",
   "phoneCharacterFirstMate": "你的大副",
+  "phoneChecksAdvisory": "參考，{state}",
   "phoneChecksAfterDuration": "{duration}後{words}",
   "phoneChecksAllowedToFail": "允許失敗",
   "phoneChecksCancelled": "已取消",

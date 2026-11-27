@@ -1917,6 +1917,7 @@
 "phoneCardsTakePhoto" = "Tirar foto";
 "phoneCardsTaskKeyHint" = "Abre o registro dela";
 "phoneCharacterFirstMate" = "Seu imediato";
+"phoneChecksAdvisory" = "informativo, %1$@";
 "phoneChecksAfterDuration" = "%2$@ após %1$@";
 "phoneChecksAllowedToFail" = "falha permitida";
 "phoneChecksCancelled" = "cancelado";

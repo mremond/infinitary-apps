@@ -1917,6 +1917,7 @@
 "phoneCardsTakePhoto" = "Foto aufnehmen";
 "phoneCardsTaskKeyHint" = "Öffnet ihr Protokoll";
 "phoneCharacterFirstMate" = "Dein erster Offizier";
+"phoneChecksAdvisory" = "unverbindlich, %1$@";
 "phoneChecksAfterDuration" = "%2$@ nach %1$@";
 "phoneChecksAllowedToFail" = "Fehlschlag erlaubt";
 "phoneChecksCancelled" = "abgebrochen";

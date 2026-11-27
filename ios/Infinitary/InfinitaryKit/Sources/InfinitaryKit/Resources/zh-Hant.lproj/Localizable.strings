@@ -1917,6 +1917,7 @@
 "phoneCardsTakePhoto" = "拍照";
 "phoneCardsTaskKeyHint" = "開啟它的紀錄";
 "phoneCharacterFirstMate" = "你的大副";
+"phoneChecksAdvisory" = "參考，%1$@";
 "phoneChecksAfterDuration" = "%1$@後%2$@";
 "phoneChecksAllowedToFail" = "允許失敗";
 "phoneChecksCancelled" = "已取消";
