@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BATCH_CHECK } from "./batches";
+import { BATCH_CHECK, type BatchChecksReading } from "./batches";
 import type { FactDotState } from "./factDot";
 import * as m from "./i18n/messages.generated.ts";
 
@@ -193,6 +193,23 @@ export function checksThatRan<
       item.name !== BATCH_CHECK &&
       !item.name.startsWith(`${BATCH_CHECK} [`),
   );
+}
+
+/**
+ * The counts the Batches panel shows of a batch's checks (docs/forge.md,
+ * "The Batches panel"), of the checks that decide the batch alone: an
+ * advisory check, running or failed, is never counted as passed.
+ */
+export function batchCounts(items: readonly CheckItem[]): Omit<BatchChecksReading, "head" | "at"> {
+  const deciding = items.filter((item) => !isAdvisory(item));
+  const failed = deciding.filter((item) => isRedCheckState(item.state));
+  const running = deciding.filter((item) => item.state === "pending").length;
+  return {
+    passed: deciding.length - failed.length - running,
+    failed: failed.length,
+    running,
+    failedNames: failed.map((item) => item.name),
+  };
 }
 
 /** Display-only tally of reported facts; never a readiness or merge decision. */

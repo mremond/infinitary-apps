@@ -20,6 +20,7 @@ import {
   SQUASH_ONLY_WORDS,
 } from "@shared/batches";
 import {
+  batchCounts,
   type CheckItem,
   checkSnapshotSummary,
   checksThatRan,
@@ -323,23 +324,9 @@ export class Batches {
       : undefined;
   }
 
-  /**
-   * Keeps a pass's reading of the open batch's checks, and says so only when
-   * it changed. It counts the checks that decide the batch, so an advisory
-   * one is left out.
-   */
-  private read(repoId: string, head: string, read: readonly CheckItem[]): void {
-    const items = read.filter((item) => item.advisory === undefined);
-    const failed = items.filter((item) => isRedCheckState(item.state));
-    const running = items.filter((item) => item.state === "pending").length;
-    const reading: BatchChecksReading = {
-      head,
-      at: this.options.now(),
-      passed: items.length - failed.length - running,
-      failed: failed.length,
-      running,
-      failedNames: failed.map((item) => item.name),
-    };
+  /** Keeps a pass's reading of the open batch's checks, and says so only when it changed. */
+  private read(repoId: string, head: string, items: readonly CheckItem[]): void {
+    const reading: BatchChecksReading = { head, at: this.options.now(), ...batchCounts(items) };
     const before = this.readings.get(repoId);
     this.readings.set(repoId, reading);
     const { at: _at, ...now } = reading;
